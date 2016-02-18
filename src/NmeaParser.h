@@ -81,7 +81,7 @@ public:
 	//	7 	Date
 	//	8 	Magnetic variation in degrees
 	//	9 	The checksum data, always begins with *
-	static void parseRMC(int& hours, int& minutes, double& seconds,
+	static void parseRMC(const std::string& nmea, int& hours, int& minutes, double& seconds,
 			double& latitude, double& longitude, double& speedknots,
 			double& coursetrue, int& year, int& month, int& day, double& magneticvar);
 };
