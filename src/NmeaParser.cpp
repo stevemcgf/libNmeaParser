@@ -57,9 +57,8 @@ boost::posix_time::time_duration NmeaParser::impl::decodeTime(
 				boost::lexical_cast<int>(m[2].str()));
 		const boost::posix_time::seconds sec(
 				boost::lexical_cast<int>(m[3].str()));
-		const boost::posix_time::milliseconds ms(
-				boost::lexical_cast<int>(
-						boost::lexical_cast<double>(m[4].str()) * 1000));
+		const boost::posix_time::milliseconds ms( (m[4].matched ? boost::lexical_cast<int>(
+					boost::lexical_cast<double>(m[4].str()) * 1000) : 0.0 ));
 		return boost::posix_time::time_duration(hr + min + sec + ms);
 	} else
 		throw std::invalid_argument(*i + " is not hms");
