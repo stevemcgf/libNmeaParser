@@ -9,7 +9,7 @@
 #define SRC_NMEAPARSER_H_
 
 #include <string>
-#include <ctime>
+#include <boost/date_time.hpp>
 #include "NmeaEnums.h"
 
 class NmeaParser {
@@ -28,7 +28,7 @@ public:
 	//	6 	Fixed text "A" shows that data is valid
 	//	7 	The checksum data, always begins with *
 	static void parseGLL(const std::string& nmea, double& latitude,
-			double& longitude, int& hours, int& minutes, double& seconds);
+			double& longitude, boost::posix_time::time_duration& mtime);
 
 	//	GGA message fields
 	//	Field 	Meaning
@@ -81,9 +81,12 @@ public:
 	//	7 	Date
 	//	8 	Magnetic variation in degrees
 	//	9 	The checksum data, always begins with *
-	static void parseRMC(const std::string& nmea, int& hours, int& minutes, double& seconds,
+	static void parseRMC(const std::string& nmea, boost::posix_time::time_duration& mtime,
 			double& latitude, double& longitude, double& speedknots,
-			double& coursetrue, int& year, int& month, int& day, double& magneticvar);
+			double& coursetrue, boost::gregorian::date& mdate, double& magneticvar);
+
+private:
+	class impl;
 };
 
 #endif /* SRC_NMEAPARSER_H_ */
