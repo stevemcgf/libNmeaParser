@@ -423,7 +423,7 @@ std::bitset<10> NmeaParser::parseGGA(const std::string& nmea,
 				ret.set(5, true);
 				itNmea++;
 			}
-			BOOST_LOG_TRIVIAL(debug)<< std::fixed << setprecision(2) << "hdop = " << hdop;
+			BOOST_LOG_TRIVIAL(debug)<< std::fixed << std::setprecision(2) << "hdop = " << hdop;
 
 			/*------------ Position 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, orthometricheight, 0))

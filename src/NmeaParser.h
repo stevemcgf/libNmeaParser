@@ -12,7 +12,6 @@
 #include <string>
 #include <boost/date_time.hpp>
 #include "NmeaEnums.h"
-#include "aisreader.h"
 #include <bitset>
 
 class NmeaParser {
