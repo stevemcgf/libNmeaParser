@@ -246,14 +246,14 @@ std::bitset<6> NmeaParser::parseZDA(const std::string& nmea,
 
 }
 
-std::bitset<5> NmeaParser::parseGLL(const std::string& nmea, double& latitude,
+NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 		double& longitude, boost::posix_time::time_duration& mtime,
 		char& status, char& modeIndicator) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 02  GPGLL --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<5> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -322,7 +322,7 @@ std::bitset<5> NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 }
 
-std::bitset<10> NmeaParser::parseGGA(const std::string& nmea,
+NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, double& latitude,
 		double& longitude, Nmea_GPSQualityIndicator& quality, int& numSV,
 		double& hdop, double& orthometricheight, double& geoidseparation,
@@ -331,7 +331,7 @@ std::bitset<10> NmeaParser::parseGGA(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 03  GPGGA --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<10> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -472,13 +472,13 @@ std::bitset<10> NmeaParser::parseGGA(const std::string& nmea,
 
 }
 
-std::bitset<4> NmeaParser::parseVTG(const std::string& nmea, double& coursetrue,
+NmeaParserResult NmeaParser::parseVTG(const std::string& nmea, double& coursetrue,
 		double& coursemagnetic, double& speedknots, double& speedkph) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 04  GPVTG --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<4> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -539,7 +539,7 @@ std::bitset<4> NmeaParser::parseVTG(const std::string& nmea, double& coursetrue,
 
 }
 
-std::bitset<7> NmeaParser::parseRMC(const std::string& nmea,
+NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, double& latitude,
 		double& longitude, double& speedknots, double& coursetrue,
 		boost::gregorian::date& mdate, double& magneticvar) {
@@ -547,7 +547,7 @@ std::bitset<7> NmeaParser::parseRMC(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 05  GPRMC --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<7> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -632,13 +632,13 @@ std::bitset<7> NmeaParser::parseRMC(const std::string& nmea,
 
 }
 
-std::bitset<3> NmeaParser::parseWPL(const std::string& nmea, double& latitude,
+NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 		double& longitude, std::string& waypointName) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 06  GPWPL --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<3> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -691,14 +691,14 @@ std::bitset<3> NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 
 }
 
-std::bitset<5> NmeaParser::parseRTE(const std::string& nmea,
+NmeaParserResult NmeaParser::parseRTE(const std::string& nmea,
 		double& messagesTransmitted, double& messageNumber, char& messageMode,
 		std::string& routeIdentifier, std::vector<std::string>& revenue1) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 07  GPRTE --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<5> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -776,14 +776,14 @@ std::bitset<5> NmeaParser::parseRTE(const std::string& nmea,
 
 }
 
-std::bitset<4> NmeaParser::parseVHW(const std::string& nmea,
+NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 		double& speedInKnots, char& knots, double& speedInKmH,
 		char& kilometers) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 08  VDVHW --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<4> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -849,13 +849,13 @@ std::bitset<4> NmeaParser::parseVHW(const std::string& nmea,
 
 }
 
-std::bitset<2> NmeaParser::parseMTW(const std::string& nmea, double& degrees,
+NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 		char& celcius) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 09  VDMTW --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<2> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -901,7 +901,7 @@ std::bitset<2> NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 
 }
 
-std::bitset<6> NmeaParser::parseVBW(const std::string& nmea,
+NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 		double& longitudinalWaterSpeed, double& transverseWaterSpeed,
 		char& waterDataStatus, double& longitudinalGroundSpeed,
 		double& transverseGroundSpeed, char& groundDataStatus) {
@@ -909,7 +909,7 @@ std::bitset<6> NmeaParser::parseVBW(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 10  VDVBW --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<6> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -987,14 +987,14 @@ std::bitset<6> NmeaParser::parseVBW(const std::string& nmea,
 
 }
 
-std::bitset<4> NmeaParser::parseVLW(const std::string& nmea,
+NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 		double& totalCumulativeDistance, char& nauticalMiles1,
 		double& distanceSinceReset, char& nauticalMiles2) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 11  VDVLW --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<4> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1056,14 +1056,14 @@ std::bitset<4> NmeaParser::parseVLW(const std::string& nmea,
 
 }
 
-std::bitset<3> NmeaParser::parseDPT(const std::string& nmea,
+NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 		double& waterDepthRelativeToTheTransducer, double& offsetFromTransducer,
 		double& maximumRangeScaleInUse) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 12  SDDPT --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<3> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1117,14 +1117,14 @@ std::bitset<3> NmeaParser::parseDPT(const std::string& nmea,
 
 }
 
-std::bitset<6> NmeaParser::parseDBT(const std::string& nmea,
+NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 		double& waterDepthInFeet, char& feet, double& waterDepthInMeters,
 		char& meters, double& waterDepthInFathoms, char& fathoms) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 13  SDDBT --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<6> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1202,14 +1202,14 @@ std::bitset<6> NmeaParser::parseDBT(const std::string& nmea,
 
 }
 
-std::bitset<6> NmeaParser::parseDBK(const std::string& nmea,
+NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 		double& depthBelowKeelFeet, char& feet, double& depthBelowKeelMeters,
 		char& meters, double& depthBelowKeelFathoms, char& fathoms) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 14  SDDBK --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<6> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1287,7 +1287,7 @@ std::bitset<6> NmeaParser::parseDBK(const std::string& nmea,
 
 }
 
-std::bitset<6> NmeaParser::parsePSKPDPT(const std::string& nmea,
+NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 		double& waterDepthRelativeToTheTransducer, double& offsetFromTransducer,
 		double& maximumRangeScaleInUse, int& bottomEchoStrength,
 		int& echoSounderChannelNumber, std::string& transducerLocation) {
@@ -1295,7 +1295,7 @@ std::bitset<6> NmeaParser::parsePSKPDPT(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 15  PSKPDPT --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<6> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1373,13 +1373,13 @@ std::bitset<6> NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 }
 
-std::bitset<2> NmeaParser::parseHDT(const std::string& nmea,
+NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 		double& headingDegreesTrue, char& t) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 16  HCHDT --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<2> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1425,7 +1425,7 @@ std::bitset<2> NmeaParser::parseHDT(const std::string& nmea,
 
 }
 
-std::bitset<5> NmeaParser::parseHDG(const std::string& nmea,
+NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 		double& magneticSensorHeadingInDegrees,
 		double& magneticDeviationDegrees, char& magneticDeviationDirection,
 		double& magneticVariationDegrees, char& magneticVariationDirection) {
@@ -1433,7 +1433,7 @@ std::bitset<5> NmeaParser::parseHDG(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 17  HCHDG --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<5> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1503,13 +1503,13 @@ std::bitset<5> NmeaParser::parseHDG(const std::string& nmea,
 
 }
 
-std::bitset<2> NmeaParser::parseHDM(const std::string& nmea,
+NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 		double& headingDegreesMagnetic, char& magnetic) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 18  HCHDM --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<2> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1555,13 +1555,13 @@ std::bitset<2> NmeaParser::parseHDM(const std::string& nmea,
 
 }
 
-std::bitset<2> NmeaParser::parseROT(const std::string& nmea, double& rateOfTurn,
+NmeaParserResult NmeaParser::parseROT(const std::string& nmea, double& rateOfTurn,
 		char& status) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 19  TIROT --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<2> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1607,14 +1607,14 @@ std::bitset<2> NmeaParser::parseROT(const std::string& nmea, double& rateOfTurn,
 
 }
 
-std::bitset<5> NmeaParser::parseMWV(const std::string& nmea, double& windAngle,
+NmeaParserResult NmeaParser::parseMWV(const std::string& nmea, double& windAngle,
 		char& reference, double& windSpeed, char& windSpeedUnits,
 		char& sensorStatus) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 20  IIMWV --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<5> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1684,7 +1684,7 @@ std::bitset<5> NmeaParser::parseMWV(const std::string& nmea, double& windAngle,
 
 }
 
-std::bitset<8> NmeaParser::parseMWD(const std::string& nmea,
+NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 		double& trueWindDirection, char& t, double& magneticWindDirection,
 		char& magnetic, double& windSpeedKnots, char& knots,
 		double& windSpeedMeters, char& meters) {
@@ -1692,7 +1692,7 @@ std::bitset<8> NmeaParser::parseMWD(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 21  WIMWD --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<8> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1786,7 +1786,7 @@ std::bitset<8> NmeaParser::parseMWD(const std::string& nmea,
 
 }
 
-std::bitset<12> NmeaParser::parseXDR(const std::string& nmea,
+NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 		char& typeOfSensorTemperature, double& temperatureReading,
 		char& centigrade, std::string& nameOfTransducer,
 		char& typeOfSensorPressure, double& pressureReading, char& bars,
@@ -1797,7 +1797,7 @@ std::bitset<12> NmeaParser::parseXDR(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 22  IIXDR --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<12> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1923,13 +1923,13 @@ std::bitset<12> NmeaParser::parseXDR(const std::string& nmea,
 
 }
 
-std::bitset<5> NmeaParser::parseTTD(const std::string& nmea, int& aaa, int& bbb,
+NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& aaa, int& bbb,
 		int& ccc, std::string& ddd, int& eee) {
 
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 23  IITTD --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<5> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -1999,13 +1999,13 @@ std::bitset<5> NmeaParser::parseTTD(const std::string& nmea, int& aaa, int& bbb,
 
 }
 
-//std::bitset<1> NmeaParser::parseTLB(const std::string& nmea,
+//NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 //		std::vector<std::pair<double, std::string> >& revenue) {
 //
 //	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 24  RATLB --------------------" << "\033[0m";
 //	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 //
-//	std::bitset<1> ret;
+//	NmeaParserResult ret;
 //	ret.reset();
 //	ret.set(0, true);
 //
@@ -2062,7 +2062,7 @@ std::bitset<5> NmeaParser::parseTTD(const std::string& nmea, int& aaa, int& bbb,
 //
 //}
 
-std::bitset<9> NmeaParser::parseOSD(const std::string& nmea, double& heading,
+NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 		char& status, double& vesselCourse, char& referenceCourse,
 		double& vesselSpeed, char& referenceSpeed, double& vesselSet,
 		double& vesselDrift, char& speedUnits) {
@@ -2070,7 +2070,7 @@ std::bitset<9> NmeaParser::parseOSD(const std::string& nmea, double& heading,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 25  RAOSD --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<9> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -2172,7 +2172,7 @@ std::bitset<9> NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 }
 
-std::bitset<13> NmeaParser::parseRSD(const std::string& nmea,
+NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 		double& origin1Range, double& origin1BearingDegrees,
 		double& variableRangeMarker1, double& bearingLine1,
 		double& origin2Range, double& origin2Bearing, double& vrm2,
@@ -2182,7 +2182,7 @@ std::bitset<13> NmeaParser::parseRSD(const std::string& nmea,
 	BOOST_LOG_TRIVIAL(debug)<< "\033[034m" << "-------------------- 26  RARSD --------------------" << "\033[0m";
 	BOOST_LOG_TRIVIAL(debug)<< "\033[036m" << nmea.c_str() << "\033[0m";
 
-	std::bitset<13> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;

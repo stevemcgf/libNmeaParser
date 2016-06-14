@@ -14,6 +14,8 @@
 #include "NmeaEnums.h"
 #include <bitset>
 
+typedef std::bitset<6> NmeaParserResult;
+
 class NmeaParser {
 public:
 	NmeaParser();
@@ -30,7 +32,7 @@ public:
 	//	5 	Local time zone offset from GMT, ranging from 00 through ±13 hours
 	//	6 	Local time zone offset from GMT, ranging from 00 through 59 minutes
 	//	7 	The checksum data, always begins with *
-	static std::bitset<6> parseZDA(const std::string& nmea,
+	static NmeaParserResult parseZDA(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, int& day, int& month,
 			int& year, int& localZoneHours, int& localZoneMinutes);
 
@@ -45,7 +47,7 @@ public:
 	//	5 	UTC of position in hhmmss.ss format
 	//	6 	Fixed text "A" shows that data is valid
 	//	7 	The checksum data, always begins with *
-	static std::bitset<5> parseGLL(const std::string& nmea, double& latitude,
+	static NmeaParserResult parseGLL(const std::string& nmea, double& latitude,
 			double& longitude, boost::posix_time::time_duration& mtime,
 			char& status, char& modeIndicator);
 
@@ -68,7 +70,7 @@ public:
 	//	13 	Age of differential GPS data record, Type 1 or Type 9. Null field when DGPS is not used.
 	//	14 	Reference station ID, range 0000-4095. A null field when any reference station ID is selected and no corrections are received1.
 	//	15 	The checksum data, always begins with *
-	static std::bitset<10> parseGGA(const std::string& nmea,
+	static NmeaParserResult parseGGA(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, double& latitude,
 			double& longitude, Nmea_GPSQualityIndicator& quality, int& numSV,
 			double& hdop, double& orthometricheight, double& geoidseparation,
@@ -87,7 +89,7 @@ public:
 	//	7 	Speed over ground in kilometers/hour (kph)
 	//	8 	K: speed over ground is measured in kph
 	//	9 	The checksum data, always begins with *
-	static std::bitset<4> parseVTG(const std::string& nmea, double& coursetrue,
+	static NmeaParserResult parseVTG(const std::string& nmea, double& coursetrue,
 			double& coursemagnetic, double& speedknots, double& speedkph);
 
 	//  -------------------- 05  --RMC --------------------
@@ -103,7 +105,7 @@ public:
 	//	7 	Date
 	//	8 	Magnetic variation in degrees
 	//	9 	The checksum data, always begins with *
-	static std::bitset<7> parseRMC(const std::string& nmea,
+	static NmeaParserResult parseRMC(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, double& latitude,
 			double& longitude, double& speedknots, double& coursetrue,
 			boost::gregorian::date& mdate, double& magneticvar);
@@ -118,7 +120,7 @@ public:
 	//	4 	E or W (East or West)
 	//	5 	Waypoint Name
 	//	6	Checksum
-	static std::bitset<3> parseWPL(const std::string& nmea, double& latitude,
+	static NmeaParserResult parseWPL(const std::string& nmea, double& latitude,
 			double& longitude, std::string& waypointName);
 
 	//  -------------------- 07  --RTE --------------------
@@ -130,7 +132,7 @@ public:
 	//	3 	'c' = Current active route, 'w' = waypoint list starts with destination waypoint
 	//	4 	Name or number of the active route
 	//	5 	onwards, Names of waypoints in Route
-	static std::bitset<5> parseRTE(const std::string& nmea, double& messagesTransmitted,
+	static NmeaParserResult parseRTE(const std::string& nmea, double& messagesTransmitted,
 			double& messageNumber, char& messageMode,
 			std::string& routeIdentifier, std::vector<std::string>& revenue1);
 
@@ -147,7 +149,7 @@ public:
 	//	7	Kilometers (speed of vessel relative to the water)
 	//	8	K = Kilometres
 	//	9	Checksum
-	static std::bitset<4> parseVHW(const std::string& nmea, double& speedInKnots,
+	static NmeaParserResult parseVHW(const std::string& nmea, double& speedInKnots,
 			char& knots, double& speedInKmH, char& kilometers);
 
 	//  -------------------- 09  VDMTW --------------------
@@ -157,7 +159,7 @@ public:
 	//	1 	Degrees
 	//	2 	Unit of Measurement, Celcius
 	//	3 	Checksum
-	static std::bitset<2> parseMTW(const std::string& nmea, double& degrees,
+	static NmeaParserResult parseMTW(const std::string& nmea, double& degrees,
 			char& celcius);
 
 	//  -------------------- 10  VDVBW --------------------
@@ -171,7 +173,7 @@ public:
 	//	5 	Transverse ground speed, "-" means port
 	//	6	Ground Data Status, A = data valid
 	//	7	Checksum
-	static std::bitset<6> parseVBW(const std::string& nmea,
+	static NmeaParserResult parseVBW(const std::string& nmea,
 			double& longitudinalWaterSpeed, double& transverseWaterSpeed,
 			char& waterDataStatus, double& longitudinalGroundSpeed,
 			double& transverseGroundSpeed, char& groundDataStatus);
@@ -185,7 +187,7 @@ public:
 	//	3 	Distance since Reset
 	//	4 	N = Nautical Miles
 	//	5 	Checksum
-	static std::bitset<4> parseVLW(const std::string& nmea,
+	static NmeaParserResult parseVLW(const std::string& nmea,
 			double& totalCumulativeDistance, char& nauticalMiles1,
 			double& distanceSinceReset, char& nauticalMiles2);
 
@@ -198,7 +200,7 @@ public:
 	//		positive means distance from transducer to water line,
 	//		negative means distance from transducer to keel
 	//	3 	Checksum
-	static std::bitset<3> parseDPT(const std::string& nmea,
+	static NmeaParserResult parseDPT(const std::string& nmea,
 			double& waterDepthRelativeToTheTransducer,
 			double& offsetFromTransducer, double& maximumRangeScaleInUse);
 
@@ -213,7 +215,7 @@ public:
 	//	5 	Depth, Fathoms
 	//	6	F = Fathoms
 	//	7	Checksum
-	static std::bitset<6> parseDBT(const std::string& nmea, double& waterDepthInFeet,
+	static NmeaParserResult parseDBT(const std::string& nmea, double& waterDepthInFeet,
 			char& feet, double& waterDepthInMeters, char& meters,
 			double& waterDepthInFathoms, char& fathoms);
 
@@ -228,7 +230,7 @@ public:
 	//	5 	Depth, Fathoms
 	//	6	F = Fathoms
 	//	7	Checksum
-	static std::bitset<6> parseDBK(const std::string& nmea, double& depthBelowKeelFeet,
+	static NmeaParserResult parseDBK(const std::string& nmea, double& depthBelowKeelFeet,
 			char& feet, double& depthBelowKeelMeters, char& meters,
 			double& depthBelowKeelFathoms, char& fathoms);
 
@@ -243,7 +245,7 @@ public:
 	//	5 	Echo sounder channel number (0-99)**
 	//	6 	Transducer location *
 	//	7	Check sum, possible to turn on/off (see screen 8)
-	static std::bitset<6> parsePSKPDPT(const std::string& nmea,
+	static NmeaParserResult parsePSKPDPT(const std::string& nmea,
 			double& waterDepthRelativeToTheTransducer,
 			double& offsetFromTransducer, double& maximumRangeScaleInUse,
 			int& bottomEchoStrength, int& echoSounderChannelNumber,
@@ -256,7 +258,7 @@ public:
 	//	1 	Heading Degrees, true
 	//	2 	T = True
 	//	3 	Checksum
-	static std::bitset<2> parseHDT(const std::string& nmea, double& headingDegreesTrue,
+	static NmeaParserResult parseHDT(const std::string& nmea, double& headingDegreesTrue,
 			char& t);
 
 	//  -------------------- 17  HCHDG --------------------
@@ -269,7 +271,7 @@ public:
 	//	4 	Magnetic Variation degrees
 	//	5 	Magnetic Variation direction, E = Easterly, W = Westerly
 	//	6	Checksum
-	static std::bitset<5> parseHDG(const std::string& nmea,
+	static NmeaParserResult parseHDG(const std::string& nmea,
 			double& magneticSensorHeadingInDegrees,
 			double& magneticDeviationDegrees, char& magneticDeviationDirection,
 			double& magneticVariationDegrees, char& magneticVariationDirection);
@@ -281,7 +283,7 @@ public:
 	//	1 	Heading Degrees, magnetic
 	//	2 	M = magnetic
 	//	3 	Checksum
-	static std::bitset<2> parseHDM(const std::string& nmea,
+	static NmeaParserResult parseHDM(const std::string& nmea,
 			double& headingDegreesMagnetic, char& magnetic);
 
 	//  -------------------- 19  TIROT --------------------
@@ -291,7 +293,7 @@ public:
 	//	1 	Rate Of Turn, degrees per minute, "-" means bow turns to port
 	//	2 	Status, A means data is valid
 	//	3 	Checksum
-	static std::bitset<2> parseROT(const std::string& nmea, double& rateOfTurn,
+	static NmeaParserResult parseROT(const std::string& nmea, double& rateOfTurn,
 			char& status);
 
 	//  -------------------- 20  IIMWV --------------------
@@ -304,7 +306,7 @@ public:
 	//	4 	Wind Speed Units, K = km/hr, M = m/sec, N = kt
 	//	5 	Sensor Status, A = Valid, V = Void
 	//	6	Checksum
-	static std::bitset<5> parseMWV(const std::string& nmea, double& windAngle,
+	static NmeaParserResult parseMWV(const std::string& nmea, double& windAngle,
 			char& reference, double& windSpeed, char& windSpeedUnits,
 			char& sensorStatus);
 
@@ -320,7 +322,7 @@ public:
 	//	6	Knots
 	//	7	Wind speed
 	//	8	meters/second
-	static std::bitset<8> parseMWD(const std::string& nmea, double& trueWindDirection,
+	static NmeaParserResult parseMWD(const std::string& nmea, double& trueWindDirection,
 			char& t, double& magneticWindDirection, char& magnetic,
 			double& windSpeedKnots, char& knots, double& windSpeedMeters,
 			char& meters);
@@ -337,7 +339,7 @@ public:
 	//	n	Checksum
 
 	//BOOST_REQUIRE_NO_THROW(
-	static std::bitset<12> parseXDR(const std::string& nmea, char& typeOfSensorTemperature,
+	static NmeaParserResult parseXDR(const std::string& nmea, char& typeOfSensorTemperature,
 			double& temperatureReading, char& centigrade,
 			std::string& nameOfTransducer, char& typeOfSensorPressure,
 			double& pressureReading, char& bars,
@@ -350,7 +352,7 @@ public:
 	//	Field 	Meaning
 
 	//BOOST_REQUIRE_NO_THROW(
-	static std::bitset<5> parseTTD(const std::string& nmea, int& aaa, int& bbb, int& ccc,
+	static NmeaParserResult parseTTD(const std::string& nmea, int& aaa, int& bbb, int& ccc,
 			std::string& ddd, int& eee );
 
 	//  -------------------- 24  --TBL --------------------
@@ -363,7 +365,7 @@ public:
 	//	n	Checksum
 
 //	//BOOST_REQUIRE_NO_THROW(
-//	static std::bitset<1> parseTLB(const std::string& nmea,
+//	static NmeaParserResult parseTLB(const std::string& nmea,
 //			std::vector<std::pair<double, std::string>>& revenue);
 
 	//  -------------------- 25  --OSD --------------------
@@ -380,7 +382,7 @@ public:
 	//	8	Vessel drift (speed)
 	//	9	Speed Units
 	//	10	Checksum
-	static std::bitset<9> parseOSD(const std::string& nmea, double& heading, char& status,
+	static NmeaParserResult parseOSD(const std::string& nmea, double& heading, char& status,
 			double& vesselCourse, char& referenceCourse, double& vesselSpeed,
 			char& referenceSpeed, double& vesselSet, double& vesselDrift,
 			char& speedUnits);
@@ -403,7 +405,7 @@ public:
 	//	12	range units, K/N/S
 	//	13	display rotation
 	//	14	Checksum
-	static std::bitset<13> parseRSD(const std::string& nmea, double& origin1Range,
+	static NmeaParserResult parseRSD(const std::string& nmea, double& origin1Range,
 			double& origin1BearingDegrees, double& variableRangeMarker1,
 			double& bearingLine1, double& origin2Range, double& origin2Bearing,
 			double& vrm2, double& ebl2, double& cursorRange,
@@ -411,7 +413,7 @@ public:
 			char& displayRotation);
 
 //	//  -------------------- 27  AIVDM --------------------
-//	static void parseVDM(const std::string& nmea, int& typeAIS, int& mmsiAIS,
+//	static NmeaParserResult parseVDM(const std::string& nmea, int& typeAIS, int& mmsiAIS,
 //			double& latitudeAIS, double& longitudeAIS, float& speedAIS,
 //			float& courseAIS, float& headingAIS);
 
