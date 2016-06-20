@@ -14,7 +14,7 @@
 #include "NmeaEnums.h"
 #include <bitset>
 
-typedef std::bitset<6> NmeaParserResult;
+typedef std::bitset<16> NmeaParserResult;
 
 class NmeaParser {
 public:

@@ -171,7 +171,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 	Dout(dbg_nmeaipc, "\033[034m" << "-------------------- 01  GPZDA --------------------" << "\033[0m");
 	Dout(dbg_nmeaipc, "\033[036m" << nmea.c_str() << "\033[0m");
 
-	std::bitset<6> ret;
+	NmeaParserResult ret;
 	ret.reset();
 
 	std::vector<std::string> fields;
@@ -756,15 +756,6 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea,
 				itNmea++;
 				revenue1.push_back(WaypointIdentifier);
 			}
-			// impresion
-			uint pos;
-
-			for (std::vector<std::string>::iterator it = revenue1.begin( ); it != revenue1.end( ); ++it) {
-				//Dout(dbg_nmeaipc, "pairs: " << it->first << " --> " << it->second.c_str());
-				pos= std::distance(revenue1.begin(), it);
-				Dout(dbg_nmeaipc, "WaypointIdentifier "<< pos + 1 <<" = " << *it);
-			}
-
 		} else {
 			//ERROR
 		}
