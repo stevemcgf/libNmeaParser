@@ -364,9 +364,9 @@ public:
 	//	3 	Additional label pairs
 	//	n	Checksum
 
-//	//BOOST_REQUIRE_NO_THROW(
-//	static NmeaParserResult parseTLB(const std::string& nmea,
-//			std::vector<std::pair<double, std::string>>& revenue);
+	//BOOST_REQUIRE_NO_THROW(
+	static NmeaParserResult parseTLB(const std::string& nmea,
+			std::vector<std::pair<double, std::string>>& revenue);
 
 	//  -------------------- 25  --OSD --------------------
 	//	--OSD message fields
