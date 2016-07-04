@@ -418,7 +418,22 @@ public:
 //			float& courseAIS, float& headingAIS);
 
 private:
-	class impl;
+	static bool tokenizeSentence(const std::string& nmea,
+			std::vector<std::string>& tokens);
+	static bool decodeTime(std::vector<std::string>::iterator &i,
+			boost::posix_time::time_duration& out,
+			const boost::posix_time::time_duration& def);
+	static bool decodeLatLng(std::vector<std::string>::iterator &i, double& out,
+			const double& def);
+	static bool decodeDate(std::vector<std::string>::iterator &i,
+			boost::gregorian::date& out, const boost::gregorian::date& def);
+	static double toDecimalDegree(double degrees, double minutes,
+			double seconds, char hemisphere);
+	static bool decodeString(std::vector<std::string>::iterator &i,
+			std::string& out, const std::string& def);
+	template<typename Target>
+	static bool decodeDefault(std::vector<std::string>::iterator &i,
+			Target &out, const Target& def);
 };
 
 #endif /* SRC_NMEAPARSER_H_ */
