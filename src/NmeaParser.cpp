@@ -10,7 +10,6 @@
 #include <vector>
 #include <boost/tokenizer.hpp>
 #include <boost/regex.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <iostream>
 #include <iomanip>
