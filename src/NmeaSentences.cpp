@@ -129,22 +129,12 @@ const std::map<std::string, std::string>& NmeaSentenceMap::get() {
 	return mapSentence;
 }
 
-std::string getNmeaTalkerId(const std::string& nmeaHead) {
-	if (nmeaHead.length() == 5)
-	{
-		return nmeaHead.substr(1,2);
-	} else {
-		throw std::invalid_argument("getNmeaTalkerId: Cabecera NMEA de tamaño incorrecto");
-	}
+std::string getNmeaTalkerId(const std::string& nmea) {
+	return nmea.substr(1, 2);
 }
 
-std::string getNmeaSentence(const std::string& nmeaHead) {
-	if (nmeaHead.length() == 5)
-	{
-		return nmeaHead.substr(3,3);
-	} else {
-		throw std::invalid_argument("getNmeaSentence: Cabecera NMEA de tamaño incorrecto");
-	}
+std::string getNmeaSentence(const std::string& nmea) {
+	return nmea.substr(3, 3);
 }
 
 std::string getNmeaTalkerIdName(const std::string& nmeaTalkerId) {
