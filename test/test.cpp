@@ -109,18 +109,18 @@ BOOST_AUTO_TEST_CASE( parseWPL ) {
 
 //  ----------------------------------------- 07  GPRTE -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseRTE ) {
-	std::string nmeaRTE = "$GPRTE,3,3,c,WPT4,RTE-A,RTE-B,RTE-C,RTE-D,RTE-E,RTE-F*19";
-	//std::string nmeaRTE = "$GPRTE,1,1,w,DAVID,JAVIER,VICTOR*19";
+	//std::string nmeaRTE = "$GPRTE,3,3,c,WPT4,RTE-A,RTE-B,RTE-C,RTE-D,RTE-E,RTE-F*19";
+	std::string nmeaRTE = "$GPRTE,1,1,w,DAVID,JAVIER,VICTOR*19";
 	//std::string nmeaRTE = "$GPRTE,,,,,,,,,,*19";
-	double messagesTransmitted;
-	double messageNumber;
+	int messagesTransmitted;
+	int messageNumber;
 	char messageMode;
-	std::string routeIdentifier;
-	std::vector<std::string> revenue1;
+	std::string routeName;
+	std::vector<std::string> waypointNames;
 
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseRTE(nmeaRTE, messagesTransmitted, messageNumber,
-					messageMode, routeIdentifier, revenue1));
+					messageMode, routeName, waypointNames));
 }
 
 //  ----------------------------------------- 08  VDVHW -----------------------------------------
@@ -370,13 +370,13 @@ BOOST_AUTO_TEST_CASE( parseTTD ) {
 
 //  ----------------------------------------- 24  RATLB -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseTLB ) {
-		std::string nmeaTLB = "$RATLB,5.5,cinco,1.1,uno,2.2,dos,3.3,tres,4.4,cuatro*19";
-		//std::string nmeaTLB = "$RATLB*19";
+		//std::string nmeaTLB = "$RATLB,5.5,cinco,1.1,uno,2.2,dos,3.3,tres,4.4,cuatro*19";
+		std::string nmeaTLB = "$INTLB,81,,17,,10,cauti*39";
 		//std::string nmeaTLB = "$RATLB,01,uno*19";
-		std::vector<std::pair<double, std::string>> revenue;
+		std::vector<std::pair<int, std::string>> trackPair;
 
 		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseTLB(nmeaTLB, revenue));
+		NmeaParser::parseTLB(nmeaTLB, trackPair));
 }
 
 //  ----------------------------------------- 25  RAOSD -----------------------------------------
