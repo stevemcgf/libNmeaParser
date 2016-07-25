@@ -132,9 +132,9 @@ public:
 	//	3 	'c' = Current active route, 'w' = waypoint list starts with destination waypoint
 	//	4 	Name or number of the active route
 	//	5 	onwards, Names of waypoints in Route
-	static NmeaParserResult parseRTE(const std::string& nmea, double& messagesTransmitted,
-			double& messageNumber, char& messageMode,
-			std::string& routeIdentifier, std::vector<std::string>& revenue1);
+	static NmeaParserResult parseRTE(const std::string& nmea, int& totalLines,
+			int& lineCount, char& messageMode,
+			std::string& routeIdentifier, std::vector<std::string>& waypointNames);
 
 	//  -------------------- 08  VDVHW --------------------
 	//	VDVHW message fields
@@ -337,8 +337,6 @@ public:
 	//	4 	Name of transducer
 	//	X 	More of the same
 	//	n	Checksum
-
-	//BOOST_REQUIRE_NO_THROW(
 	static NmeaParserResult parseXDR(const std::string& nmea, char& typeOfSensorTemperature,
 			double& temperatureReading, char& centigrade,
 			std::string& nameOfTransducer, char& typeOfSensorPressure,
@@ -350,10 +348,15 @@ public:
 	//  -------------------- 23  --TTD --------------------
 	//	--TTD message fields
 	//	Field 	Meaning
-
-	//BOOST_REQUIRE_NO_THROW(
-	static NmeaParserResult parseTTD(const std::string& nmea, int& aaa, int& bbb, int& ccc,
-			std::string& ddd, int& eee );
+	//  0   Message ID --TTD
+	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
+	//  2   Hex sentence number, 1 to FF
+	//  3   Sequential message identifier, 0 to 9
+	//  4   Encapsulated tracked target data
+	//  5   Number of fill-bits, 0 to 5
+	static NmeaParserResult parseTTD(const std::string& nmea, int& totalLines,
+			int& lineCount, int& sequenceIdentifier, std::string& trackData,
+			int& fillBits);
 
 	//  -------------------- 24  --TBL --------------------
 	//	--TBL message fields
@@ -363,10 +366,8 @@ public:
 	//	2 	Label assigned to target 'n'
 	//	3 	Additional label pairs
 	//	n	Checksum
-
-	//BOOST_REQUIRE_NO_THROW(
 	static NmeaParserResult parseTLB(const std::string& nmea,
-			std::vector<std::pair<double, std::string>>& revenue);
+			std::vector<std::pair<int, std::string>>& trackNumbernLabel);
 
 	//  -------------------- 25  --OSD --------------------
 	//	--OSD message fields
@@ -431,6 +432,8 @@ private:
 			double seconds, char hemisphere);
 	static bool decodeString(std::vector<std::string>::iterator &i,
 			std::string& out, const std::string& def);
+	static bool decodeHex(std::vector<std::string>::iterator &i,
+			uint& out, const uint& def);
 	template<typename Target>
 	static bool decodeDefault(std::vector<std::string>::iterator &i,
 			Target &out, const Target& def);

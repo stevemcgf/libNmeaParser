@@ -28,8 +28,8 @@ private:
 
 };
 
-std::string getNmeaTalkerId(const std::string& nmeaHead);
-std::string getNmeaSentence(const std::string& nmeaHead);
+std::string getNmeaTalkerId(const std::string& nmea);
+std::string getNmeaSentence(const std::string& nmea);
 std::string getNmeaTalkerIdName(const std::string& nmeaTalkerId);
 std::string getNmeaSentenceDesc(const std::string& nmeaSentence);
 
