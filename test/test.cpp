@@ -7,7 +7,7 @@
 
 #define BOOST_TEST_MODULE libNmeaParser test
 #include <boost/test/included/unit_test.hpp>
-#include "../src/NmeaParser.h"
+#include "NmeaParser.h"
 
 //int main() {
 
