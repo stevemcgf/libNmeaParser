@@ -345,6 +345,34 @@ public:
 			double& humidity, char& humidityUnitsOfMeasurePercent,
 			std::string& nameOfRelativeHumiditySensor);
 
+	//  --------------------   --TTM --------------------
+	//	--TTM message fields
+	//  Field   Meaning
+	//  0   Message ID $--TTM
+	//  1	Target Number (0-99)
+	//	2   Target Distance from own ship
+	// 	3   Bearing from own ship
+	//  4   (T/R) true/relative
+	//  5   Target Speed
+	//  6   Target Course
+	//  7 	(T/R) true relative
+	//  8   Distance of closest-point-of-approach
+	//  9   Time to CPA, min., "-" means increasing
+	//  10   Speed units, (K/N/S)
+	//  11  Target Name
+	//  12  Target status
+	//  13  Reference Target R, null otherwise
+	//  14  Time of data UTC
+	//  15  Type of acquisition A/M/R
+	//  16  Checksum
+	static NmeaParserResult parseTTM(const std::string& nmea, int& targetNumber,
+			double& targetDistance, double& targetBearing, Nmea_AngleReference& targetBearingReference,
+			double& targetSpeed, double& targetCourse, Nmea_AngleReference& targetCourseReference,
+			Nmea_SpeedDistanceUnits& speedDistanceUnits, std::string& targetName,
+			Nmea_TargetStatus& targetStatus,
+			boost::posix_time::time_duration& timeOfData,
+			Nmea_TypeOfAcquisition& typeOfAcquisition);
+
 	//  -------------------- 23  --TTD --------------------
 	//	--TTD message fields
 	//	Field 	Meaning

@@ -376,28 +376,28 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			switch (qualityIndicator) {
 			case 0: {
-				quality = Nmea_GPSQualityIndicator::FixNotValid;
+				quality = Nmea_GPSQualityIndicator_FixNotValid;
 				break;
 			}
 			case 1: {
-				quality = Nmea_GPSQualityIndicator::GPSFix;
+				quality = Nmea_GPSQualityIndicator_GPSFix;
 				break;
 			}
 			case 2: {
-				quality = Nmea_GPSQualityIndicator::GPSFixDifferential;
+				quality = Nmea_GPSQualityIndicator_GPSFixDifferential;
 				break;
 			}
 			case 3: {
-				quality = Nmea_GPSQualityIndicator::RealTimeKinematic;
+				quality = Nmea_GPSQualityIndicator_RealTimeKinematic;
 				break;
 			}
 			case 4: {
-				quality = Nmea_GPSQualityIndicator::RealTimeKinematicOmniStar;
+				quality = Nmea_GPSQualityIndicator_RealTimeKinematicOmniStar;
 				break;
 			}
 			default: {
 				ret.set(3, true);
-				quality = Nmea_GPSQualityIndicator::FixNotValid;
+				quality = Nmea_GPSQualityIndicator_FixNotValid;
 				break;
 			}
 			}
@@ -1805,6 +1805,193 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 	return ret;
 
+}
+
+NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
+		int& targetNumber, double& targetDistance, double& targetBearing,
+		Nmea_AngleReference& targetBearingReference, double& targetSpeed,
+		double& targetCourse, Nmea_AngleReference& targetCourseReference,
+		Nmea_SpeedDistanceUnits& speedDistanceUnits, std::string& targetName,
+		Nmea_TargetStatus& targetStatus,
+		boost::posix_time::time_duration& timeOfData,
+		Nmea_TypeOfAcquisition& typeOfAcquisition) {
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTM";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+
+	NmeaParserResult ret;
+	ret.reset();
+
+	std::vector<std::string> fields;
+
+	tokenizeSentence(nmea, fields);
+
+	char auxChar;
+
+	uint ttmSizeField = 17;
+	if (fields.size() == ttmSizeField) {
+
+		std::vector<std::string>::iterator itNmea = fields.begin();
+
+		if ((*itNmea).substr(3, 3) == "TTM") {
+			itNmea++;
+			int idx = 0;
+
+			/*------------ Position 01 ---------------*/
+			if (!decodeDefault<int>(itNmea, targetNumber, 0)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetNumber = " << targetNumber;
+
+			/*------------ Position 02 ---------------*/
+			if (!decodeDefault<double>(itNmea, targetDistance, 0)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetDistance = " << targetDistance;
+
+			/*------------ Position 03 ---------------*/
+			if (!decodeDefault<double>(itNmea, targetBearing, 0)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetBearing = " << targetBearing;
+
+			/*------------ Position 04 ---------------*/
+			if (!decodeDefault<char>(itNmea, auxChar, c)) {
+				ret.set(idx, true);
+				itNmea++;
+			} else {
+				if (auxChar == 'T') {
+					targetBearingReference = Nmea_AngleReference_True;
+				} else {
+					targetBearingReference = Nmea_AngleReference_Relative;
+				}
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetBearingReference = " << auxChar;
+
+			/*------------ Position 05 ---------------*/
+			if (!decodeDefault<double>(itNmea, targetSpeed, 0)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetSpeed = " << targetSpeed;
+
+			/*------------ Position 06 ---------------*/
+			if (!decodeDefault<double>(itNmea, targetCourse, 0)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetCourse = " << targetCourse;
+
+			/*------------ Position 07 ---------------*/
+			if (!decodeDefault<char>(itNmea, auxChar, c)) {
+				ret.set(idx, true);
+				itNmea++;
+			} else {
+				if (auxChar == 'T') {
+					targetCourseReference = Nmea_AngleReference_True;
+				} else {
+					targetCourseReference = Nmea_AngleReference_Relative;
+				}
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetCourseReference = " << auxChar;
+
+			/*------------ Position 08 ---------------*/
+			// ignorar
+			itNmea++;
+
+			/*------------ Position 09 ---------------*/
+			// ignorar
+			itNmea++;
+
+			/*------------ Position 10 ---------------*/
+			if (!decodeDefault<char>(itNmea, auxChar, c)) {
+				ret.set(idx, true);
+				itNmea++;
+			} else {
+				if (auxChar == 'K') {
+					speedDistanceUnits = Nmea_SpeedDistanceUnits_Kph_Kilometers;
+				} else if (auxChar == 'N') {
+					speedDistanceUnits =
+							Nmea_SpeedDistanceUnits_Knots_NauticalMiles;
+				} else {
+					speedDistanceUnits = Nmea_SpeedDistanceUnits_Mps_Meters;
+				}
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "speedDistanceUnits = " << auxChar;
+
+			/*------------ Position 11 ---------------*/
+			if (!decodeString(itNmea, targetName, defString)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetName = " << targetName;
+
+			/*------------ Position 12 ---------------*/
+			if (!decodeDefault<char>(itNmea, auxChar, c)) {
+				ret.set(idx, true);
+				itNmea++;
+			} else {
+				if (auxChar == 'L') {
+					targetStatus = Nmea_TargetStatus_Lost;
+				} else if (auxChar == 'Q') {
+					targetStatus = Nmea_TargetStatus_Query;
+				} else {
+					targetStatus = Nmea_TargetStatus_Tracking;
+				}
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "targetStatus = " << auxChar;
+
+			/*------------ Position 13 ---------------*/
+			// ignorar
+			itNmea++;
+
+			/*------------ Position 14 ---------------*/
+			if (!decodeTime(itNmea, timeOfData, deftime)) {
+				ret.set(idx, true);
+				itNmea++;
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "timeOfData = " << timeOfData;
+
+			/*------------ Position 15 ---------------*/
+			if (!decodeDefault<char>(itNmea, auxChar, c)) {
+				ret.set(idx, true);
+				itNmea++;
+			} else {
+				if (auxChar == 'A') {
+					typeOfAcquisition = Nmea_TypeOfAcquisition_Automatic;
+				} else if (auxChar == 'M') {
+					typeOfAcquisition = Nmea_TypeOfAcquisition_Manual;
+				} else {
+					typeOfAcquisition = Nmea_TypeOfAcquisition_Reported;
+				}
+			}
+			++idx;
+			BOOST_LOG_TRIVIAL(debug) << "typeOfAcquisition = " << auxChar;
+		} else {
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+		}
+	} else {
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ttmSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+	}
+
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
+	return ret;
 }
 
 NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
