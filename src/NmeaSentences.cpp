@@ -7,9 +7,6 @@
 
 #include "NmeaSentences.h"
 
-#include "debug.hpp"
-#include "error.hpp"
-
 const std::map<std::string, std::string> NmeaTalkerIdMap::mapTalkerId = { {
 		"AB", "Independent AIS Base Station" }, { "AD",
 		"Dependent AIS Base Station" }, { "AG", "Autopilot - General" }, { "AP",

@@ -10,13 +10,7 @@
 #include <vector>
 #include <boost/tokenizer.hpp>
 #include <boost/regex.hpp>
-
-#include <iostream>
-#include <iomanip>
-
-//#undef SIDDN_DEBUG
-#include "debug.hpp"
-#include "error.hpp"
+#include <boost/log/trivial.hpp>
 
 NmeaParser::NmeaParser() {
 
@@ -46,8 +40,8 @@ bool NmeaParser::decodeTime(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, hms)) {
 		ret = true;
-		Dout(dbg_nmeaparser, " decodeTime: time " << *i);
-		i++;  // consume the match
+		BOOST_LOG_TRIVIAL(debug) <<" decodeTime: time " << *i;
+		++i;  // consume the match
 		const boost::posix_time::hours hr(boost::lexical_cast<int>(m[1].str()));
 		const boost::posix_time::minutes min(
 				boost::lexical_cast<int>(m[2].str()));
@@ -83,7 +77,7 @@ bool NmeaParser::decodeDefault(std::vector<std::string>::iterator &i,
 	try {
 		out = boost::lexical_cast<Target>(*i);
 		ret = true;
-		i++; // consume valor.
+		++i; // consume valor.
 	} catch (boost::bad_lexical_cast &) {
 		out = def;
 	}
@@ -98,7 +92,7 @@ bool NmeaParser::decodeHex(std::vector<std::string>::iterator &i,
 		std::stringstream ss(*i, std::ios_base::in);
         ss >> std::hex >> out;
         ret = true;
-		i++;
+		++i;
 	} catch (boost::bad_lexical_cast &) {
 		out = def;
 	}
@@ -114,13 +108,13 @@ bool NmeaParser::decodeLatLng(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, latlng)) {
 		ret = true;
-		Dout(dbg_nmeaparser, "decodeLatLng: num " << *i);
-		i++; // consume the match
+		BOOST_LOG_TRIVIAL(debug) <<"decodeLatLng: num " << *i;
+		++i; // consume the match
 		double deg = boost::lexical_cast<double>(m[1].str());
 		double min = boost::lexical_cast<double>(m[2].str());
-		Dout(dbg_nmeaparser, "decodeLatLng: hem " << *i);
+		BOOST_LOG_TRIVIAL(debug) <<"decodeLatLng: hem " << *i;
 		char hemisphere = (*i).at(0);
-		i++; // consume hemisphere
+		++i; // consume hemisphere
 		out = toDecimalDegree(deg, min, 0.0, hemisphere);
 	} else {
 		out = def;
@@ -136,8 +130,8 @@ bool NmeaParser::decodeDate(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, dmy)) {
 		ret = true;
-		Dout(dbg_nmeaparser, "decodeDate: date " << *i);
-		i++; // consume the match
+		BOOST_LOG_TRIVIAL(debug) <<"decodeDate: date " << *i;
+		++i; // consume the match
 		int day = boost::lexical_cast<int>(m[1].str());
 		int month = boost::lexical_cast<int>(m[2].str());
 		int year = boost::lexical_cast<int>(m[3].str()) + 2000;
@@ -156,7 +150,7 @@ bool NmeaParser::decodeString(std::vector<std::string>::iterator &i,
 		out = boost::lexical_cast<std::string>(*i);
 
 		if (out.size() > 0) {
-			i++; // consume valor.
+			++i; // consume valor.
 			ret = true;
 		} else {
 			out = def;
@@ -179,9 +173,8 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, int& day, int& month,
 		int& year, int& localZoneHours, int& localZoneMinutes) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 01  GPZDA --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseZDA";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -196,64 +189,60 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
-		Dout(dbg_nmeaparser, "parseZDA: 1 = " << *itNmea);
 		if ((*itNmea).substr(3, 3) == "ZDA") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeTime(itNmea, mtime, deftime)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "mtime = " << mtime);
+			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<int>(itNmea, day, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "day = " << day);
+			BOOST_LOG_TRIVIAL(debug) << "day = " << day;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<int>(itNmea, month, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "month = " << month);
+			BOOST_LOG_TRIVIAL(debug) << "month = " << month;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<int>(itNmea, year, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "year = " << year);
+			BOOST_LOG_TRIVIAL(debug) << "year = " << year;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<int>(itNmea, localZoneHours, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "localZoneHours = " << localZoneHours);
+			BOOST_LOG_TRIVIAL(debug) << "localZoneHours = " << localZoneHours;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<int>(itNmea, localZoneMinutes, 0)) {
 				ret.set(5, true);
-			}Dout(dbg_nmeaparser, "localZoneMinutes = " << localZoneMinutes);
-
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "localZoneMinutes = " << localZoneMinutes;
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << zdaSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << zdaSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -262,9 +251,8 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 		double& longitude, boost::posix_time::time_duration& mtime,
 		char& status, char& modeIndicator) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 02  GPGLL --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseGLL";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -279,57 +267,55 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
-		Dout(dbg_nmeaparser, "parseGLL: 2 = " << *itNmea);
 		if ((*itNmea).substr(3, 3) == "GLL") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeLatLng(itNmea, latitude, defLatLong)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "latitude = " << latitude);
+			BOOST_LOG_TRIVIAL(debug) << "latitude = " << latitude;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeLatLng(itNmea, longitude, defLatLong)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "longitude = " << longitude);
+			BOOST_LOG_TRIVIAL(debug) << "longitude = " << longitude;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeTime(itNmea, mtime, deftime)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "mtime = " << mtime);
+			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, status, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "status = " << status);
+			BOOST_LOG_TRIVIAL(debug) << "status = " << status;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<char>(itNmea, modeIndicator, c)) {
 				ret.set(4, true);
-			}Dout(dbg_nmeaparser, "modeIndicator = " << modeIndicator);
+			}
+			BOOST_LOG_TRIVIAL(debug) << "modeIndicator = " << modeIndicator;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << gllSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << gllSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -340,9 +326,8 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 		double& hdop, double& orthometricheight, double& geoidseparation,
 		double& agediffgps, std::string& refid) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 03  GPGGA --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseGGA";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -356,38 +341,38 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 	if (fields.size() == ggaSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseGGA: 3 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "GGA") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeTime(itNmea, mtime, deftime)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "mtime = " << mtime);
+			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeLatLng(itNmea, latitude, defLatLong)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "latitude = " << latitude);
+			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeLatLng(itNmea, longitude, defLatLong)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "longitude = " << longitude);
+			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
 
 			/*------------ Position 03 ---------------*/
 			int qualityIndicator;
 			if (!decodeDefault<int>(itNmea, qualityIndicator, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			//Dout(dbg_nmeaparser, "qualityIndicator = " << qualityIndicator;
+			//BOOST_LOG_TRIVIAL(debug) <<"qualityIndicator = " << qualityIndicator;
 
 			switch (qualityIndicator) {
 			case 0: {
@@ -416,64 +401,61 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				break;
 			}
 			}
-			Dout(dbg_nmeaparser, "quality = " << quality);
+			BOOST_LOG_TRIVIAL(debug) << "quality = " << quality;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<int>(itNmea, numSV, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "numSV = " << numSV);
+			BOOST_LOG_TRIVIAL(debug) <<"numSV = " << numSV;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<double>(itNmea, hdop, 0)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "hdop = " << hdop);
+			BOOST_LOG_TRIVIAL(debug) <<"hdop = " << hdop;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<double>(itNmea, orthometricheight, 0)) {
 				ret.set(6, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "orthometricheight = " << orthometricheight);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) << "orthometricheight = " << orthometricheight;
+			++itNmea;
 
 			/*------------ Position 07 ---------------*/
 			if (!decodeDefault<double>(itNmea, geoidseparation, 0)) {
 				ret.set(7, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "geoidseparation = " << geoidseparation);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) <<"geoidseparation = " << geoidseparation;
+			++itNmea;
 
 			/*------------ Position 08 ---------------*/
 			if (!decodeDefault<double>(itNmea, agediffgps, 0)) {
 				ret.set(8, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "agediffgps = " << agediffgps);
+			BOOST_LOG_TRIVIAL(debug) <<"agediffgps = " << agediffgps;
 
 			/*------------ Position 09 ---------------*/
 			if (!decodeString(itNmea, refid, defString)) {
 				ret.set(9, true);
-			}Dout(dbg_nmeaparser, "refid = " << refid);
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"refid = " << refid;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << ggaSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ggaSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -482,9 +464,8 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 		double& coursetrue, double& coursemagnetic, double& speedknots,
 		double& speedkph) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 04  GPVTG --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseVTG";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -498,50 +479,46 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 	if (fields.size() == vtgSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseVTG: 4 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "VTG") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, coursetrue, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "coursetrue = " << coursetrue);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) <<"coursetrue = " << coursetrue;
+			++itNmea;
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, coursemagnetic, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "coursemagnetic = " << coursemagnetic);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) <<"coursemagnetic = " << coursemagnetic;
+			++itNmea;
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, speedknots, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "speedknots = " << speedknots);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) <<"speedknots = " << speedknots;
+			++itNmea;
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<double>(itNmea, speedkph, 0)) {
 				ret.set(3, true);
-			}Dout(dbg_nmeaparser, "speedkph = " << speedkph);
+			}BOOST_LOG_TRIVIAL(debug) <<"speedkph = " << speedkph;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << vtgSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vtgSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -551,9 +528,8 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 		double& longitude, double& speedknots, double& coursetrue,
 		boost::gregorian::date& mdate, double& magneticvar) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 05  GPRMC --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseRMC";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -567,73 +543,69 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 	if (fields.size() == rmcSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseRMC: 5 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "RMC") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeTime(itNmea, mtime, deftime)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "mtime = " << mtime);
-			itNmea++;
+			BOOST_LOG_TRIVIAL(debug) <<"mtime = " << mtime;
+			++itNmea;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeLatLng(itNmea, latitude, defLatLong)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "latitude = " << latitude);
+			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeLatLng(itNmea, longitude, defLatLong)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "longitude = " << longitude);
+			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<double>(itNmea, speedknots, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "speedknots = " << speedknots);
+			BOOST_LOG_TRIVIAL(debug) <<"speedknots = " << speedknots;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, coursetrue, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "coursetrue = " << coursetrue);
+			BOOST_LOG_TRIVIAL(debug) <<"coursetrue = " << coursetrue;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDate(itNmea, mdate, defdate)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "mdate = " << mdate);
+			BOOST_LOG_TRIVIAL(debug) <<"mdate = " << mdate;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<double>(itNmea, magneticvar, 0)) {
 				ret.set(6, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "magneticvar = " << magneticvar);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"magneticvar = " << magneticvar;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << rmcSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rmcSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -641,9 +613,8 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 		double& longitude, std::string& waypointName) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 06  GPWPL --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseWPL";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -657,43 +628,40 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 	if (fields.size() == wplSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseWPL: 6 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "WPL") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeLatLng(itNmea, latitude, defLatLong)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "latitude = " << latitude);
+			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeLatLng(itNmea, longitude, defLatLong)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "longitude = " << longitude);
+			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeString(itNmea, waypointName, defString)) {
 				ret.set(2, true);
-			}Dout(dbg_nmeaparser, "waypointName = " << waypointName);
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"waypointName = " << waypointName;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << wplSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << wplSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -702,9 +670,8 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 		int& lineCount, char& messageMode,
 		std::string& routeName, std::vector<std::string>& waypointNames) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 07  GPRTE --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseRTE";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -718,58 +685,53 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 	if (fields.size() >= rteSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseRTE: 7 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "RTE") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<int>(itNmea, totalLines, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"totalLines = " << totalLines);
+			BOOST_LOG_TRIVIAL(debug) << "totalLines = " << totalLines;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<int>(itNmea, lineCount, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "lineCount = " << lineCount);
+			BOOST_LOG_TRIVIAL(debug) << "lineCount = " << lineCount;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<char>(itNmea, messageMode, c)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "messageMode = " << messageMode);
+			BOOST_LOG_TRIVIAL(debug) <<"messageMode = " << messageMode;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeString(itNmea, routeName, defString)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "routeName = " << routeName);
+			BOOST_LOG_TRIVIAL(debug) <<"routeName = " << routeName;
 
 			for (uint i = 0; i < (fields.size() - 6); i++) {
 				waypointNames.push_back((*itNmea));
-				Dout(dbg_nmeaparser, "waypointName "<< i + 1 <<" = " << (*itNmea));
-				itNmea++;
+				BOOST_LOG_TRIVIAL(debug) <<"waypointName "<< i + 1 <<" = " << (*itNmea);
+				++itNmea;
 			}
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << rteSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rteSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -778,9 +740,8 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 		double& speedInKnots, char& knots, double& speedInKmH,
 		char& kilometers) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 08  VDVHW --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseVHW";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -794,55 +755,51 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 	if (fields.size() == vhwSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseVHW: 8 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "VHW") {
-			itNmea++;
-			itNmea++;
-			itNmea++;
-			itNmea++;
-			itNmea++;
+			++itNmea;
+			++itNmea;
+			++itNmea;
+			++itNmea;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, speedInKnots, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "speedInKnots = " << speedInKnots);
+			BOOST_LOG_TRIVIAL(debug) <<"speedInKnots = " << speedInKnots;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, knots, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "knots = " << knots);
+			BOOST_LOG_TRIVIAL(debug) <<"knots = " << knots;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, speedInKmH, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "speedInKmH = " << speedInKmH);
+			BOOST_LOG_TRIVIAL(debug) <<"speedInKmH = " << speedInKmH;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, kilometers, c)) {
 				ret.set(3, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "kilometers = " << kilometers);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"kilometers = " << kilometers;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << vhwSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vhwSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -850,9 +807,8 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 		char& celcius) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 09  VDMTW --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseMTW";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -866,37 +822,33 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 	if (fields.size() == mtwSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseMTW: 9 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "MTW") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, degrees, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "degrees = " << degrees);
+			BOOST_LOG_TRIVIAL(debug) <<"degrees = " << degrees;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, celcius, c)) {
 				ret.set(1, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "celcius = " << celcius);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"celcius = " << celcius;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << mtwSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mtwSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -906,9 +858,8 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 		char& waterDataStatus, double& longitudinalGroundSpeed,
 		double& transverseGroundSpeed, char& groundDataStatus) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 10  VDVBW --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseVBW";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -922,69 +873,62 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 	if (fields.size() == vbwSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseVBW: 10 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "VBW") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, longitudinalWaterSpeed, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"longitudinalWaterSpeed = " << longitudinalWaterSpeed);
+			BOOST_LOG_TRIVIAL(debug) << "longitudinalWaterSpeed = " << longitudinalWaterSpeed;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, transverseWaterSpeed, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"transverseWaterSpeed = " << transverseWaterSpeed);
+			BOOST_LOG_TRIVIAL(debug) << "transverseWaterSpeed = " << transverseWaterSpeed;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<char>(itNmea, waterDataStatus, c)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "waterDataStatus = " << waterDataStatus);
+			BOOST_LOG_TRIVIAL(debug) <<"waterDataStatus = " << waterDataStatus;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<double>(itNmea, longitudinalGroundSpeed, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"longitudinalGroundSpeed = " << longitudinalGroundSpeed);
+			BOOST_LOG_TRIVIAL(debug) << "longitudinalGroundSpeed = " << longitudinalGroundSpeed;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, transverseGroundSpeed, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"transverseGroundSpeed = " << transverseGroundSpeed);
+			BOOST_LOG_TRIVIAL(debug) << "transverseGroundSpeed = " << transverseGroundSpeed;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<char>(itNmea, groundDataStatus, c)) {
 				ret.set(5, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "groundDataStatus = " << groundDataStatus);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"groundDataStatus = " << groundDataStatus;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << vbwSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vbwSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -993,9 +937,8 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 		double& totalCumulativeDistance, char& nauticalMiles1,
 		double& distanceSinceReset, char& nauticalMiles2) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 11  VDVLW --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseVLW";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1009,52 +952,47 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 	if (fields.size() == vlwSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseVLW: 11 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "VLW") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, totalCumulativeDistance, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"totalCumulativeDistance = " << totalCumulativeDistance);
+			BOOST_LOG_TRIVIAL(debug) << "totalCumulativeDistance = " << totalCumulativeDistance;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, nauticalMiles1, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "nauticalMiles1 = " << nauticalMiles1);
+			BOOST_LOG_TRIVIAL(debug) <<"nauticalMiles1 = " << nauticalMiles1;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, distanceSinceReset, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "distanceSinceReset = " << distanceSinceReset);
+			BOOST_LOG_TRIVIAL(debug) <<"distanceSinceReset = " << distanceSinceReset;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, nauticalMiles2, c)) {
 				ret.set(3, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "nauticalMiles2 = " << nauticalMiles2);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"nauticalMiles2 = " << nauticalMiles2;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << vlwSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vlwSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1063,9 +1001,8 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 		double& waterDepthRelativeToTheTransducer, double& offsetFromTransducer,
 		double& maximumRangeScaleInUse) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 12  SDDPT --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseDPT";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1079,48 +1016,41 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 	if (fields.size() == dptSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseDPT: 12 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "DPT") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea,
 					waterDepthRelativeToTheTransducer, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer);
+			BOOST_LOG_TRIVIAL(debug) <<	"waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"offsetFromTransducer = " << offsetFromTransducer);
+			BOOST_LOG_TRIVIAL(debug) <<	"offsetFromTransducer = " << offsetFromTransducer;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
 				ret.set(2, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser,
-					"maximumRangeScaleInUse = " << maximumRangeScaleInUse);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << dptSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dptSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1129,9 +1059,8 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 		double& waterDepthInFeet, char& feet, double& waterDepthInMeters,
 		char& meters, double& waterDepthInFathoms, char& fathoms) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 13  SDDBT --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseDBT";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1145,66 +1074,61 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 	if (fields.size() == dbtSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseDBT: 13 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "DBT") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, waterDepthInFeet, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "waterDepthInFeet = " << waterDepthInFeet);
+			BOOST_LOG_TRIVIAL(debug) <<"waterDepthInFeet = " << waterDepthInFeet;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, feet, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "feet = " << feet);
+			BOOST_LOG_TRIVIAL(debug) <<"feet = " << feet;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, waterDepthInMeters, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "waterDepthInMeters = " << waterDepthInMeters);
+			BOOST_LOG_TRIVIAL(debug) <<"waterDepthInMeters = " << waterDepthInMeters;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, meters, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "meters = " << meters);
+			BOOST_LOG_TRIVIAL(debug) <<"meters = " << meters;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, waterDepthInFathoms, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"waterDepthInFathoms = " << waterDepthInFathoms);
+			BOOST_LOG_TRIVIAL(debug) << "waterDepthInFathoms = " << waterDepthInFathoms;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<char>(itNmea, fathoms, c)) {
 				ret.set(5, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "fathoms = " << fathoms);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"fathoms = " << fathoms;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << dbtSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dbtSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1213,9 +1137,8 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 		double& depthBelowKeelFeet, char& feet, double& depthBelowKeelMeters,
 		char& meters, double& depthBelowKeelFathoms, char& fathoms) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 14  SDDBK --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseDBK";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1229,67 +1152,62 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 	if (fields.size() == dbkSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseDBK: 14 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "DBK") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, depthBelowKeelFeet, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "depthBelowKeelFeet = " << depthBelowKeelFeet);
+			BOOST_LOG_TRIVIAL(debug) <<"depthBelowKeelFeet = " << depthBelowKeelFeet;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, feet, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "feet = " << feet);
+			BOOST_LOG_TRIVIAL(debug) <<"feet = " << feet;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, depthBelowKeelMeters, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"depthBelowKeelMeters = " << depthBelowKeelMeters);
+			BOOST_LOG_TRIVIAL(debug) << "depthBelowKeelMeters = " << depthBelowKeelMeters;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, meters, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "meters = " << meters);
+			BOOST_LOG_TRIVIAL(debug) << "meters = " << meters;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, depthBelowKeelFathoms, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"depthBelowKeelFathoms = " << depthBelowKeelFathoms);
+			BOOST_LOG_TRIVIAL(debug) <<	"depthBelowKeelFathoms = " << depthBelowKeelFathoms;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<char>(itNmea, fathoms, c)) {
 				ret.set(5, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "fathoms = " << fathoms);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "fathoms = " << fathoms;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << dbkSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dbkSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1299,9 +1217,8 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 		double& maximumRangeScaleInUse, int& bottomEchoStrength,
 		int& echoSounderChannelNumber, std::string& transducerLocation) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 15  PSKPDPT --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parsePSKPDPT";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1315,71 +1232,62 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 	if (fields.size() == dptSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parsePSKPDPT: 15 = " << *itNmea);
+
 		if ((*itNmea).substr(1, 7) == "PSKPDPT") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea,
 					waterDepthRelativeToTheTransducer, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer);
+			BOOST_LOG_TRIVIAL(debug) << "waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"offsetFromTransducer = " << offsetFromTransducer);
+			BOOST_LOG_TRIVIAL(debug) << "offsetFromTransducer = " << offsetFromTransducer;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"maximumRangeScaleInUse = " << maximumRangeScaleInUse);
+			BOOST_LOG_TRIVIAL(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<int>(itNmea, bottomEchoStrength, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "bottomEchoStrength = " << bottomEchoStrength);
+			BOOST_LOG_TRIVIAL(debug) << "bottomEchoStrength = " << bottomEchoStrength;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<int>(itNmea, echoSounderChannelNumber, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"echoSounderChannelNumber = " << echoSounderChannelNumber);
+			BOOST_LOG_TRIVIAL(debug) << "echoSounderChannelNumber = " << echoSounderChannelNumber;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeString(itNmea, transducerLocation, defString)) {
 				ret.set(5, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser,
-					"transducerLocation = " << transducerLocation);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) << "transducerLocation = " << transducerLocation;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << dptSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dptSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1387,9 +1295,8 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 		double& headingDegreesTrue, char& t) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 16  HCHDT --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseHDT";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1403,37 +1310,34 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 	if (fields.size() == hdtSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseHDT: 16 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "HDT") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, headingDegreesTrue, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "headingDegreesTrue = " << headingDegreesTrue);
+			BOOST_LOG_TRIVIAL(debug) <<"headingDegreesTrue = " << headingDegreesTrue;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, t, c)) {
 				ret.set(1, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "t = " << t);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"t = " << t;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << hdtSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdtSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1443,9 +1347,8 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 		double& magneticDeviationDegrees, char& magneticDeviationDirection,
 		double& magneticVariationDegrees, char& magneticVariationDirection) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 17  HCHDG --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseHDG";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1459,64 +1362,55 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 	if (fields.size() == hdgSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseHDG: 17 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "HDG") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, magneticSensorHeadingInDegrees,
 					0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"magneticSensorHeadingInDegrees = " << magneticSensorHeadingInDegrees);
+			BOOST_LOG_TRIVIAL(debug) << "magneticSensorHeadingInDegrees = " << magneticSensorHeadingInDegrees;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, magneticDeviationDegrees, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"magneticDeviationDegrees = " << magneticDeviationDegrees);
+			BOOST_LOG_TRIVIAL(debug) << "magneticDeviationDegrees = " << magneticDeviationDegrees;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<char>(itNmea, magneticDeviationDirection, c)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"magneticDeviationDirection = " << magneticDeviationDirection);
+			BOOST_LOG_TRIVIAL(debug) << "magneticDeviationDirection = " << magneticDeviationDirection;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<double>(itNmea, magneticVariationDegrees, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"magneticVariationDegrees = " << magneticVariationDegrees);
+			BOOST_LOG_TRIVIAL(debug) << "magneticVariationDegrees = " << magneticVariationDegrees;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<char>(itNmea, magneticVariationDirection, c)) {
 				ret.set(4, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser,
-					"magneticVariationDirection = " << magneticVariationDirection);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) << "magneticVariationDirection = " << magneticVariationDirection;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << hdgSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdgSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1524,9 +1418,8 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 		double& headingDegreesMagnetic, char& magnetic) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 18  HCHDM --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseHDM";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1540,38 +1433,34 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 	if (fields.size() == hdmSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseHDM: 18 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "HDM") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, headingDegreesMagnetic, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"headingDegreesMagnetic = " << headingDegreesMagnetic);
+			BOOST_LOG_TRIVIAL(debug) << "headingDegreesMagnetic = " << headingDegreesMagnetic;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, magnetic, c)) {
 				ret.set(1, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "magnetic = " << magnetic);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "magnetic = " << magnetic;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << hdmSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdmSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1579,9 +1468,8 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 		double& rateOfTurn, char& status) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 19  TIROT --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseROT";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1595,37 +1483,34 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 	if (fields.size() == rotSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseROT: 19 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "ROT") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, rateOfTurn, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "rateOfTurn = " << rateOfTurn);
+			BOOST_LOG_TRIVIAL(debug) << "rateOfTurn = " << rateOfTurn;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, status, c)) {
 				ret.set(1, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "status = " << status);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "status = " << status;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << rotSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rotSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1634,9 +1519,8 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 		double& windAngle, char& reference, double& windSpeed,
 		char& windSpeedUnits, char& sensorStatus) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 20  IIMWV --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseMWV";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1650,58 +1534,55 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 	if (fields.size() == mwvSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseMWV: 20 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "MWV") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, windAngle, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "windAngle = " << windAngle);
+			BOOST_LOG_TRIVIAL(debug) <<"windAngle = " << windAngle;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, reference, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "reference = " << reference);
+			BOOST_LOG_TRIVIAL(debug) <<"reference = " << reference;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, windSpeed, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "windSpeed = " << windSpeed);
+			BOOST_LOG_TRIVIAL(debug) <<"windSpeed = " << windSpeed;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, windSpeedUnits, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "windSpeedUnits = " << windSpeedUnits);
+			BOOST_LOG_TRIVIAL(debug) <<"windSpeedUnits = " << windSpeedUnits;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<char>(itNmea, sensorStatus, c)) {
 				ret.set(4, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "sensorStatus = " << sensorStatus);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"sensorStatus = " << sensorStatus;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << mwvSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mwvSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1711,9 +1592,8 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 		char& magnetic, double& windSpeedKnots, char& knots,
 		double& windSpeedMeters, char& meters) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 21  WIMWD --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseMWD";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1727,80 +1607,75 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 	if (fields.size() == mwdSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseMWD: 21 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "MWD") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, trueWindDirection, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "trueWindDirection = " << trueWindDirection);
+			BOOST_LOG_TRIVIAL(debug) <<"trueWindDirection = " << trueWindDirection;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, t, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "t = " << t);
+			BOOST_LOG_TRIVIAL(debug) <<"t = " << t;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, magneticWindDirection, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"magneticWindDirection = " << magneticWindDirection);
+			BOOST_LOG_TRIVIAL(debug) << "magneticWindDirection = " << magneticWindDirection;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, magnetic, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "magnetic = " << magnetic);
+			BOOST_LOG_TRIVIAL(debug) <<"magnetic = " << magnetic;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, windSpeedKnots, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "windSpeedKnots = " << windSpeedKnots);
+			BOOST_LOG_TRIVIAL(debug) <<"windSpeedKnots = " << windSpeedKnots;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<char>(itNmea, knots, c)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "knots = " << knots);
+			BOOST_LOG_TRIVIAL(debug) <<"knots = " << knots;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<double>(itNmea, windSpeedMeters, 0)) {
 				ret.set(6, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "windSpeedMeters = " << windSpeedMeters);
+			BOOST_LOG_TRIVIAL(debug) <<"windSpeedMeters = " << windSpeedMeters;
 
 			/*------------ Position 07 ---------------*/
 			if (!decodeDefault<char>(itNmea, meters, c)) {
 				ret.set(7, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "meters = " << meters);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"meters = " << meters;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << mwdSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mwdSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1813,9 +1688,8 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 		double& humidity, char& humidityUnitsOfMeasurePercent,
 		std::string& nameOfRelativeHumiditySensor) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 22  IIXDR --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseXDR";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1829,115 +1703,106 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 	if (fields.size() == xdrSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseXDR: 22 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "XDR") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<char>(itNmea, typeOfSensorTemperature, c)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"typeOfSensorTemperature = " << typeOfSensorTemperature);
+			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorTemperature = " << typeOfSensorTemperature;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, temperatureReading, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "temperatureReading = " << temperatureReading);
+			BOOST_LOG_TRIVIAL(debug) <<"temperatureReading = " << temperatureReading;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<char>(itNmea, centigrade, c)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "centigrade = " << centigrade);
+			BOOST_LOG_TRIVIAL(debug) <<"centigrade = " << centigrade;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeString(itNmea, nameOfTransducer, defString)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "nameOfTransducer = " << nameOfTransducer);
+			BOOST_LOG_TRIVIAL(debug) <<"nameOfTransducer = " << nameOfTransducer;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<char>(itNmea, typeOfSensorPressure, c)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"typeOfSensorPressure = " << typeOfSensorPressure);
+			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorPressure = " << typeOfSensorPressure;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<double>(itNmea, pressureReading, 0)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "pressureReading = " << pressureReading);
+			BOOST_LOG_TRIVIAL(debug) << "pressureReading = " << pressureReading;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<char>(itNmea, bars, c)) {
 				ret.set(6, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "bars = " << bars);
+			BOOST_LOG_TRIVIAL(debug) << "bars = " << bars;
 
 			/*------------ Position 07 ---------------*/
 			if (!decodeString(itNmea, nameOfPressureSensor, defString)) {
 				ret.set(7, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"nameOfPressureSensor = " << nameOfPressureSensor);
+			BOOST_LOG_TRIVIAL(debug) << "nameOfPressureSensor = " << nameOfPressureSensor;
 
 			/*------------ Position 08 ---------------*/
 			if (!decodeDefault<char>(itNmea, typeOfSensorHumidity, c)) {
 				ret.set(8, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"typeOfSensorHumidity = " << typeOfSensorHumidity);
+			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorHumidity = " << typeOfSensorHumidity;
 
 			/*------------ Position 09 ---------------*/
 			if (!decodeDefault<double>(itNmea, humidity, 0)) {
 				ret.set(9, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "humidity = " << humidity);
+			BOOST_LOG_TRIVIAL(debug) << "humidity = " << humidity;
 
 			/*------------ Position 10 ---------------*/
 			if (!decodeDefault<char>(itNmea, humidityUnitsOfMeasurePercent,
 					c)) {
 				ret.set(10, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"humidityUnitsOfMeasurePercent = " << humidityUnitsOfMeasurePercent);
+			BOOST_LOG_TRIVIAL(debug) << "humidityUnitsOfMeasurePercent = " << humidityUnitsOfMeasurePercent;
 
 			/*------------ Position 11 ---------------*/
 			if (!decodeString(itNmea, nameOfRelativeHumiditySensor,
 					defString)) {
 				ret.set(11, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser,
-					"nameOfRelativeHumiditySensor = " << nameOfRelativeHumiditySensor);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "nameOfRelativeHumiditySensor = " << nameOfRelativeHumiditySensor;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << xdrSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << xdrSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -1946,9 +1811,8 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 		int& lineCount, int& sequenceIdentifier, std::string& trackData,
 		int& fillBits) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 23  IITTD --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTD";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -1962,62 +1826,58 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 	if (fields.size() == ttdSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseTTD: 23 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "TTD") {
-			itNmea++;
+			++itNmea;
 
 			uint aux;
 			/*------------ Position 00 ---------------*/
 			if (!decodeHex(itNmea, aux, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
 			totalLines = aux;
-			Dout(dbg_nmeaparser, "totalLines = " << totalLines);
+			BOOST_LOG_TRIVIAL(debug) <<"totalLines = " << totalLines;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeHex(itNmea, aux, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
 			lineCount = aux;
-			Dout(dbg_nmeaparser, "lineCount = " << lineCount);
+			BOOST_LOG_TRIVIAL(debug) <<"lineCount = " << lineCount;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
 				//ret.set(2, true); El campo null es valido.
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"sequenciaIdentifier = " << sequenceIdentifier);
+			BOOST_LOG_TRIVIAL(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<std::string>(itNmea, trackData, defString)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "trackData = " << trackData);
+			BOOST_LOG_TRIVIAL(debug) <<"trackData = " << trackData;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<int>(itNmea, fillBits, 0)) {
 				ret.set(4, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "fillBits = " << fillBits);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"fillBits = " << fillBits;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << ttdSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ttdSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -2025,9 +1885,8 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 		std::vector<std::pair<int, std::string>>& trackNumbernLabel) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 24  INTLB --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTLB";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -2041,45 +1900,41 @@ NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 	if (fields.size() >= tlbSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseTLB: 24 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "TLB") {
-			itNmea++;
+			++itNmea;
 
 			std::pair<int, std::string> trackPair;
 			for (uint i = 0; i < (fields.size() - 2) / 2; i++) {
-				Dout(dbg_nmeaparser, "i = " << i);
+				BOOST_LOG_TRIVIAL(debug) <<"i = " << i;
 				/*------------ targetNumber ---------------*/
 				if (!decodeDefault<int>(itNmea, trackPair.first, 0)) {
 					ret.set(i, true);
-					itNmea++;
+					++itNmea;
 				}
-				Dout(dbg_nmeaparser, "targetNumber = " << trackPair.first);
+				BOOST_LOG_TRIVIAL(debug) <<"targetNumber = " << trackPair.first;
 
 				/*------------ targetLabel ---------------*/
 				if (!decodeDefault<std::string>(itNmea, trackPair.second,
 						defString)) {
 					ret.set(i + 1, true);
-					itNmea++;
+					++itNmea;
 				}
-				Dout(dbg_nmeaparser, "targetLabel = " << trackPair.second);
+				BOOST_LOG_TRIVIAL(debug) <<"targetLabel = " << trackPair.second;
 
 				trackNumbernLabel.push_back(trackPair);
 
 			}
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << tlbSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << tlbSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -2089,9 +1944,8 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 		double& vesselSpeed, char& referenceSpeed, double& vesselSet,
 		double& vesselDrift, char& speedUnits) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 25  RAOSD --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseOSD";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -2105,86 +1959,82 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 	if (fields.size() == osdSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseOSD: 25 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "OSD") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, heading, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "heading = " << heading);
+			BOOST_LOG_TRIVIAL(debug) <<"heading = " << heading;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<char>(itNmea, status, c)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "status = " << status);
+			BOOST_LOG_TRIVIAL(debug) <<"status = " << status;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, vesselCourse, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "vesselCourse = " << vesselCourse);
+			BOOST_LOG_TRIVIAL(debug) <<"vesselCourse = " << vesselCourse;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<char>(itNmea, referenceCourse, c)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "referenceCourse = " << referenceCourse);
+			BOOST_LOG_TRIVIAL(debug) <<"referenceCourse = " << referenceCourse;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, vesselSpeed, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "vesselSpeed = " << vesselSpeed);
+			BOOST_LOG_TRIVIAL(debug) <<"vesselSpeed = " << vesselSpeed;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<char>(itNmea, referenceSpeed, c)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "referenceSpeed = " << referenceSpeed);
+			BOOST_LOG_TRIVIAL(debug) <<"referenceSpeed = " << referenceSpeed;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<double>(itNmea, vesselSet, 0)) {
 				ret.set(6, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "vesselSet = " << vesselSet);
+			BOOST_LOG_TRIVIAL(debug) <<"vesselSet = " << vesselSet;
 
 			/*------------ Position 07 ---------------*/
 			if (!decodeDefault<double>(itNmea, vesselDrift, 0)) {
 				ret.set(7, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "vesselDrift = " << vesselDrift);
+			BOOST_LOG_TRIVIAL(debug) <<"vesselDrift = " << vesselDrift;
 
 			/*------------ Position 08 ---------------*/
 			if (!decodeDefault<char>(itNmea, speedUnits, c)) {
 				ret.set(8, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "speedUnits = " << speedUnits);
+				++itNmea;
+			}BOOST_LOG_TRIVIAL(debug) <<"speedUnits = " << speedUnits;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << osdSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << osdSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
 	return ret;
 
 }
@@ -2196,9 +2046,8 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 		double& ebl2, double& cursorRange, double& cursorBearing,
 		double& rangeScale, char& rangeUnits, char& displayRotation) {
 
-	Dout(dbg_nmeaparser,
-			"\033[034m" << "-------------------- 26  RARSD --------------------" << "\033[0m");
-	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseRSD";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -2212,204 +2061,112 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 	if (fields.size() == rsdSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
-		Dout(dbg_nmeaparser, "parseRSD: 26 = " << *itNmea);
+
 		if ((*itNmea).substr(3, 3) == "RSD") {
-			itNmea++;
+			++itNmea;
 
 			/*------------ Position 00 ---------------*/
 			if (!decodeDefault<double>(itNmea, origin1Range, 0)) {
 				ret.set(0, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "origin1Range = " << origin1Range);
+			BOOST_LOG_TRIVIAL(debug) << "origin1Range = " << origin1Range;
 
 			/*------------ Position 01 ---------------*/
 			if (!decodeDefault<double>(itNmea, origin1BearingDegrees, 0)) {
 				ret.set(1, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"origin1BearingDegrees = " << origin1BearingDegrees);
+			BOOST_LOG_TRIVIAL(debug) << "origin1BearingDegrees = " << origin1BearingDegrees;
 
 			/*------------ Position 02 ---------------*/
 			if (!decodeDefault<double>(itNmea, variableRangeMarker1, 0)) {
 				ret.set(2, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser,
-					"variableRangeMarker1 = " << variableRangeMarker1);
+			BOOST_LOG_TRIVIAL(debug) << "variableRangeMarker1 = " << variableRangeMarker1;
 
 			/*------------ Position 03 ---------------*/
 			if (!decodeDefault<double>(itNmea, bearingLine1, 0)) {
 				ret.set(3, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "bearingLine1 = " << bearingLine1);
+			BOOST_LOG_TRIVIAL(debug) <<"bearingLine1 = " << bearingLine1;
 
 			/*------------ Position 04 ---------------*/
 			if (!decodeDefault<double>(itNmea, origin2Range, 0)) {
 				ret.set(4, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "origin2Range = " << origin2Range);
+			BOOST_LOG_TRIVIAL(debug) <<"origin2Range = " << origin2Range;
 
 			/*------------ Position 05 ---------------*/
 			if (!decodeDefault<double>(itNmea, origin2Bearing, 0)) {
 				ret.set(5, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "origin2Bearing = " << origin2Bearing);
+			BOOST_LOG_TRIVIAL(debug) <<"origin2Bearing = " << origin2Bearing;
 
 			/*------------ Position 06 ---------------*/
 			if (!decodeDefault<double>(itNmea, vrm2, 0)) {
 				ret.set(6, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "vrm2 = " << vrm2);
+			BOOST_LOG_TRIVIAL(debug) <<"vrm2 = " << vrm2;
 
 			/*------------ Position 07 ---------------*/
 			if (!decodeDefault<double>(itNmea, ebl2, 0)) {
 				ret.set(7, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "ebl2 = " << ebl2);
+			BOOST_LOG_TRIVIAL(debug) <<"ebl2 = " << ebl2;
 
 			/*------------ Position 08 ---------------*/
 			if (!decodeDefault<double>(itNmea, cursorRange, 0)) {
 				ret.set(8, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "cursorRange = " << cursorRange);
+			BOOST_LOG_TRIVIAL(debug) <<"cursorRange = " << cursorRange;
 
 			/*------------ Position 09 ---------------*/
 			if (!decodeDefault<double>(itNmea, cursorBearing, 0)) {
 				ret.set(9, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "cursorBearing = " << cursorBearing);
+			BOOST_LOG_TRIVIAL(debug) <<"cursorBearing = " << cursorBearing;
 
 			/*------------ Position 10 ---------------*/
 			if (!decodeDefault<double>(itNmea, rangeScale, 0)) {
 				ret.set(10, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "rangeScale = " << rangeScale);
+			BOOST_LOG_TRIVIAL(debug) <<"rangeScale = " << rangeScale;
 
 			/*------------ Position 11 ---------------*/
 			if (!decodeDefault<char>(itNmea, rangeUnits, c)) {
 				ret.set(11, true);
-				itNmea++;
+				++itNmea;
 			}
-			Dout(dbg_nmeaparser, "rangeUnits = " << rangeUnits);
+			BOOST_LOG_TRIVIAL(debug) <<"rangeUnits = " << rangeUnits;
 
 			/*------------ Position 12 ---------------*/
 			if (!decodeDefault<char>(itNmea, displayRotation, c)) {
 				ret.set(12, true);
-				itNmea++;
-			}Dout(dbg_nmeaparser, "displayRotation = " << displayRotation);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"displayRotation = " << displayRotation;
 
 		} else {
-			//ERROR
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "Error : " << nmea.c_str() << "\033[0m");
-		Dout(dbg_nmeaparser,
-				"\033[033m" << "campos esperados : " << rsdSizeField << "\033[0m");Dout(
-				dbg_nmeaparser,
-				"\033[033m" << "campos recibidos : " << fields.size()<< "\033[0m");
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rsdSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
-	Dout(dbg_nmeaparser,
-			"\033[032m" << "retorno binario : " << ret<< "\033[0m");
-	return ret;
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
 
+	return ret;
 }
 
-//void NmeaParser::parseVDM(const std::string& nmea, int& typeAIS, int& mmsiAIS,
-//		double& latitudeAIS, double& longitudeAIS, float& speedAIS,
-//		float& courseAIS, float& headingAIS) {
-//
-//	AisReader aa;
-//	shipdata aisData;
-//	int lettersread = 0;
-//	int previoussentence = 0;
-//	char aisline[500];
-//	int nbytes = nmea.size();
-//	const char * nmeabuffer = nmea.c_str();
-//	int k, start;
-//	int sentences, sentencenumb;
-//	int m = 0;
-//	int kommas = 0;
-//
-////	"!AIVDM,1,1,,B,407?owAuvW?UMJNmaiq6G<100HAU,0*33";
-//
-//	while (nmeabuffer[m++] != '!') {
-//		if (m > (nbytes - 1)) {
-//			break;
-//		}
-//	}
-//	if (m > (nbytes - 1))
-//		//continue; -------------
-//		m--;
-//
-//	if (nmeabuffer[m] != '!' || nmeabuffer[m + 1] != 'A'
-//			|| nmeabuffer[m + 5] != 'M') {
-//		//std::continue;---------
-//	}
-//
-//	for (k = 0; k < 20; k++) {
-//		if (nmeabuffer[k + m] == ',')
-//			kommas++;
-//		if (kommas == 5)
-//			break;
-//	}
-//	start = k + 1;
-//	sentences = nmeabuffer[m + 7] - 0x30;
-//	sentencenumb = nmeabuffer[m + 9] - 0x30;
-//
-//	if ((sentencenumb > 1) && ((previoussentence) != (sentencenumb - 1))) {
-//	}
-//	// continue;------------------
-//
-//	if (sentencenumb == 1)
-//		lettersread = 0;
-//	for (int j = 0; j < (nbytes - start - m); j++) {
-//		if (nmeabuffer[m + j + start] == ',')
-//			break;
-//		aisline[lettersread] = nmeabuffer[m + j + start];
-//		lettersread++;
-//	}
-//
-//	if (sentencenumb >= sentences) {
-//		aisline[lettersread] = 0;
-//		aa.aisdecode(aisline, &aisData);
-//	}
-//
-//	previoussentence = sentencenumb;
-//
-//	Dout(dbg_nmeaparser, "\033[036m" << nmea.c_str() << "\033[0m");
-//
-//	typeAIS = aisData.type;
-//	Dout(dbg_nmeaparser, "typeAIS = " << typeAIS;
-//
-//	mmsiAIS = aisData.mmsi;
-//	Dout(dbg_nmeaparser, "mmsiAIS = " << mmsiAIS;
-//
-//	latitudeAIS = aisData.latitude;
-//	Dout(dbg_nmeaparser, "latitudeAIS = " << latitudeAIS;
-//
-//	longitudeAIS = aisData.longitude;
-//	Dout(dbg_nmeaparser, "longitudeAIS = " << longitudeAIS;
-//
-//	speedAIS = aisData.speed;
-//	Dout(dbg_nmeaparser, "speedAIS = " << speedAIS;
-//
-//	courseAIS = aisData.course;
-//	Dout(dbg_nmeaparser, "courseAIS = " << courseAIS;
-//
-//	headingAIS = aisData.heading;
-//	Dout(dbg_nmeaparser, "displayRotation = " << headingAIS;
-//
-//}
 
