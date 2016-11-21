@@ -183,9 +183,9 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 	tokenizeSentence(nmea, fields);
 
-	uint zdaSizeField = 8;
+	uint expectedFieldCount = 8;
 
-	if (fields.size() == zdaSizeField) {
+	if (fields.size() == expectedFieldCount) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -243,7 +243,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << zdaSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
 		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -268,9 +268,9 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 	tokenizeSentence(nmea, fields);
 
-	uint gllSizeField = 9;
+	uint expectedFieldCount = 9;
 
-	if (fields.size() == gllSizeField) {
+	if (fields.size() == expectedFieldCount) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -322,7 +322,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << gllSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
 		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2397,9 +2397,9 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 	tokenizeSentence(nmea, fields);
 
-	uint vdmSizeField = 8;
+	uint expectedFieldCount = 8;
 
-	if (fields.size() == vdmSizeField) {
+	if (fields.size() == expectedFieldCount) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2455,7 +2455,88 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vdmSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
+		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+	}
+
+	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+
+	return ret;
+}
+
+NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
+		int& lineCount, int& sequenceIdentifier, char& aisChannel,
+		std::string& encodedData, int& fillBits) {
+
+	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVDO";
+	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+
+	NmeaParserResult ret;
+	ret.reset();
+
+	std::vector<std::string> fields;
+
+	tokenizeSentence(nmea, fields);
+
+	uint expectedFieldCount = 8;
+
+	if (fields.size() == expectedFieldCount) {
+
+		std::vector<std::string>::iterator itNmea = fields.begin();
+
+		if ((*itNmea).substr(3, 3) == "VDO") {
+			++itNmea;
+
+			uint aux;
+			/*------------ Position 01 ---------------*/
+			if (!decodeHex(itNmea, aux, 0)) {
+				ret.set(0, true);
+				++itNmea;
+			}
+			totalLines = aux;
+			BOOST_LOG_TRIVIAL(debug) <<"totalLines = " << totalLines;
+
+			/*------------ Position 02 ---------------*/
+			if (!decodeHex(itNmea, aux, 0)) {
+				ret.set(1, true);
+				++itNmea;
+			}
+			lineCount = aux;
+			BOOST_LOG_TRIVIAL(debug) <<"lineCount = " << lineCount;
+
+			/*------------ Position 03 ---------------*/
+			if (!decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
+				ret.set(2, true);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
+
+			/*------------ Position 04 ---------------*/
+			if (!decodeDefault<char>(itNmea, aisChannel, defChar)) {
+				ret.set(3, true);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "aisChannel = " << aisChannel;
+
+			/*------------ Position 05 ---------------*/
+			if (!decodeDefault<std::string>(itNmea, encodedData, defString)) {
+				ret.set(4, true);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"encodedData = " << encodedData;
+
+			/*------------ Position 06 ---------------*/
+			if (!decodeDefault<int>(itNmea, fillBits, 0)) {
+				ret.set(5, true);
+				++itNmea;
+			}
+			BOOST_LOG_TRIVIAL(debug) <<"fillBits = " << fillBits;
+
+		} else {
+			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+		}
+	} else {
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
 		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
