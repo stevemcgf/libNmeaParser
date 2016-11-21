@@ -89,8 +89,9 @@ public:
 	//	7 	Speed over ground in kilometers/hour (kph)
 	//	8 	K: speed over ground is measured in kph
 	//	9 	The checksum data, always begins with *
-	static NmeaParserResult parseVTG(const std::string& nmea, double& coursetrue,
-			double& coursemagnetic, double& speedknots, double& speedkph);
+	static NmeaParserResult parseVTG(const std::string& nmea,
+			double& coursetrue, double& coursemagnetic, double& speedknots,
+			double& speedkph);
 
 	//  -------------------- 05  --RMC --------------------
 	//	--RMC message fields
@@ -133,8 +134,8 @@ public:
 	//	4 	Name or number of the active route
 	//	5 	onwards, Names of waypoints in Route
 	static NmeaParserResult parseRTE(const std::string& nmea, int& totalLines,
-			int& lineCount, char& messageMode,
-			std::string& routeIdentifier, std::vector<std::string>& waypointNames);
+			int& lineCount, char& messageMode, std::string& routeIdentifier,
+			std::vector<std::string>& waypointNames);
 
 	//  -------------------- 08  VDVHW --------------------
 	//	VDVHW message fields
@@ -149,8 +150,9 @@ public:
 	//	7	Kilometers (speed of vessel relative to the water)
 	//	8	K = Kilometres
 	//	9	Checksum
-	static NmeaParserResult parseVHW(const std::string& nmea, double& speedInKnots,
-			char& knots, double& speedInKmH, char& kilometers);
+	static NmeaParserResult parseVHW(const std::string& nmea,
+			double& speedInKnots, char& knots, double& speedInKmH,
+			char& kilometers);
 
 	//  -------------------- 09  VDMTW --------------------
 	//	VDMTW message fields
@@ -215,9 +217,9 @@ public:
 	//	5 	Depth, Fathoms
 	//	6	F = Fathoms
 	//	7	Checksum
-	static NmeaParserResult parseDBT(const std::string& nmea, double& waterDepthInFeet,
-			char& feet, double& waterDepthInMeters, char& meters,
-			double& waterDepthInFathoms, char& fathoms);
+	static NmeaParserResult parseDBT(const std::string& nmea,
+			double& waterDepthInFeet, char& feet, double& waterDepthInMeters,
+			char& meters, double& waterDepthInFathoms, char& fathoms);
 
 	//  -------------------- 14  SDDBK --------------------
 	//	SDDBK message fields
@@ -230,8 +232,9 @@ public:
 	//	5 	Depth, Fathoms
 	//	6	F = Fathoms
 	//	7	Checksum
-	static NmeaParserResult parseDBK(const std::string& nmea, double& depthBelowKeelFeet,
-			char& feet, double& depthBelowKeelMeters, char& meters,
+	static NmeaParserResult parseDBK(const std::string& nmea,
+			double& depthBelowKeelFeet, char& feet,
+			double& depthBelowKeelMeters, char& meters,
 			double& depthBelowKeelFathoms, char& fathoms);
 
 	//  -------------------- 15  PSKPDPT --------------------
@@ -258,8 +261,8 @@ public:
 	//	1 	Heading Degrees, true
 	//	2 	T = True
 	//	3 	Checksum
-	static NmeaParserResult parseHDT(const std::string& nmea, double& headingDegreesTrue,
-			char& t);
+	static NmeaParserResult parseHDT(const std::string& nmea,
+			double& headingDegreesTrue, char& t);
 
 	//  -------------------- 17  HCHDG --------------------
 	//	HCHDG message fields
@@ -293,8 +296,8 @@ public:
 	//	1 	Rate Of Turn, degrees per minute, "-" means bow turns to port
 	//	2 	Status, A means data is valid
 	//	3 	Checksum
-	static NmeaParserResult parseROT(const std::string& nmea, double& rateOfTurn,
-			char& status);
+	static NmeaParserResult parseROT(const std::string& nmea,
+			double& rateOfTurn, char& status);
 
 	//  -------------------- 20  IIMWV --------------------
 	//	IIMWV message fields
@@ -322,10 +325,10 @@ public:
 	//	6	Knots
 	//	7	Wind speed
 	//	8	meters/second
-	static NmeaParserResult parseMWD(const std::string& nmea, double& trueWindDirection,
-			char& t, double& magneticWindDirection, char& magnetic,
-			double& windSpeedKnots, char& knots, double& windSpeedMeters,
-			char& meters);
+	static NmeaParserResult parseMWD(const std::string& nmea,
+			double& trueWindDirection, char& t, double& magneticWindDirection,
+			char& magnetic, double& windSpeedKnots, char& knots,
+			double& windSpeedMeters, char& meters);
 
 	//  -------------------- 22  --XDR --------------------
 	//	--XDR message fields
@@ -337,10 +340,10 @@ public:
 	//	4 	Name of transducer
 	//	X 	More of the same
 	//	n	Checksum
-	static NmeaParserResult parseXDR(const std::string& nmea, char& typeOfSensorTemperature,
-			double& temperatureReading, char& centigrade,
-			std::string& nameOfTransducer, char& typeOfSensorPressure,
-			double& pressureReading, char& bars,
+	static NmeaParserResult parseXDR(const std::string& nmea,
+			char& typeOfSensorTemperature, double& temperatureReading,
+			char& centigrade, std::string& nameOfTransducer,
+			char& typeOfSensorPressure, double& pressureReading, char& bars,
 			std::string& nameOfPressureSensor, char& typeOfSensorHumidity,
 			double& humidity, char& humidityUnitsOfMeasurePercent,
 			std::string& nameOfRelativeHumiditySensor);
@@ -366,10 +369,11 @@ public:
 	//  15  Type of acquisition A/M/R
 	//  16  Checksum
 	static NmeaParserResult parseTTM(const std::string& nmea, int& targetNumber,
-			double& targetDistance, double& targetBearing, Nmea_AngleReference& targetBearingReference,
-			double& targetSpeed, double& targetCourse, Nmea_AngleReference& targetCourseReference,
-			Nmea_SpeedDistanceUnits& speedDistanceUnits, std::string& targetName,
-			Nmea_TargetStatus& targetStatus,
+			double& targetDistance, double& targetBearing,
+			Nmea_AngleReference& targetBearingReference, double& targetSpeed,
+			double& targetCourse, Nmea_AngleReference& targetCourseReference,
+			Nmea_SpeedDistanceUnits& speedDistanceUnits,
+			std::string& targetName, Nmea_TargetStatus& targetStatus,
 			boost::posix_time::time_duration& timeOfData,
 			Nmea_TypeOfAcquisition& typeOfAcquisition);
 
@@ -411,10 +415,10 @@ public:
 	//	8	Vessel drift (speed)
 	//	9	Speed Units
 	//	10	Checksum
-	static NmeaParserResult parseOSD(const std::string& nmea, double& heading, char& status,
-			double& vesselCourse, char& referenceCourse, double& vesselSpeed,
-			char& referenceSpeed, double& vesselSet, double& vesselDrift,
-			char& speedUnits);
+	static NmeaParserResult parseOSD(const std::string& nmea, double& heading,
+			char& status, double& vesselCourse, char& referenceCourse,
+			double& vesselSpeed, char& referenceSpeed, double& vesselSet,
+			double& vesselDrift, char& speedUnits);
 
 	//  -------------------- 26  --RSD --------------------
 	//	--RSD message fields
@@ -434,17 +438,40 @@ public:
 	//	12	range units, K/N/S
 	//	13	display rotation
 	//	14	Checksum
-	static NmeaParserResult parseRSD(const std::string& nmea, double& origin1Range,
-			double& origin1BearingDegrees, double& variableRangeMarker1,
-			double& bearingLine1, double& origin2Range, double& origin2Bearing,
-			double& vrm2, double& ebl2, double& cursorRange,
-			double& cursorBearing, double& rangeScale, char& rangeUnits,
-			char& displayRotation);
+	static NmeaParserResult parseRSD(const std::string& nmea,
+			double& origin1Range, double& origin1BearingDegrees,
+			double& variableRangeMarker1, double& bearingLine1,
+			double& origin2Range, double& origin2Bearing, double& vrm2,
+			double& ebl2, double& cursorRange, double& cursorBearing,
+			double& rangeScale, char& rangeUnits, char& displayRotation);
 
-//	//  -------------------- 27  AIVDM --------------------
-//	static NmeaParserResult parseVDM(const std::string& nmea, int& typeAIS, int& mmsiAIS,
-//			double& latitudeAIS, double& longitudeAIS, float& speedAIS,
-//			float& courseAIS, float& headingAIS);
+	//  -------------------- 27  --VDM --------------------
+	//	--VDM message fields
+	//	Field 	Meaning
+	//  0   Message ID --VDM
+	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
+	//  2   Hex sentence number, 1 to FF
+	//  3   Sequential message identifier, 0 to 9
+	//  4   AIS Channel
+	//  5   Encapsulated data
+	//  6   Number of fill-bits, 0 to 5
+	static NmeaParserResult parseVDM(const std::string& nmea, int& totalLines,
+			int& lineCount, int& sequenceIdentifier, char& aisChannel,
+			std::string& encodedData, int& fillBits);
+
+	//  -------------------- 28  --VDO --------------------
+	//	--VDM message fields
+	//	Field 	Meaning
+	//  0   Message ID --VDO
+	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
+	//  2   Hex sentence number, 1 to FF
+	//  3   Sequential message identifier, 0 to 9
+	//  4   AIS Channel
+	//  5   Encapsulated data
+	//  6   Number of fill-bits, 0 to 5
+	static NmeaParserResult parseVDO(const std::string& nmea, int& totalLines,
+			int& lineCount, int& sequenceIdentifier, char& aisChannel,
+			std::string& encodedData, int& fillBits);
 
 private:
 	static bool tokenizeSentence(const std::string& nmea,
@@ -460,8 +487,8 @@ private:
 			double seconds, char hemisphere);
 	static bool decodeString(std::vector<std::string>::iterator &i,
 			std::string& out, const std::string& def);
-	static bool decodeHex(std::vector<std::string>::iterator &i,
-			uint& out, const uint& def);
+	static bool decodeHex(std::vector<std::string>::iterator &i, uint& out,
+			const uint& def);
 	template<typename Target>
 	static bool decodeDefault(std::vector<std::string>::iterator &i,
 			Target &out, const Target& def);
