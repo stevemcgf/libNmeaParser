@@ -46,7 +46,8 @@ public:
 	//	4 	Direction of longitude E: East W: West
 	//	5 	UTC of position in hhmmss.ss format
 	//	6 	Fixed text "A" shows that data is valid
-	//	7 	The checksum data, always begins with *
+	//  7   Fixed text "A" shows that data is valid
+	//	8 	The checksum data, always begins with *
 	static NmeaParserResult parseGLL(const std::string& nmea, double& latitude,
 			double& longitude, boost::posix_time::time_duration& mtime,
 			char& status, char& modeIndicator);
