@@ -451,3 +451,22 @@ BOOST_AUTO_TEST_CASE( parseTTDPayload ) {
 
 		BOOST_REQUIRE_NO_THROW(NmeaParser::parseTTDPayload(trackData, tracks));
 }
+
+BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
+
+	std::string encodedData;
+	int messageType;
+
+	encodedData = "13u?etPv2;0n:dDPwUM1U1Cb069D";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+
+	encodedData = "400TcdiuiT7VDR>3nIfr6>i00000";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+
+	encodedData = "61c2;qLPH1m@wsm6ARhp<ji6ATHd<C8f=Bhk>34k;S8i=3ToDjhi=3Di<2pp=34k>4D";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+
+	encodedData = ">>M4fWA<59B1@E=@";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+
+}

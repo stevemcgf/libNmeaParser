@@ -2734,6 +2734,14 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
 	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTDPayload";
 	BOOST_LOG_TRIVIAL(debug) << "trackData = " << trackData;
 
+    // Tipos de ayuda para decodificar
+    typedef std::bitset<3> bits3;
+    typedef std::bitset<6> bits6;
+    typedef std::bitset<8> bits8;
+    typedef std::bitset<10> bits10;
+    typedef std::bitset<12> bits12;
+    typedef std::bitset<14> bits14;
+
     if (trackData.size() % 15 == 0)
     {
     	ret = true;
@@ -2753,16 +2761,8 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
             for (int j = 0; j < 15; ++j)
             {
                 int pos = offset + j;
-                uint bitDecode;
-                if (trackData.at(pos) <= 87)
-                {
-                    bitDecode = trackData.at(pos) - 48;
-                }
-                else
-                {
-                    bitDecode = trackData.at(pos) - 56;
-                }
-                std::bitset<6> bitsetDecode(bitDecode);
+                uint bitDecode = decodeSixBit(trackData.at(pos));
+                bits6 bitsetDecode(bitDecode);
                 BOOST_LOG_TRIVIAL(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
 
                 for (int k = 0; k < 6; ++k)
@@ -2773,13 +2773,6 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
             BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode END " << trackBinary;
 
             int cursor = 0;
-
-            // Variables de ayuda para decodificar
-            typedef std::bitset<3> bits3;
-            typedef std::bitset<8> bits8;
-            typedef std::bitset<10> bits10;
-            typedef std::bitset<12> bits12;
-            typedef std::bitset<14> bits14;
 
             // Solo version 0
             if (trackBinary[cursor++] == false
@@ -2920,3 +2913,24 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
 
     return ret;
 }
+
+bool NmeaParser::parseAISMessageType(std::string& encodedData, int& messageType)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISMessageType";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+    // Tipos de ayuda para decodificar
+    typedef std::bitset<6> bits6;
+
+	uint bitDecode = decodeSixBit(encodedData.at(0));
+	bits6 bitsetDecode(bitDecode);
+	BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
+
+	messageType = bitsetDecode.to_ulong();
+	BOOST_LOG_TRIVIAL(debug) << "MessageType = " << messageType;
+
+	return ret;
+}
+

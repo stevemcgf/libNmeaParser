@@ -491,7 +491,10 @@ public:
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
 
-	static bool parseTTDPayload(std::string& trackData, std::vector<NmeaTrackData>& tracks);
+	static bool parseTTDPayload(std::string& trackData,
+			std::vector<NmeaTrackData>& tracks);
+
+	static bool parseAISMessageType(std::string& encodedData, int& messageType);
 
 private:
 	static bool tokenizeSentence(const std::string& nmea,
@@ -512,6 +515,17 @@ private:
 	template<typename Target>
 	static bool decodeDefault(std::vector<std::string>::iterator &i,
 			Target &out, const Target& def);
+
+	static uint decodeSixBit(char data);
+
 };
+
+inline uint NmeaParser::decodeSixBit(char data) {
+	if (data <= 87) {
+		return data - 48;
+	} else {
+		return data - 56;
+	}
+}
 
 #endif /* SRC_NMEAPARSER_H_ */
