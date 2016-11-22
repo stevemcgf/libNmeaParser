@@ -95,18 +95,24 @@ public:
 			double& speedkph);
 
 	//  -------------------- 05  --RMC --------------------
+	//"$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	//	--RMC message fields
 	//	Field 	Meaning
 	//	0 	Message ID $--RMC
 	//	1 	UTC of position fix
 	//	2 	Status A=active or V=void
 	//	3 	Latitude
-	//	4 	Longitude
-	//	5 	Speed over the ground in knots
-	//	6 	Track angle in degrees (True)
-	//	7 	Date
-	//	8 	Magnetic variation in degrees
-	//	9 	The checksum data, always begins with *
+	//  4 	Direction of latitude: N: North S: South
+	//	5 	Longitude
+	//	6	Direction of longitude: E: East W: West
+	//	7 	Speed over the ground in knots
+	//	8 	Course over ground, degrees true
+	//	9	Date
+	//  10	Magnetic variation
+	//  11	degrees E/W
+	//  12	Mode indicator
+	//  13  Navigational status
+	//	14 	The checksum data, always begins with *
 	static NmeaParserResult parseRMC(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, double& latitude,
 			double& longitude, double& speedknots, double& coursetrue,
@@ -134,6 +140,7 @@ public:
 	//	3 	'c' = Current active route, 'w' = waypoint list starts with destination waypoint
 	//	4 	Name or number of the active route
 	//	5 	onwards, Names of waypoints in Route
+	//	6	Checksum
 	static NmeaParserResult parseRTE(const std::string& nmea, int& totalLines,
 			int& lineCount, char& messageMode, std::string& routeIdentifier,
 			std::vector<std::string>& waypointNames);
@@ -198,11 +205,10 @@ public:
 	//	SDDPT message fields
 	//	Field 	Meaning
 	//	0 	Message ID $SDDPT
-	//	1 	Depth, meters
+	//	1 	Water Depth Relative, meters
 	//	2 	Offset from transducer;
-	//		positive means distance from transducer to water line,
-	//		negative means distance from transducer to keel
-	//	3 	Checksum
+	//  3   Maximum range scale in use, meters
+	//	4 	Checksum
 	static NmeaParserResult parseDPT(const std::string& nmea,
 			double& waterDepthRelativeToTheTransducer,
 			double& offsetFromTransducer, double& maximumRangeScaleInUse);
@@ -326,6 +332,7 @@ public:
 	//	6	Knots
 	//	7	Wind speed
 	//	8	meters/second
+	//  9 	checksum
 	static NmeaParserResult parseMWD(const std::string& nmea,
 			double& trueWindDirection, char& t, double& magneticWindDirection,
 			char& magnetic, double& windSpeedKnots, char& knots,
@@ -336,11 +343,18 @@ public:
 	//	Field 	Meaning
 	//	0 	Message ID --XDR
 	//	1 	Transducer type
-	//	2 	Measurement data
-	//	3 	Units of measurement
+	//	2 	Temperature Reading
+	//	3 	Temperature Reading in Degrees Centigrade
 	//	4 	Name of transducer
-	//	X 	More of the same
-	//	n	Checksum
+	//	5 	Type of Sensor
+	//	6 	Pressure Reading in Bars
+	//	7 	Units in Bars
+	//	8 	Name of Pressure Sensor
+	//	9 	Type of Sensor
+	//	10 	Humidity Reading in Percent
+	//	11	Units of Measure Percent
+	//	12	Name of Relative Humidity Sensor
+	//	13	Checksum
 	static NmeaParserResult parseXDR(const std::string& nmea,
 			char& typeOfSensorTemperature, double& temperatureReading,
 			char& centigrade, std::string& nameOfTransducer,
@@ -387,6 +401,7 @@ public:
 	//  3   Sequential message identifier, 0 to 9
 	//  4   Encapsulated tracked target data
 	//  5   Number of fill-bits, 0 to 5
+	//  6  	Checksum
 	static NmeaParserResult parseTTD(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, std::string& trackData,
 			int& fillBits);
@@ -456,6 +471,7 @@ public:
 	//  4   AIS Channel
 	//  5   Encapsulated data
 	//  6   Number of fill-bits, 0 to 5
+	//	7	Checksum
 	static NmeaParserResult parseVDM(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
@@ -470,6 +486,7 @@ public:
 	//  4   AIS Channel
 	//  5   Encapsulated data
 	//  6   Number of fill-bits, 0 to 5
+	//	7	Checksum
 	static NmeaParserResult parseVDO(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
