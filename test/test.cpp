@@ -356,16 +356,15 @@ BOOST_AUTO_TEST_CASE( parseXDR ) {
 //  ----------------------------------------- 23  IITTD -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseTTD ) {
 		//  -------------------- 23  IITTD --------------------
-		std::string nmeaTTD = "$IITTD,FF,FC,9,abcdefghijklmn,4*19";
-		//std::string nmeaTTD = "IITTD,,,,,";
-		int aaa;
-		int bbb;
-		int ccc;
-		std::string ddd;
-		int eee;
+		std::string nmeaTTD = "!INTTD,01,01,,0PP10Eg@wwP74@0,0*2F";
+		int totalLines;
+		int lineCount;
+		int sequenceIdentifier;
+		std::string trackData;
+		int fillBits;
 
 		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseTTD(nmeaTTD, aaa, bbb, ccc, ddd, eee));
+		NmeaParser::parseTTD(nmeaTTD, totalLines, lineCount, sequenceIdentifier, trackData, fillBits));
 }
 
 //  ----------------------------------------- 24  RATLB -----------------------------------------
@@ -444,3 +443,11 @@ BOOST_AUTO_TEST_CASE( parseRSD ) {
 //			speedAIS, courseAIS, headingAIS);
 
 //}
+
+BOOST_AUTO_TEST_CASE( parseTTDPayload ) {
+		std::string trackData = "0PP10Eg@wwP74@0";
+
+		std::vector<NmeaTrackData> tracks;
+
+		BOOST_REQUIRE_NO_THROW(NmeaParser::parseTTDPayload(trackData, tracks));
+}

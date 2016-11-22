@@ -2210,7 +2210,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 03 ---------------*/
 			if (!decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
-				//ret.set(idxVar, true); El campo null es valido.
+				ret.set(idxVar, true);
 				++itNmea;
 			}
 			++idxVar;
@@ -2725,4 +2725,198 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
 
 	return ret;
+}
+
+bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackData>& tracks)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTDPayload";
+	BOOST_LOG_TRIVIAL(debug) << "trackData = " << trackData;
+
+    if (trackData.size() % 15 == 0)
+    {
+    	ret = true;
+
+    	// Cada track ocupa 15 caracteres.
+        int trackCount = trackData.size() / 15;
+    	BOOST_LOG_TRIVIAL(debug) << "trackCount = " << trackCount;
+    	tracks.resize(trackCount);
+
+        for (int i = 0; i < trackCount; ++i)
+        {
+            std::bitset<90> trackBinary;
+            uint offset = i * 15;
+
+            // Decodifica cadena a array de bits
+            BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode INIT";
+            for (int j = 0; j < 15; ++j)
+            {
+                int pos = offset + j;
+                uint bitDecode;
+                if (trackData.at(pos) <= 87)
+                {
+                    bitDecode = trackData.at(pos) - 48;
+                }
+                else
+                {
+                    bitDecode = trackData.at(pos) - 56;
+                }
+                std::bitset<6> bitsetDecode(bitDecode);
+                BOOST_LOG_TRIVIAL(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
+
+                for (int k = 0; k < 6; ++k)
+                {
+                    trackBinary.set(j * 6 + k, bitsetDecode[5 - k]);
+                }
+            }
+            BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode END " << trackBinary;
+
+            int cursor = 0;
+
+            // Variables de ayuda para decodificar
+            typedef std::bitset<3> bits3;
+            typedef std::bitset<8> bits8;
+            typedef std::bitset<10> bits10;
+            typedef std::bitset<12> bits12;
+            typedef std::bitset<14> bits14;
+
+            // Solo version 0
+            if (trackBinary[cursor++] == false
+                    && trackBinary[cursor++] == false)
+            {
+                bits10 binTargetNumber;
+                for (int i = 0; i < 10; i++)
+                {
+                    binTargetNumber[9 - i] = trackBinary[cursor++];
+                }
+                tracks[i].targetNumber = binTargetNumber.to_ulong();
+                BOOST_LOG_TRIVIAL(debug) << "TargetNumber = " << tracks[i].targetNumber;
+
+                bits12 binTrueBearing;
+                for (int i = 0; i < 12; i++)
+                {
+                    binTrueBearing[11 - i] = trackBinary[cursor++];
+                }
+                tracks[i].trueBearing = binTrueBearing.to_ulong() * 0.1f;
+                BOOST_LOG_TRIVIAL(debug) << "TrueBearing = " << tracks[i].trueBearing;
+
+                bits12 binSpeed;
+                for (int i = 0; i < 12; i++)
+                {
+                    binSpeed[11 - i] = trackBinary[cursor++];
+                }
+                tracks[i].speed = binSpeed.to_ulong() * 0.1f;
+                BOOST_LOG_TRIVIAL(debug) << "Speed = " << tracks[i].speed;
+
+                bits12 binCourse;
+                for (int i = 0; i < 12; i++)
+                {
+                    binCourse[11 - i] = trackBinary[cursor++];
+                }
+                tracks[i].course = binCourse.to_ulong() * 0.1f;
+                BOOST_LOG_TRIVIAL(debug) << "Course = " << tracks[i].course;
+
+                bits12 binHeading;
+                for (int i = 0; i < 12; i++)
+                {
+                    binHeading[11 - i] = trackBinary[cursor++];
+                }
+                tracks[i].aisHeading = binHeading.to_ulong() * 0.1f;
+                BOOST_LOG_TRIVIAL(debug) << "AisHeading = " << tracks[i].aisHeading;
+
+                // Track status
+                bits3 binStatus;
+                for (int i = 0; i < 3; i++)
+                {
+                    binStatus[2 - i] = trackBinary[cursor++];
+                }
+                switch (binStatus.to_ulong())
+                {
+                case 0:
+                	tracks[i].status = Nmea_TrackStatus_Non_tracking;
+                	break;
+
+                case 1:
+                	tracks[i].status = Nmea_TrackStatus_Acquiring;
+                	break;
+
+                case 2:
+                	tracks[i].status = Nmea_TrackStatus_Lost;
+                	break;
+
+                case 3:
+                	tracks[i].status = Nmea_TrackStatus_Reserved_1;
+                	break;
+
+                case 4:
+                	tracks[i].status = Nmea_TrackStatus_Tracking;
+                	break;
+
+                case 5:
+                	tracks[i].status = Nmea_TrackStatus_Reserved_2;
+                	break;
+
+                case 6:
+                	tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm;
+                	break;
+
+                case 7:
+                	tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm_Ack;
+                	break;
+                }
+                BOOST_LOG_TRIVIAL(debug) << "Status = " << tracks[i].status;
+
+                // Operation mode
+                if (trackBinary[cursor++] == false)
+                {
+                	tracks[i].operation = Nmea_Operation_Autonomous;
+                } else {
+                	tracks[i].operation = Nmea_Operation_TestTarget;
+                }
+                BOOST_LOG_TRIVIAL(debug) << "Operation = " << tracks[i].operation;
+
+                bits14 binDistance;
+                for (int i = 0; i < 14; i++)
+                {
+                    binDistance[13 - i] = trackBinary[cursor++];
+                }
+                tracks[i].distance = binDistance.to_ulong() * 0.01f;
+                BOOST_LOG_TRIVIAL(debug) << "Distance = " << tracks[i].distance;
+
+                // Speed mode
+                if (trackBinary[cursor++] == false)
+                {
+                	tracks[i].speedMode = Nmea_SpeedMode_TrueSpeedCourse;
+                } else {
+                	tracks[i].speedMode = Nmea_SpeedMode_Relative;
+                }
+                BOOST_LOG_TRIVIAL(debug) << "Speed mode = " << tracks[i].speedMode;
+
+                // Stabilisation mode
+                if (trackBinary[cursor++] == false)
+                {
+                	tracks[i].stabilisationMode = Nmea_StabilisationMode_OverGround;
+                } else {
+                	tracks[i].stabilisationMode = Nmea_StabilisationMode_ThroughWater;
+                }
+                BOOST_LOG_TRIVIAL(debug) << "Stabilisation mode = " << tracks[i].stabilisationMode;
+
+                // Reservado
+                // Skip 2 bit
+                cursor++;
+                cursor++;
+
+                bits8 binCorrelation;
+                for (int i = 0; i < 8; i++)
+                {
+                    binCorrelation[7 - i] = trackBinary[cursor++];
+                }
+                tracks[i].correlationNumber = binCorrelation.to_ulong();
+                BOOST_LOG_TRIVIAL(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
+            }
+        }
+    }
+
+    return ret;
 }

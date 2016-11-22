@@ -491,6 +491,8 @@ public:
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
 
+	static bool parseTTDPayload(std::string& trackData, std::vector<NmeaTrackData>& tracks);
+
 private:
 	static bool tokenizeSentence(const std::string& nmea,
 			std::vector<std::string>& tokens);

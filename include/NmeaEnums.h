@@ -39,4 +39,44 @@ enum Nmea_AngleReference {
 	Nmea_AngleReference_Relative
 };
 
+enum Nmea_TrackStatus {
+	Nmea_TrackStatus_Non_tracking,
+	Nmea_TrackStatus_Acquiring,
+	Nmea_TrackStatus_Lost,
+	Nmea_TrackStatus_Reserved_1,
+	Nmea_TrackStatus_Tracking,
+	Nmea_TrackStatus_Reserved_2,
+	Nmea_TrackStatus_Tracking_CPA_Alarm,
+	Nmea_TrackStatus_Tracking_CPA_Alarm_Ack
+};
+
+enum Nmea_Operation {
+	Nmea_Operation_Autonomous,
+	Nmea_Operation_TestTarget
+};
+
+enum Nmea_SpeedMode {
+	Nmea_SpeedMode_TrueSpeedCourse,
+	Nmea_SpeedMode_Relative
+};
+
+enum Nmea_StabilisationMode {
+	Nmea_StabilisationMode_OverGround,
+	Nmea_StabilisationMode_ThroughWater
+};
+
+struct NmeaTrackData {
+	int targetNumber;
+	float trueBearing;
+	float speed;
+	float course;
+	float aisHeading;
+	Nmea_TrackStatus status;
+	Nmea_Operation operation;
+	float distance;
+	Nmea_SpeedMode speedMode;
+	Nmea_StabilisationMode stabilisationMode;
+	int correlationNumber;
+};
+
 #endif /* SRC_NMEAENUMS_H_ */
