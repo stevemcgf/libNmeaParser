@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE( parseTTDPayload ) {
 BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
 
 	std::string encodedData;
-	int messageType;
+	Nmea_AisMessageType messageType;
 
 	encodedData = "13u?etPv2;0n:dDPwUM1U1Cb069D";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));

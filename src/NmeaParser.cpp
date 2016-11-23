@@ -2929,7 +2929,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
     return ret;
 }
 
-bool NmeaParser::parseAISMessageType(const std::string& encodedData, int& messageType)
+bool NmeaParser::parseAISMessageType(const std::string& encodedData, Nmea_AisMessageType& messageType)
 {
 	bool ret = false;
 
@@ -2939,7 +2939,7 @@ bool NmeaParser::parseAISMessageType(const std::string& encodedData, int& messag
     SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
 	BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
 
-	messageType = bitsetDecode.to_ulong();
+	messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
 	BOOST_LOG_TRIVIAL(debug) << "MessageType = " << messageType;
 
 	return ret;

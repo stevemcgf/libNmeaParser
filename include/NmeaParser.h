@@ -496,7 +496,7 @@ public:
 	static bool parseTTDPayload(const std::string& trackData,
 			std::vector<NmeaTrackData>& tracks);
 
-	static bool parseAISMessageType(const std::string& encodedData, int& messageType);
+	static bool parseAISMessageType(const std::string& encodedData, Nmea_AisMessageType& messageType);
 
 private:
 	class impl;
