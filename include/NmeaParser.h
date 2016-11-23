@@ -13,8 +13,10 @@
 #include <boost/date_time.hpp>
 #include "NmeaEnums.h"
 #include <bitset>
+#include <boost/dynamic_bitset.hpp>
 
 typedef std::bitset<16> NmeaParserResult;
+typedef std::bitset<6> SixBit;
 
 class NmeaParser {
 public:
@@ -491,10 +493,10 @@ public:
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
 
-	static bool parseTTDPayload(std::string& trackData,
+	static bool parseTTDPayload(const std::string& trackData,
 			std::vector<NmeaTrackData>& tracks);
 
-	static bool parseAISMessageType(std::string& encodedData, int& messageType);
+	static bool parseAISMessageType(const std::string& encodedData, int& messageType);
 
 private:
 	static bool tokenizeSentence(const std::string& nmea,
@@ -516,16 +518,35 @@ private:
 	static bool decodeDefault(std::vector<std::string>::iterator &i,
 			Target &out, const Target& def);
 
-	static uint decodeSixBit(char data);
-
+	static SixBit decodeSixBit(char data);
+	static void concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain);
+	static uint decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
 };
 
-inline uint NmeaParser::decodeSixBit(char data) {
+inline SixBit NmeaParser::decodeSixBit(char data) {
 	if (data <= 87) {
-		return data - 48;
+		return SixBit(static_cast<uint>(data - 48));
 	} else {
-		return data - 56;
+		return SixBit(static_cast<uint>(data - 56));
 	}
+}
+
+inline void NmeaParser::concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain)
+{
+    for (int i = 0; i < 6; ++i)
+    {
+    	dataout.set(pointer + i, datain[5 - i]);
+    }
+}
+
+inline uint NmeaParser::decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size)
+{
+	boost::dynamic_bitset<> binVariable(size);
+    for (int i = 0; i < size; i++)
+    {
+    	binVariable[size - 1 - i] = data[pointer + i];
+    }
+    return binVariable.to_ulong();
 }
 
 #endif /* SRC_NMEAPARSER_H_ */

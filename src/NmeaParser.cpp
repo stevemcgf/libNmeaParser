@@ -2727,48 +2727,40 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 	return ret;
 }
 
-bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackData>& tracks)
+bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaTrackData>& tracks)
 {
 	bool ret = false;
 
 	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTDPayload";
 	BOOST_LOG_TRIVIAL(debug) << "trackData = " << trackData;
 
-    // Tipos de ayuda para decodificar
-    typedef std::bitset<3> bits3;
-    typedef std::bitset<6> bits6;
-    typedef std::bitset<8> bits8;
-    typedef std::bitset<10> bits10;
-    typedef std::bitset<12> bits12;
-    typedef std::bitset<14> bits14;
+	const int TDD_TOTALBITS = 90;
+	const int TDD_TOTALCHARS = 15;
 
-    if (trackData.size() % 15 == 0)
+    if (trackData.size() % TDD_TOTALCHARS == 0)
     {
     	ret = true;
 
     	// Cada track ocupa 15 caracteres.
-        int trackCount = trackData.size() / 15;
+        int trackCount = trackData.size() / TDD_TOTALCHARS;
     	BOOST_LOG_TRIVIAL(debug) << "trackCount = " << trackCount;
     	tracks.resize(trackCount);
 
         for (int i = 0; i < trackCount; ++i)
         {
-            std::bitset<90> trackBinary;
-            uint offset = i * 15;
+        	boost::dynamic_bitset<> trackBinary(TDD_TOTALBITS);
+            uint offset = i * TDD_TOTALCHARS;
 
             // Decodifica cadena a array de bits
             BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode INIT";
-            for (int j = 0; j < 15; ++j)
+            for (int j = 0; j < TDD_TOTALCHARS; ++j)
             {
                 int pos = offset + j;
-                uint bitDecode = decodeSixBit(trackData.at(pos));
-                bits6 bitsetDecode(bitDecode);
+                SixBit bitsetDecode = decodeSixBit(trackData.at(pos));
                 BOOST_LOG_TRIVIAL(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
 
-                for (int k = 0; k < 6; ++k)
-                {
-                    trackBinary.set(j * 6 + k, bitsetDecode[5 - k]);
-                }
+                // Concatenate all six-bit quantities found in the payload, MSB first
+                concatSixBitMSBFirst(j * 6, trackBinary, bitsetDecode);
             }
             BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode END " << trackBinary;
 
@@ -2778,53 +2770,30 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
             if (trackBinary[cursor++] == false
                     && trackBinary[cursor++] == false)
             {
-                bits10 binTargetNumber;
-                for (int i = 0; i < 10; i++)
-                {
-                    binTargetNumber[9 - i] = trackBinary[cursor++];
-                }
-                tracks[i].targetNumber = binTargetNumber.to_ulong();
+            	tracks[i].targetNumber = decodeUInt(trackBinary, cursor, 10);
+            	cursor += 10;
                 BOOST_LOG_TRIVIAL(debug) << "TargetNumber = " << tracks[i].targetNumber;
 
-                bits12 binTrueBearing;
-                for (int i = 0; i < 12; i++)
-                {
-                    binTrueBearing[11 - i] = trackBinary[cursor++];
-                }
-                tracks[i].trueBearing = binTrueBearing.to_ulong() * 0.1f;
+                tracks[i].trueBearing = decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "TrueBearing = " << tracks[i].trueBearing;
 
-                bits12 binSpeed;
-                for (int i = 0; i < 12; i++)
-                {
-                    binSpeed[11 - i] = trackBinary[cursor++];
-                }
-                tracks[i].speed = binSpeed.to_ulong() * 0.1f;
+                tracks[i].speed = decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "Speed = " << tracks[i].speed;
 
-                bits12 binCourse;
-                for (int i = 0; i < 12; i++)
-                {
-                    binCourse[11 - i] = trackBinary[cursor++];
-                }
-                tracks[i].course = binCourse.to_ulong() * 0.1f;
+                tracks[i].course = decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "Course = " << tracks[i].course;
 
-                bits12 binHeading;
-                for (int i = 0; i < 12; i++)
-                {
-                    binHeading[11 - i] = trackBinary[cursor++];
-                }
-                tracks[i].aisHeading = binHeading.to_ulong() * 0.1f;
+                tracks[i].aisHeading = decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "AisHeading = " << tracks[i].aisHeading;
 
                 // Track status
-                bits3 binStatus;
-                for (int i = 0; i < 3; i++)
-                {
-                    binStatus[2 - i] = trackBinary[cursor++];
-                }
-                switch (binStatus.to_ulong())
+                uint status = decodeUInt(trackBinary, cursor, 3);
+                cursor += 3;
+                switch (status)
                 {
                 case 0:
                 	tracks[i].status = Nmea_TrackStatus_Non_tracking;
@@ -2869,12 +2838,8 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
                 }
                 BOOST_LOG_TRIVIAL(debug) << "Operation = " << tracks[i].operation;
 
-                bits14 binDistance;
-                for (int i = 0; i < 14; i++)
-                {
-                    binDistance[13 - i] = trackBinary[cursor++];
-                }
-                tracks[i].distance = binDistance.to_ulong() * 0.01f;
+                tracks[i].distance = decodeUInt(trackBinary, cursor, 14) * 0.01f;
+                cursor += 14;
                 BOOST_LOG_TRIVIAL(debug) << "Distance = " << tracks[i].distance;
 
                 // Speed mode
@@ -2900,12 +2865,7 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
                 cursor++;
                 cursor++;
 
-                bits8 binCorrelation;
-                for (int i = 0; i < 8; i++)
-                {
-                    binCorrelation[7 - i] = trackBinary[cursor++];
-                }
-                tracks[i].correlationNumber = binCorrelation.to_ulong();
+                tracks[i].correlationNumber = decodeUInt(trackBinary, cursor, 8);
                 BOOST_LOG_TRIVIAL(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
             }
         }
@@ -2914,18 +2874,14 @@ bool NmeaParser::parseTTDPayload(std::string& trackData, std::vector<NmeaTrackDa
     return ret;
 }
 
-bool NmeaParser::parseAISMessageType(std::string& encodedData, int& messageType)
+bool NmeaParser::parseAISMessageType(const std::string& encodedData, int& messageType)
 {
 	bool ret = false;
 
 	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISMessageType";
 	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
 
-    // Tipos de ayuda para decodificar
-    typedef std::bitset<6> bits6;
-
-	uint bitDecode = decodeSixBit(encodedData.at(0));
-	bits6 bitsetDecode(bitDecode);
+    SixBit bitsetDecode = decodeSixBit(encodedData.at(0));
 	BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
 
 	messageType = bitsetDecode.to_ulong();
