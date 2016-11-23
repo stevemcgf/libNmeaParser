@@ -142,11 +142,39 @@ enum Nmea_NavigationStatus {
 };
 std::ostream& operator<<(std::ostream & out, Nmea_NavigationStatus val);
 
+enum Nmea_PositionAccuracy {
+	Nmea_PositionAccuracy_UnaugmentedGNSSFix,
+	Nmea_PositionAccuracy_DGPSQualityFix
+};
+std::ostream& operator<<(std::ostream & out, Nmea_PositionAccuracy val);
+
 enum Nmea_ManeuverIndicator {
 	Nmea_ManeuverIndicator_NotAvailable,
 	Nmea_ManeuverIndicator_NoSpecialManeuver,
 	Nmea_ManeuverIndicator_SpecialManeuver
 };
 std::ostream& operator<<(std::ostream & out, Nmea_ManeuverIndicator val);
+
+enum Nmea_RAIM {
+	Nmea_RAIM_NotInUse,
+	Nmea_RAIM_InUse
+};
+std::ostream& operator<<(std::ostream & out, Nmea_RAIM val);
+
+struct AISPositionReportClassA {
+	int repeatIndicator;
+	uint mmsi;
+	Nmea_NavigationStatus navigationStatus;
+	float rateOfTurn;
+	float speedOverGround;
+	Nmea_PositionAccuracy positionAccuracy;
+	float longitude;
+	float latitude;
+	float courseOverGround;
+	uint trueHeading;
+	uint timestapUTCSecond;
+	Nmea_ManeuverIndicator maneuverIndicator;
+	Nmea_RAIM raim;
+};
 
 #endif /* SRC_NMEAENUMS_H_ */

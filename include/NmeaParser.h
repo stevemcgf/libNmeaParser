@@ -498,6 +498,8 @@ public:
 
 	static bool parseAISMessageType(const std::string& encodedData, Nmea_AisMessageType& messageType);
 
+	static bool parseAISPositionReportClassA(const std::string& encodedData, AISPositionReportClassA& data);
+
 private:
 	class impl;
 };

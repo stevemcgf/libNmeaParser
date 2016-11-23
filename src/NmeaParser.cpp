@@ -36,6 +36,7 @@ public:
 	static SixBit decodeSixBit(char data);
 	static void concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain);
 	static uint decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
+	static int decodeInt(const boost::dynamic_bitset<>& data, int pointer, int size);
 };
 
 NmeaParser::NmeaParser() {
@@ -211,6 +212,13 @@ inline uint NmeaParser::impl::decodeUInt(const boost::dynamic_bitset<>& data, in
     	binVariable[size - 1 - i] = data[pointer + i];
     }
     return binVariable.to_ulong();
+}
+
+inline int NmeaParser::impl::decodeInt(const boost::dynamic_bitset<>& data, int pointer, int size)
+{
+    uint val = decodeUInt(data, pointer, size);
+    int const m = 1U << (size - 1);
+    return (val ^ m) - m;
 }
 
 // Parseo de tramas NMEA
@@ -2936,11 +2944,120 @@ bool NmeaParser::parseAISMessageType(const std::string& encodedData, Nmea_AisMes
 	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISMessageType";
 	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
 
-    SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
-	BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
+	if (encodedData.length() > 0)
+	{
+		ret = true;
+		SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
+		BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
 
-	messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
-	BOOST_LOG_TRIVIAL(debug) << "MessageType = " << messageType;
+		messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
+		BOOST_LOG_TRIVIAL(debug) << "MessageType = " << messageType;
+	}
 
+	return ret;
+}
+
+bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AISPositionReportClassA& data)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISPositionReportClassA";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+	const int TYPE1_TOTALBITS = 168;
+	const int TYPE1_TOTALCHARS = 28;
+
+	if (encodedData.length() >= TYPE1_TOTALCHARS)
+	{
+
+    	boost::dynamic_bitset<> binaryData(TYPE1_TOTALBITS);
+
+        // Decodifica cadena a array de bits
+        BOOST_LOG_TRIVIAL(debug) << "parseAISPositionReportClassA : decode INIT";
+        for (int i = 0; i < TYPE1_TOTALCHARS; ++i)
+        {
+            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+
+            // Concatenate all six-bit quantities found in the payload, MSB first
+            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+        }
+        BOOST_LOG_TRIVIAL(debug) << "parseAISPositionReportClassA : decode END " << binaryData;
+
+        int cursor = 0;
+
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeUInt(binaryData, cursor, 6));
+        cursor += 6;
+
+        if (messageType == Nmea_AisMessageType_PositionReportClassA || messageType == Nmea_AisMessageType_PositionReportClassA_AssignedSchedule || messageType == Nmea_AisMessageType_PositionReportClassA_ResponseToInterrogation)
+        {
+        	ret = true;
+
+        	data.repeatIndicator = impl::decodeUInt(binaryData, cursor, 2);
+        	cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+
+        	data.mmsi = impl::decodeUInt(binaryData, cursor, 30);
+        	cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+
+            data.navigationStatus = static_cast<Nmea_NavigationStatus>(impl::decodeUInt(binaryData, cursor, 4));
+            cursor += 4;
+            BOOST_LOG_TRIVIAL(debug) << "NavigationStatus = " << data.navigationStatus;
+
+            float auxrot = impl::decodeInt(binaryData, cursor, 8);
+            cursor += 8;
+            if (auxrot == 128.0f)
+            {
+            	auxrot = 0.0f;
+            }
+            data.rateOfTurn = std::copysign((auxrot / 4.733f) * (auxrot / 4.733f), auxrot);
+            BOOST_LOG_TRIVIAL(debug) << "RateOfTurn = " << data.rateOfTurn;
+
+            data.speedOverGround = impl::decodeUInt(binaryData, cursor, 10) * 0.1f;
+            cursor += 10;
+            BOOST_LOG_TRIVIAL(debug) << "SpeedOverGround = " << data.speedOverGround;
+
+            if (binaryData[cursor++] == false)
+            {
+            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+            } else {
+            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+
+            data.longitude = impl::decodeInt(binaryData, cursor, 28) / 600000.0f;
+            cursor += 28;
+            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+
+            data.latitude = impl::decodeInt(binaryData, cursor, 27) / 600000.0f;
+            cursor += 27;
+            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+
+            data.courseOverGround = impl::decodeUInt(binaryData, cursor, 12) * 0.1f;
+            cursor += 12;
+            BOOST_LOG_TRIVIAL(debug) << "CourseOverGround = " << data.courseOverGround;
+
+            data.trueHeading = impl::decodeUInt(binaryData, cursor, 9);
+            cursor += 9;
+            BOOST_LOG_TRIVIAL(debug) << "TrueHeading = " << data.trueHeading;
+
+            data.timestapUTCSecond = impl::decodeUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
+
+            data.maneuverIndicator = static_cast<Nmea_ManeuverIndicator>(impl::decodeUInt(binaryData, cursor, 2));
+            cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "ManeuverIndicator = " << data.maneuverIndicator;
+
+            if (binaryData[cursor++] == false)
+            {
+            	data.raim = Nmea_RAIM_NotInUse;
+            } else {
+            	data.raim = Nmea_RAIM_InUse;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "RAIM = " << data.raim;
+        }
+	}
 	return ret;
 }

@@ -470,3 +470,14 @@ BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
 
 }
+
+BOOST_AUTO_TEST_CASE( parseAISPositionReportClassA ) {
+
+	std::string encodedData;
+
+	AISPositionReportClassA data;
+
+	encodedData = "13u?etPv2;0n:dDPwUM1U1Cb069D";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISPositionReportClassA(encodedData, data));
+
+}

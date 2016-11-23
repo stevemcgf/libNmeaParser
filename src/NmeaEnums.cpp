@@ -237,6 +237,17 @@ std::ostream& operator<<(std::ostream & out, Nmea_NavigationStatus val)
 	return out << static_cast<int>(val);
 }
 
+std::ostream& operator<<(std::ostream & out, Nmea_PositionAccuracy val)
+{
+	switch (val) {
+	case Nmea_PositionAccuracy_UnaugmentedGNSSFix:
+		return out << "Nmea_PositionAccuracy_UnaugmentedGNSSFix";
+	case Nmea_PositionAccuracy_DGPSQualityFix:
+		return out << "Nmea_PositionAccuracy_DGPSQualityFix";
+	}
+	return out << static_cast<int>(val);
+}
+
 std::ostream& operator<<(std::ostream & out, Nmea_ManeuverIndicator val)
 {
 	switch (val) {
@@ -246,6 +257,17 @@ std::ostream& operator<<(std::ostream & out, Nmea_ManeuverIndicator val)
 		return out << "Nmea_ManeuverIndicator_NoSpecialManeuver";
 	case Nmea_ManeuverIndicator_SpecialManeuver:
 		return out << "Nmea_ManeuverIndicator_SpecialManeuver";
+	}
+	return out << static_cast<int>(val);
+}
+
+std::ostream& operator<<(std::ostream & out, Nmea_RAIM val)
+{
+	switch (val) {
+	case Nmea_RAIM_NotInUse:
+		return out << "Nmea_RAIM_NotInUse";
+	case Nmea_RAIM_InUse:
+		return out << "Nmea_RAIM_InUse";
 	}
 	return out << static_cast<int>(val);
 }
