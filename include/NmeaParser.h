@@ -499,54 +499,7 @@ public:
 	static bool parseAISMessageType(const std::string& encodedData, int& messageType);
 
 private:
-	static bool tokenizeSentence(const std::string& nmea,
-			std::vector<std::string>& tokens);
-	static bool decodeTime(std::vector<std::string>::iterator &i,
-			boost::posix_time::time_duration& out,
-			const boost::posix_time::time_duration& def);
-	static bool decodeLatLng(std::vector<std::string>::iterator &i, double& out,
-			const double& def);
-	static bool decodeDate(std::vector<std::string>::iterator &i,
-			boost::gregorian::date& out, const boost::gregorian::date& def);
-	static double toDecimalDegree(double degrees, double minutes,
-			double seconds, char hemisphere);
-	static bool decodeString(std::vector<std::string>::iterator &i,
-			std::string& out, const std::string& def);
-	static bool decodeHex(std::vector<std::string>::iterator &i, uint& out,
-			const uint& def);
-	template<typename Target>
-	static bool decodeDefault(std::vector<std::string>::iterator &i,
-			Target &out, const Target& def);
-
-	static SixBit decodeSixBit(char data);
-	static void concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain);
-	static uint decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
+	class impl;
 };
-
-inline SixBit NmeaParser::decodeSixBit(char data) {
-	if (data <= 87) {
-		return SixBit(static_cast<uint>(data - 48));
-	} else {
-		return SixBit(static_cast<uint>(data - 56));
-	}
-}
-
-inline void NmeaParser::concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain)
-{
-    for (int i = 0; i < 6; ++i)
-    {
-    	dataout.set(pointer + i, datain[5 - i]);
-    }
-}
-
-inline uint NmeaParser::decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size)
-{
-	boost::dynamic_bitset<> binVariable(size);
-    for (int i = 0; i < size; i++)
-    {
-    	binVariable[size - 1 - i] = data[pointer + i];
-    }
-    return binVariable.to_ulong();
-}
 
 #endif /* SRC_NMEAPARSER_H_ */
