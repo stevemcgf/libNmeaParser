@@ -500,6 +500,14 @@ public:
 
 	static bool parseAISPositionReportClassA(const std::string& encodedData, AISPositionReportClassA& data);
 
+	static bool parseAISBaseStationReport(const std::string& encodedData, AISBaseStationReport& data);
+
+	static bool parseAISStaticAndVoyageRelatedData(const std::string& encodedData, AISStaticAndVoyageRelatedData& data);
+
+	static bool parseAISStandardClassBCSPositionReport(const std::string& encodedData, AISStandardClassBCSPositionReport& data);
+
+	static bool parseAISStaticDataReport(const std::string& encodedData, AISStaticDataReport& data);
+
 private:
 	class impl;
 };

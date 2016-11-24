@@ -11,6 +11,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/regex.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 class NmeaParser::impl {
 public:
@@ -35,8 +36,9 @@ public:
 
 	static SixBit decodeSixBit(char data);
 	static void concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain);
-	static uint decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
-	static int decodeInt(const boost::dynamic_bitset<>& data, int pointer, int size);
+	static uint decodeBitUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
+	static int decodeBitInt(const boost::dynamic_bitset<>& data, int pointer, int size);
+	static std::string decodeBitString(const boost::dynamic_bitset<>& data, int pointer, int size);
 };
 
 NmeaParser::NmeaParser() {
@@ -204,7 +206,7 @@ inline void NmeaParser::impl::concatSixBitMSBFirst(int pointer, boost::dynamic_b
     }
 }
 
-inline uint NmeaParser::impl::decodeUInt(const boost::dynamic_bitset<>& data, int pointer, int size)
+inline uint NmeaParser::impl::decodeBitUInt(const boost::dynamic_bitset<>& data, int pointer, int size)
 {
 	boost::dynamic_bitset<> binVariable(size);
     for (int i = 0; i < size; i++)
@@ -214,11 +216,38 @@ inline uint NmeaParser::impl::decodeUInt(const boost::dynamic_bitset<>& data, in
     return binVariable.to_ulong();
 }
 
-inline int NmeaParser::impl::decodeInt(const boost::dynamic_bitset<>& data, int pointer, int size)
+inline int NmeaParser::impl::decodeBitInt(const boost::dynamic_bitset<>& data, int pointer, int size)
 {
-    uint val = decodeUInt(data, pointer, size);
+    uint val = decodeBitUInt(data, pointer, size);
     int const m = 1U << (size - 1);
     return (val ^ m) - m;
+}
+
+std::string NmeaParser::impl::decodeBitString(const boost::dynamic_bitset<>& data, int pointer, int size)
+{
+	int len = size / 6;
+	std::string strVariable(len, '\0');
+
+	SixBit bitChar;
+
+	for (int i = 0; i < len; ++i)
+	{
+		for (int j = 0; j < 6; ++j)
+		{
+			bitChar[5 - j] = data[pointer + i * 6 + j];
+		}
+		if (bitChar.to_ulong() < 32)
+		{
+			strVariable[i] = '@' + bitChar.to_ulong();
+		} else {
+			strVariable[i] = ' ' + (bitChar.to_ulong() - 32);
+		}
+	}
+
+	boost::trim(strVariable);
+	boost::trim_right_if(strVariable, boost::is_any_of("@"));
+
+	return strVariable;
 }
 
 // Parseo de tramas NMEA
@@ -2832,28 +2861,28 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
             if (trackBinary[cursor++] == false
                     && trackBinary[cursor++] == false)
             {
-            	tracks[i].targetNumber = impl::decodeUInt(trackBinary, cursor, 10);
+            	tracks[i].targetNumber = impl::decodeBitUInt(trackBinary, cursor, 10);
             	cursor += 10;
                 BOOST_LOG_TRIVIAL(debug) << "TargetNumber = " << tracks[i].targetNumber;
 
-                tracks[i].trueBearing = impl::decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                tracks[i].trueBearing = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "TrueBearing = " << tracks[i].trueBearing;
 
-                tracks[i].speed = impl::decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                tracks[i].speed = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "Speed = " << tracks[i].speed;
 
-                tracks[i].course = impl::decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                tracks[i].course = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "Course = " << tracks[i].course;
 
-                tracks[i].aisHeading = impl::decodeUInt(trackBinary, cursor, 12) * 0.1f;
+                tracks[i].aisHeading = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
                 BOOST_LOG_TRIVIAL(debug) << "AisHeading = " << tracks[i].aisHeading;
 
                 // Track status
-                uint status = impl::decodeUInt(trackBinary, cursor, 3);
+                uint status = impl::decodeBitUInt(trackBinary, cursor, 3);
                 cursor += 3;
                 switch (status)
                 {
@@ -2900,7 +2929,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 }
                 BOOST_LOG_TRIVIAL(debug) << "Operation = " << tracks[i].operation;
 
-                tracks[i].distance = impl::decodeUInt(trackBinary, cursor, 14) * 0.01f;
+                tracks[i].distance = impl::decodeBitUInt(trackBinary, cursor, 14) * 0.01f;
                 cursor += 14;
                 BOOST_LOG_TRIVIAL(debug) << "Distance = " << tracks[i].distance;
 
@@ -2927,7 +2956,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 cursor++;
                 cursor++;
 
-                tracks[i].correlationNumber = impl::decodeUInt(trackBinary, cursor, 8);
+                tracks[i].correlationNumber = impl::decodeBitUInt(trackBinary, cursor, 8);
                 cursor += 8;
                 BOOST_LOG_TRIVIAL(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
             }
@@ -2986,26 +3015,26 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
 
         int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeUInt(binaryData, cursor, 6));
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
         cursor += 6;
 
         if (messageType == Nmea_AisMessageType_PositionReportClassA || messageType == Nmea_AisMessageType_PositionReportClassA_AssignedSchedule || messageType == Nmea_AisMessageType_PositionReportClassA_ResponseToInterrogation)
         {
         	ret = true;
 
-        	data.repeatIndicator = impl::decodeUInt(binaryData, cursor, 2);
+        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
             BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeUInt(binaryData, cursor, 30);
+        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
             BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
 
-            data.navigationStatus = static_cast<Nmea_NavigationStatus>(impl::decodeUInt(binaryData, cursor, 4));
+            data.navigationStatus = static_cast<Nmea_NavigationStatus>(impl::decodeBitUInt(binaryData, cursor, 4));
             cursor += 4;
             BOOST_LOG_TRIVIAL(debug) << "NavigationStatus = " << data.navigationStatus;
 
-            float auxrot = impl::decodeInt(binaryData, cursor, 8);
+            float auxrot = impl::decodeBitInt(binaryData, cursor, 8);
             cursor += 8;
             if (auxrot == 128.0f)
             {
@@ -3014,7 +3043,7 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             data.rateOfTurn = std::copysign((auxrot / 4.733f) * (auxrot / 4.733f), auxrot);
             BOOST_LOG_TRIVIAL(debug) << "RateOfTurn = " << data.rateOfTurn;
 
-            data.speedOverGround = impl::decodeUInt(binaryData, cursor, 10) * 0.1f;
+            data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
             cursor += 10;
             BOOST_LOG_TRIVIAL(debug) << "SpeedOverGround = " << data.speedOverGround;
 
@@ -3026,27 +3055,27 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             }
             BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
 
-            data.longitude = impl::decodeInt(binaryData, cursor, 28) / 600000.0f;
+            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
             cursor += 28;
             BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
 
-            data.latitude = impl::decodeInt(binaryData, cursor, 27) / 600000.0f;
+            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
             cursor += 27;
             BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
 
-            data.courseOverGround = impl::decodeUInt(binaryData, cursor, 12) * 0.1f;
+            data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
             cursor += 12;
             BOOST_LOG_TRIVIAL(debug) << "CourseOverGround = " << data.courseOverGround;
 
-            data.trueHeading = impl::decodeUInt(binaryData, cursor, 9);
+            data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
             cursor += 9;
             BOOST_LOG_TRIVIAL(debug) << "TrueHeading = " << data.trueHeading;
 
-            data.timestapUTCSecond = impl::decodeUInt(binaryData, cursor, 6);
+            data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
             BOOST_LOG_TRIVIAL(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
 
-            data.maneuverIndicator = static_cast<Nmea_ManeuverIndicator>(impl::decodeUInt(binaryData, cursor, 2));
+            data.maneuverIndicator = static_cast<Nmea_ManeuverIndicator>(impl::decodeBitUInt(binaryData, cursor, 2));
             cursor += 2;
             BOOST_LOG_TRIVIAL(debug) << "ManeuverIndicator = " << data.maneuverIndicator;
 
@@ -3057,6 +3086,403 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             	data.raim = Nmea_RAIM_InUse;
             }
             BOOST_LOG_TRIVIAL(debug) << "RAIM = " << data.raim;
+        }
+	}
+	return ret;
+}
+
+bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBaseStationReport& data)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISBaseStationReport";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+	const int TYPE4_TOTALBITS = 168;
+	const int TYPE4_TOTALCHARS = 28;
+
+	if (encodedData.length() >= TYPE4_TOTALCHARS)
+	{
+
+    	boost::dynamic_bitset<> binaryData(TYPE4_TOTALBITS);
+
+        // Decodifica cadena a array de bits
+        BOOST_LOG_TRIVIAL(debug) << "parseAISBaseStationReport : decode INIT";
+        for (int i = 0; i < TYPE4_TOTALCHARS; ++i)
+        {
+            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+
+            // Concatenate all six-bit quantities found in the payload, MSB first
+            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+        }
+        BOOST_LOG_TRIVIAL(debug) << "parseAISBaseStationReport : decode END " << binaryData;
+
+        int cursor = 0;
+
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
+        cursor += 6;
+
+        if (messageType == Nmea_AisMessageType_BaseStationReport)
+        {
+        	ret = true;
+
+        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+        	cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+
+        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+        	cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+
+            data.year = impl::decodeBitUInt(binaryData, cursor, 14);
+            cursor += 14;
+            BOOST_LOG_TRIVIAL(debug) << "Year = " << data.year;
+
+            data.month = impl::decodeBitUInt(binaryData, cursor, 4);
+            cursor += 4;
+            BOOST_LOG_TRIVIAL(debug) << "Month = " << data.month;
+
+            data.day = impl::decodeBitUInt(binaryData, cursor, 5);
+            cursor += 5;
+            BOOST_LOG_TRIVIAL(debug) << "Day = " << data.day;
+
+            data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
+            cursor += 5;
+            BOOST_LOG_TRIVIAL(debug) << "Hour = " << data.hour;
+
+            data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "Minute = " << data.minute;
+
+            data.second = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "Second = " << data.second;
+
+            if (binaryData[cursor++] == false)
+            {
+            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+            } else {
+            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+
+            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
+            cursor += 28;
+            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+
+            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
+            cursor += 27;
+            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+
+            data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
+            cursor += 4;
+            BOOST_LOG_TRIVIAL(debug) << "EPFD = " << data.epfd;
+
+            // Spare
+            cursor += 10;
+
+            if (binaryData[cursor++] == false)
+            {
+            	data.raim = Nmea_RAIM_NotInUse;
+            } else {
+            	data.raim = Nmea_RAIM_InUse;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "RAIM = " << data.raim;
+        }
+	}
+	return ret;
+}
+
+bool NmeaParser::parseAISStaticAndVoyageRelatedData(const std::string& encodedData, AISStaticAndVoyageRelatedData& data)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStaticAndVoyageRelatedData";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+	const int TYPE5_TOTALBITS = 426;
+	const int TYPE5_TOTALCHARS = 71;
+
+	if (encodedData.length() >= TYPE5_TOTALCHARS)
+	{
+
+    	boost::dynamic_bitset<> binaryData(TYPE5_TOTALBITS);
+
+        // Decodifica cadena a array de bits
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticAndVoyageRelatedData : decode INIT";
+        for (int i = 0; i < TYPE5_TOTALCHARS; ++i)
+        {
+            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+
+            // Concatenate all six-bit quantities found in the payload, MSB first
+            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+        }
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticAndVoyageRelatedData : decode END " << binaryData;
+
+        int cursor = 0;
+
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
+        cursor += 6;
+
+        if (messageType == Nmea_AisMessageType_StaticAndVoyageRelatedData)
+        {
+        	ret = true;
+
+        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+        	cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+
+        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+        	cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+
+            data.aisVersion = impl::decodeBitUInt(binaryData, cursor, 2);
+            cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "AisVersion = " << data.aisVersion;
+
+            data.imoNumber = impl::decodeBitUInt(binaryData, cursor, 30);
+            cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "ImoNumber = " << data.imoNumber;
+
+            data.callsign = impl::decodeBitString(binaryData, cursor, 42);
+            cursor += 42;
+            BOOST_LOG_TRIVIAL(debug) << "CallSign = '" << data.callsign << "'";
+
+            data.vesselName = impl::decodeBitString(binaryData, cursor, 120);
+            cursor += 120;
+            BOOST_LOG_TRIVIAL(debug) << "VesselName = '" << data.vesselName << "'";
+
+            data.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
+            cursor += 8;
+            BOOST_LOG_TRIVIAL(debug) << "ShipType = " << data.shipType;
+
+            data.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
+            cursor += 9;
+            BOOST_LOG_TRIVIAL(debug) << "DimensionToBow = " << data.dimensionToBow;
+
+            data.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
+            cursor += 9;
+            BOOST_LOG_TRIVIAL(debug) << "DimensionToStern = " << data.dimensionToStern;
+
+            data.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.dimensionToPort;
+
+            data.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.dimensionToPort;
+
+            data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
+            cursor += 4;
+            BOOST_LOG_TRIVIAL(debug) << "EPFD = " << data.epfd;
+
+            data.month = impl::decodeBitUInt(binaryData, cursor, 4);
+            cursor += 4;
+            BOOST_LOG_TRIVIAL(debug) << "Month = " << data.month;
+
+            data.day = impl::decodeBitUInt(binaryData, cursor, 5);
+            cursor += 5;
+            BOOST_LOG_TRIVIAL(debug) << "Day = " << data.day;
+
+            data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
+            cursor += 5;
+            BOOST_LOG_TRIVIAL(debug) << "Hour = " << data.hour;
+
+            data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "Minute = " << data.minute;
+
+            data.draught = impl::decodeBitUInt(binaryData, cursor, 8);
+            cursor += 8;
+            BOOST_LOG_TRIVIAL(debug) << "Draught = " << data.draught * 0.1f;
+
+            data.destination = impl::decodeBitString(binaryData, cursor, 120);
+            cursor += 120;
+            BOOST_LOG_TRIVIAL(debug) << "Destination = " << data.destination;
+        }
+	}
+	return ret;
+}
+
+bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encodedData, AISStandardClassBCSPositionReport& data)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStandardClassBCSPositionReport";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+	const int TYPE18_TOTALBITS = 168;
+	const int TYPE18_TOTALCHARS = 27;
+
+	if (encodedData.length() >= TYPE18_TOTALCHARS)
+	{
+
+    	boost::dynamic_bitset<> binaryData(TYPE18_TOTALBITS);
+
+        // Decodifica cadena a array de bits
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStandardClassBCSPositionReport : decode INIT";
+        for (int i = 0; i < TYPE18_TOTALCHARS; ++i)
+        {
+            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+
+            // Concatenate all six-bit quantities found in the payload, MSB first
+            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+        }
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStandardClassBCSPositionReport : decode END " << binaryData;
+
+        int cursor = 0;
+
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
+        cursor += 6;
+
+        if (messageType == Nmea_AisMessageType_StandardClassBCSPositionReport)
+        {
+        	ret = true;
+
+        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+        	cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+
+        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+        	cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+
+            // Reserved
+            cursor += 8;
+
+            data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
+            cursor += 10;
+            BOOST_LOG_TRIVIAL(debug) << "SpeedOverGround = " << data.speedOverGround;
+
+            if (binaryData[cursor++] == false)
+            {
+            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+            } else {
+            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+
+            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
+            cursor += 28;
+            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+
+            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
+            cursor += 27;
+            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+
+            data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
+            cursor += 12;
+            BOOST_LOG_TRIVIAL(debug) << "CourseOverGround = " << data.courseOverGround;
+
+            data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
+            cursor += 9;
+            BOOST_LOG_TRIVIAL(debug) << "TrueHeading = " << data.trueHeading;
+
+            data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
+            cursor += 6;
+            BOOST_LOG_TRIVIAL(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
+        }
+	}
+	return ret;
+}
+
+bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISStaticDataReport& data)
+{
+	bool ret = false;
+
+	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStaticDataReport";
+	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+
+	const int TYPE24_TOTALBITS = 168;
+	const int TYPE24_TOTALCHARS = 27;
+
+	if (encodedData.length() >= TYPE24_TOTALCHARS)
+	{
+
+    	boost::dynamic_bitset<> binaryData(TYPE24_TOTALBITS);
+
+        // Decodifica cadena a array de bits
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticDataReport : decode INIT";
+        for (int i = 0; i < TYPE24_TOTALCHARS; ++i)
+        {
+            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+
+            // Concatenate all six-bit quantities found in the payload, MSB first
+            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+        }
+        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticDataReport : decode END " << binaryData;
+
+        int cursor = 0;
+
+        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
+        cursor += 6;
+
+        if (messageType == Nmea_AisMessageType_StaticDataReport)
+        {
+        	ret = true;
+
+        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+        	cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+
+        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+        	cursor += 30;
+            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+
+            data.partNumber = impl::decodeBitUInt(binaryData, cursor, 2);
+            cursor += 2;
+            BOOST_LOG_TRIVIAL(debug) << "PartNumber = " << data.partNumber;
+
+            if (data.partNumber == 0)
+            {
+            	data.partA.vesselName = impl::decodeBitString(binaryData, cursor, 120);
+                cursor += 120;
+                BOOST_LOG_TRIVIAL(debug) << "VesselName = '" << data.partA.vesselName << "'";
+            } else if (data.partNumber == 1) {
+            	data.partB.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
+                cursor += 8;
+                BOOST_LOG_TRIVIAL(debug) << "ShipType = " << data.partB.shipType;
+
+                data.partB.vendorId = impl::decodeBitString(binaryData, cursor, 18);
+                cursor += 18;
+                BOOST_LOG_TRIVIAL(debug) << "VendorId = '" << data.partB.vendorId << "'";
+
+                data.partB.unitModelCode = impl::decodeBitUInt(binaryData, cursor, 4);
+            	cursor += 4;
+                BOOST_LOG_TRIVIAL(debug) << "UnitModelCode = " << data.partB.unitModelCode;
+
+                data.partB.serialNumber = impl::decodeBitUInt(binaryData, cursor, 20);
+            	cursor += 20;
+                BOOST_LOG_TRIVIAL(debug) << "SerialNumber = " << data.partB.serialNumber;
+
+                data.partB.callsign = impl::decodeBitString(binaryData, cursor, 42);
+                cursor += 42;
+                BOOST_LOG_TRIVIAL(debug) << "CallSign = '" << data.partB.callsign << "'";
+
+                data.partB.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
+                cursor += 9;
+                BOOST_LOG_TRIVIAL(debug) << "DimensionToBow = " << data.partB.dimensionToBow;
+
+                data.partB.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
+                cursor += 9;
+                BOOST_LOG_TRIVIAL(debug) << "DimensionToStern = " << data.partB.dimensionToStern;
+
+                data.partB.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
+                cursor += 6;
+                BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+
+                data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
+                cursor += 6;
+                BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+
+            	data.partB.mothershipmmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+            	cursor += 30;
+                BOOST_LOG_TRIVIAL(debug) << "Mothership MMSI = " << data.partB.mothershipmmsi;
+            }
         }
 	}
 	return ret;

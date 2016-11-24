@@ -161,6 +161,123 @@ enum Nmea_RAIM {
 };
 std::ostream& operator<<(std::ostream & out, Nmea_RAIM val);
 
+enum Nmea_EPFDFix {
+	Nmea_EPFDFix_Undefined,
+	Nmea_EPFDFix_GPS,
+	Nmea_EPFDFix_GLONASS,
+	Nmea_EPFDFix_CombinedGPSGLONASS,
+	Nmea_EPFDFix_LoranC,
+	Nmea_EPFDFix_Chayka,
+	Nmea_EPFDFix_IntegratedNavigationSystem,
+	Nmea_EPFDFix_Surveyed,
+	Nmea_EPFDFix_Galileo
+};
+std::ostream& operator<<(std::ostream & out, Nmea_EPFDFix val);
+
+enum Nmea_ShipType {
+	Nmea_ShipType_NotAvailable,
+	Nmea_ShipType_Reserved1,
+	Nmea_ShipType_Reserved2,
+	Nmea_ShipType_Reserved3,
+	Nmea_ShipType_Reserved4,
+	Nmea_ShipType_Reserved5,
+	Nmea_ShipType_Reserved6,
+	Nmea_ShipType_Reserved7,
+	Nmea_ShipType_Reserved8,
+	Nmea_ShipType_Reserved9,
+	Nmea_ShipType_Reserved10,
+	Nmea_ShipType_Reserved11,
+	Nmea_ShipType_Reserved12,
+	Nmea_ShipType_Reserved13,
+	Nmea_ShipType_Reserved14,
+	Nmea_ShipType_Reserved15,
+	Nmea_ShipType_Reserved16,
+	Nmea_ShipType_Reserved17,
+	Nmea_ShipType_Reserved18,
+	Nmea_ShipType_Reserved19,
+	Nmea_ShipType_WingInGround_WIG_AllShipsOfThisType,
+	Nmea_ShipType_WingInGround_WIG_HazardousCategoryA,
+	Nmea_ShipType_WingInGround_WIG_HazardousCategoryB,
+	Nmea_ShipType_WingInGround_WIG_HazardousCategoryC,
+	Nmea_ShipType_WingInGround_WIG_HazardousCategoryD,
+	Nmea_ShipType_WingInGround_WIG_Reserved1,
+	Nmea_ShipType_WingInGround_WIG_Reserved2,
+	Nmea_ShipType_WingInGround_WIG_Reserved3,
+	Nmea_ShipType_WingInGround_WIG_Reserved4,
+	Nmea_ShipType_WingInGround_WIG_Reserved5,
+	Nmea_ShipType_Fishing,
+	Nmea_ShipType_Towing,
+	Nmea_ShipType_Towing_LengthExceeds200mOrBreadthExceeds25m,
+	Nmea_ShipType_DredgingOrUnderwaterOps,
+	Nmea_ShipType_DivingOps,
+	Nmea_ShipType_MilitaryOps,
+	Nmea_ShipType_Sailing,
+	Nmea_ShipType_PleasureCraft,
+	Nmea_ShipType_Reserved_1,
+	Nmea_ShipType_Reserved_2,
+	Nmea_ShipType_HighSpeedCraft_HSC_AllShipsOfThisType,
+	Nmea_ShipType_HighSpeedCraft_HSC_HazardousCategoryA,
+	Nmea_ShipType_HighSpeedCraft_HSC_HazardousCategoryB,
+	Nmea_ShipType_HighSpeedCraft_HSC_HazardousCategoryC,
+	Nmea_ShipType_HighSpeedCraft_HSC_HazardousCategoryD,
+	Nmea_ShipType_HighSpeedCraft_HSC_Reserved1,
+	Nmea_ShipType_HighSpeedCraft_HSC_Reserved2,
+	Nmea_ShipType_HighSpeedCraft_HSC_Reserved3,
+	Nmea_ShipType_HighSpeedCraft_HSC_Reserved4,
+	Nmea_ShipType_HighSpeedCraft_HSC_NoAdditionalInformation,
+	Nmea_ShipType_PilotVessel,
+	Nmea_ShipType_SearchAndRescueVessel,
+	Nmea_ShipType_Tug,
+	Nmea_ShipType_PortTender,
+	Nmea_ShipType_AntiPollutionEquipment,
+	Nmea_ShipType_LawEnforcement,
+	Nmea_ShipType_SpareLocalVessel1,
+	Nmea_ShipType_SpareLocalVessel2,
+	Nmea_ShipType_MedicalTransport,
+	Nmea_ShipType_NoncombatantShipAccordingToRR,
+	Nmea_ShipType_Passenger_AllShipsOfThisType,
+	Nmea_ShipType_Passenger_HazardousCategoryA,
+	Nmea_ShipType_Passenger_HazardousCategoryB,
+	Nmea_ShipType_Passenger_HazardousCategoryC,
+	Nmea_ShipType_Passenger_HazardousCategoryD,
+	Nmea_ShipType_Passenger_Reserved1,
+	Nmea_ShipType_Passenger_Reserved2,
+	Nmea_ShipType_Passenger_Reserved3,
+	Nmea_ShipType_Passenger_Reserved4,
+	Nmea_ShipType_Passenger_NoAdditionalInformation,
+	Nmea_ShipType_Cargo_AllShipsOfThisType,
+	Nmea_ShipType_Cargo_HazardousCategoryA,
+	Nmea_ShipType_Cargo_HazardousCategoryB,
+	Nmea_ShipType_Cargo_HazardousCategoryC,
+	Nmea_ShipType_Cargo_HazardousCategoryD,
+	Nmea_ShipType_Cargo_Reserved1,
+	Nmea_ShipType_Cargo_Reserved2,
+	Nmea_ShipType_Cargo_Reserved3,
+	Nmea_ShipType_Cargo_Reserved4,
+	Nmea_ShipType_Cargo_NoAdditionalInformation,
+	Nmea_ShipType_Tanker_AllShipsOfThisType,
+	Nmea_ShipType_Tanker_HazardousCategoryA,
+	Nmea_ShipType_Tanker_HazardousCategoryB,
+	Nmea_ShipType_Tanker_HazardousCategoryC,
+	Nmea_ShipType_Tanker_HazardousCategoryD,
+	Nmea_ShipType_Tanker_Reserved1,
+	Nmea_ShipType_Tanker_Reserved2,
+	Nmea_ShipType_Tanker_Reserved3,
+	Nmea_ShipType_Tanker_Reserved4,
+	Nmea_ShipType_Tanker_NoAdditionalInformation,
+	Nmea_ShipType_OtherType_AllShipsOfThisType,
+	Nmea_ShipType_OtherType_HazardousCategoryA,
+	Nmea_ShipType_OtherType_HazardousCategoryB,
+	Nmea_ShipType_OtherType_HazardousCategoryC,
+	Nmea_ShipType_OtherType_HazardousCategoryD,
+	Nmea_ShipType_OtherType_Reserved1,
+	Nmea_ShipType_OtherType_Reserved2,
+	Nmea_ShipType_OtherType_Reserved3,
+	Nmea_ShipType_OtherType_Reserved4,
+	Nmea_ShipType_OtherType_NoAdditionalInformation
+};
+std::ostream& operator<<(std::ostream & out, Nmea_ShipType val);
+
 struct AISPositionReportClassA {
 	int repeatIndicator;
 	uint mmsi;
@@ -175,6 +292,78 @@ struct AISPositionReportClassA {
 	uint timestapUTCSecond;
 	Nmea_ManeuverIndicator maneuverIndicator;
 	Nmea_RAIM raim;
+};
+
+struct AISBaseStationReport {
+	int repeatIndicator;
+	uint mmsi;
+	int year;
+	int month;
+	int day;
+	int hour;
+	int minute;
+	int second;
+	Nmea_PositionAccuracy positionAccuracy;
+	float longitude;
+	float latitude;
+	Nmea_EPFDFix epfd;
+	Nmea_RAIM raim;
+};
+
+struct AISStaticAndVoyageRelatedData {
+	int repeatIndicator;
+	uint mmsi;
+	int aisVersion;
+	int imoNumber;
+	std::string callsign;
+	std::string vesselName;
+	Nmea_ShipType shipType;
+	int dimensionToBow;
+	int dimensionToStern;
+	int dimensionToPort;
+	int dimensionToStarboard;
+	Nmea_EPFDFix epfd;
+	int month;
+	int day;
+	int hour;
+	int minute;
+	float draught;
+	std::string destination;
+};
+
+struct AISStandardClassBCSPositionReport {
+	int repeatIndicator;
+	uint mmsi;
+	float speedOverGround;
+	Nmea_PositionAccuracy positionAccuracy;
+	float longitude;
+	float latitude;
+	float courseOverGround;
+	uint trueHeading;
+	uint timestapUTCSecond;
+};
+
+struct AISStaticDataReport {
+	int repeatIndicator;
+	uint mmsi;
+	int partNumber;
+
+	struct {
+		std::string vesselName;
+	} partA;
+
+	struct {
+		Nmea_ShipType shipType;
+		std::string vendorId;
+		int unitModelCode;
+		int serialNumber;
+		std::string callsign;
+		int dimensionToBow;
+		int dimensionToStern;
+		int dimensionToPort;
+		int dimensionToStarboard;
+		uint mothershipmmsi;
+	} partB;
 };
 
 #endif /* SRC_NMEAENUMS_H_ */

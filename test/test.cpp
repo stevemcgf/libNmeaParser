@@ -457,16 +457,16 @@ BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
 	std::string encodedData;
 	Nmea_AisMessageType messageType;
 
-	encodedData = "13u?etPv2;0n:dDPwUM1U1Cb069D";
+	encodedData = "B6K8C4P006Wf1lNAijT03wt7kP06";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
 
-	encodedData = "400TcdiuiT7VDR>3nIfr6>i00000";
+	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
 
-	encodedData = "61c2;qLPH1m@wsm6ARhp<ji6ATHd<C8f=Bhk>34k;S8i=3ToDjhi=3Di<2pp=34k>4D";
+	encodedData = "5;Djh9P2=K8@t7;37<0<4t00000000000000000l1P=554Kh0=j0DPSmD`855Ah00000000";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
 
-	encodedData = ">>M4fWA<59B1@E=@";
+	encodedData = "D2C30K41DUH8880";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
 
 }
@@ -477,7 +477,51 @@ BOOST_AUTO_TEST_CASE( parseAISPositionReportClassA ) {
 
 	AISPositionReportClassA data;
 
-	encodedData = "13u?etPv2;0n:dDPwUM1U1Cb069D";
+	encodedData = "3;DjhdPP@3JNfEIq6uHjlUCp00w1";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISPositionReportClassA(encodedData, data));
+
+}
+
+BOOST_AUTO_TEST_CASE( parseAISBaseStationReport ) {
+
+	std::string encodedData;
+
+	AISBaseStationReport data;
+
+	encodedData = "400TcdiuiT7VDR>3nIfr6>i00000";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISBaseStationReport(encodedData, data));
+
+}
+
+BOOST_AUTO_TEST_CASE( parseAISStaticAndVoyageRelatedData ) {
+
+	std::string encodedData;
+
+	AISStaticAndVoyageRelatedData data;
+
+	encodedData = "58wt8Ui`g??r21`7S=:22058<v05Htp000000015>8OA;0skeQ8823mDm3kP00000000000";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticAndVoyageRelatedData(encodedData, data));
+
+}
+
+BOOST_AUTO_TEST_CASE( parseAISStandardClassBCSPositionReport ) {
+
+	std::string encodedData;
+
+	AISStandardClassBCSPositionReport data;
+
+	encodedData = "B;Djf2h01fWd0qNAh;M0cwb7kP06";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStandardClassBCSPositionReport(encodedData, data));
+
+}
+
+BOOST_AUTO_TEST_CASE( parseAISStaticDataReport ) {
+
+	std::string encodedData;
+
+	AISStaticDataReport data;
+
+	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
 
 }
