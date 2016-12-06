@@ -671,8 +671,9 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 	impl::tokenizeSentence(nmea, fields);
 
 	uint rmcSizeField = 15;
+	uint rmcSizeFieldAlt = 13;
 
-	if (fields.size() == rmcSizeField) {
+	if (fields.size() == rmcSizeField || fields.size() == rmcSizeFieldAlt) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -751,7 +752,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rmcSizeField;
+		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
 		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
 	}
 
