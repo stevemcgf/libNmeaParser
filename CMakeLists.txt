@@ -16,3 +16,5 @@ target_link_libraries(NmeaParser ${Boost_LIBRARIES})
 
 add_executable(test.libNmeaParser test/test.cpp)
 target_link_libraries (test.libNmeaParser NmeaParser)
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNP_DEBUG")

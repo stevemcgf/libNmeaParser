@@ -13,6 +13,12 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#ifdef NP_DEBUG
+#define LOG_MESSAGE(lvl) BOOST_LOG_TRIVIAL(lvl)
+#else
+#define LOG_MESSAGE(lvl) if (false) BOOST_LOG_TRIVIAL(lvl)
+#endif
+
 class NmeaParser::impl {
 public:
 	static bool tokenizeSentence(const std::string& nmea,
@@ -69,7 +75,7 @@ bool NmeaParser::impl::decodeTime(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, hms)) {
 		ret = true;
-		BOOST_LOG_TRIVIAL(debug)<<" decodeTime: time " << *i;
+		LOG_MESSAGE(debug)<<" decodeTime: time " << *i;
 		++i;  // consume the match
 		const boost::posix_time::hours hr(boost::lexical_cast<int>(m[1].str()));
 		const boost::posix_time::minutes min(
@@ -136,11 +142,11 @@ bool NmeaParser::impl::decodeLatLng(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, latlng)) {
 		ret = true;
-		//BOOST_LOG_TRIVIAL(debug)<<"decodeLatLng: num " << *i;
+		//LOG_MESSAGE(debug)<<"decodeLatLng: num " << *i;
 		++i; // consume the match
 		double deg = boost::lexical_cast<double>(m[1].str());
 		double min = boost::lexical_cast<double>(m[2].str());
-		//BOOST_LOG_TRIVIAL(debug)<<"decodeLatLng: hem " << *i;
+		//LOG_MESSAGE(debug)<<"decodeLatLng: hem " << *i;
 		char hemisphere = (*i).at(0);
 		++i; // consume hemisphere
 		out = toDecimalDegree(deg, min, 0.0, hemisphere);
@@ -158,7 +164,7 @@ bool NmeaParser::impl::decodeDate(std::vector<std::string>::iterator &i,
 	boost::smatch m;
 	if (boost::regex_match(*i, m, dmy)) {
 		ret = true;
-		//BOOST_LOG_TRIVIAL(debug)<<"decodeDate: date " << *i;
+		//LOG_MESSAGE(debug)<<"decodeDate: date " << *i;
 		++i; // consume the match
 		int day = boost::lexical_cast<int>(m[1].str());
 		int month = boost::lexical_cast<int>(m[2].str());
@@ -263,8 +269,8 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, int& day, int& month,
 		int& year, int& localZoneHours, int& localZoneMinutes) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseZDA";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseZDA";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -289,7 +295,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
+			LOG_MESSAGE(debug) << "mtime = " << mtime;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, day, 0)) {
@@ -297,7 +303,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "day = " << day;
+			LOG_MESSAGE(debug) << "day = " << day;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, month, 0)) {
@@ -305,7 +311,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "month = " << month;
+			LOG_MESSAGE(debug) << "month = " << month;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, year, 0)) {
@@ -313,7 +319,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "year = " << year;
+			LOG_MESSAGE(debug) << "year = " << year;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, localZoneHours, 0)) {
@@ -321,7 +327,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "localZoneHours = " << localZoneHours;
+			LOG_MESSAGE(debug) << "localZoneHours = " << localZoneHours;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, localZoneMinutes, 0)) {
@@ -329,16 +335,16 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "localZoneMinutes = " << localZoneMinutes;
+			LOG_MESSAGE(debug) << "localZoneMinutes = " << localZoneMinutes;
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -348,8 +354,8 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 		double& longitude, boost::posix_time::time_duration& mtime,
 		char& status, char& modeIndicator) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseGLL";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseGLL";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -375,7 +381,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "latitude = " << latitude;
+			LOG_MESSAGE(debug) << "latitude = " << latitude;
 
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
@@ -384,7 +390,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "longitude = " << longitude;
+			LOG_MESSAGE(debug) << "longitude = " << longitude;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeTime(itNmea, mtime, deftime)) {
@@ -392,7 +398,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
+			LOG_MESSAGE(debug) << "mtime = " << mtime;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
@@ -400,24 +406,24 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "status = " << status;
+			LOG_MESSAGE(debug) << "status = " << status;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, modeIndicator, defChar)) {
 				ret.set(idxVar, true);
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "modeIndicator = " << modeIndicator;
+			LOG_MESSAGE(debug) << "modeIndicator = " << modeIndicator;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -429,8 +435,8 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 		double& hdop, double& orthometricheight, double& geoidseparation,
 		double& agediffgps, std::string& refid) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseGGA";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseGGA";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -455,7 +461,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "mtime = " << mtime;
+			LOG_MESSAGE(debug) << "mtime = " << mtime;
 
 			/*------------ Field 02,03 ---------------*/
 			if (!impl::decodeLatLng(itNmea, latitude, defLatLong)) {
@@ -464,7 +470,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
+			LOG_MESSAGE(debug) <<"latitude = " << latitude;
 
 			/*------------ Field 04,05 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
@@ -473,7 +479,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
+			LOG_MESSAGE(debug) <<"longitude = " << longitude;
 
 			/*------------ Field 06 ---------------*/
 			int qualityIndicator;
@@ -510,7 +516,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "quality = " << quality;
+			LOG_MESSAGE(debug) << "quality = " << quality;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, numSV, 0)) {
@@ -518,7 +524,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"numSV = " << numSV;
+			LOG_MESSAGE(debug) <<"numSV = " << numSV;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, hdop, 0)) {
@@ -526,7 +532,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"hdop = " << hdop;
+			LOG_MESSAGE(debug) <<"hdop = " << hdop;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, orthometricheight, 0)) {
@@ -534,7 +540,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "orthometricheight = " << orthometricheight;
+			LOG_MESSAGE(debug) << "orthometricheight = " << orthometricheight;
 
 			/*------------ Field 10 ---------------*/
 			// Se salta unidad de medida siempre Metros.
@@ -546,7 +552,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"geoidseparation = " << geoidseparation;
+			LOG_MESSAGE(debug) <<"geoidseparation = " << geoidseparation;
 
 			/*------------ Field 12 ---------------*/
 			// Se salta unidad de medida siempre Metros.
@@ -558,24 +564,24 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"agediffgps = " << agediffgps;
+			LOG_MESSAGE(debug) <<"agediffgps = " << agediffgps;
 
 			/*------------ Field 14 ---------------*/
 			if (!impl::decodeString(itNmea, refid, defString)) {
 				ret.set(idxVar, true);
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"refid = " << refid;
+			LOG_MESSAGE(debug) <<"refid = " << refid;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ggaSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << ggaSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -585,8 +591,8 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 		double& coursetrue, double& coursemagnetic, double& speedknots,
 		double& speedkph) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVTG";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVTG";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -612,7 +618,7 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"coursetrue = " << coursetrue;
+			LOG_MESSAGE(debug) <<"coursetrue = " << coursetrue;
 			++itNmea;
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursemagnetic, 0)) {
@@ -621,7 +627,7 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"coursemagnetic = " << coursemagnetic;
+			LOG_MESSAGE(debug) <<"coursemagnetic = " << coursemagnetic;
 			++itNmea;
 			/*------------ Field 05,06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedknots, 0)) {
@@ -630,7 +636,7 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedknots = " << speedknots;
+			LOG_MESSAGE(debug) <<"speedknots = " << speedknots;
 			++itNmea;
 			/*------------ Field 07,08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedkph, 0)) {
@@ -638,17 +644,17 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedkph = " << speedkph;
+			LOG_MESSAGE(debug) <<"speedkph = " << speedkph;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vtgSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << vtgSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -659,8 +665,8 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 		double& longitude, double& speedknots, double& coursetrue,
 		boost::gregorian::date& mdate, double& magneticvar) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseRMC";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseRMC";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -686,7 +692,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"mtime = " << mtime;
+			LOG_MESSAGE(debug) <<"mtime = " << mtime;
 
 			/*------------ Field 02 ---------------*/
 			++itNmea;
@@ -698,7 +704,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
+			LOG_MESSAGE(debug) <<"latitude = " << latitude;
 
 			/*------------ Field 05,06 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
@@ -707,7 +713,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
+			LOG_MESSAGE(debug) <<"longitude = " << longitude;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedknots, 0)) {
@@ -715,7 +721,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedknots = " << speedknots;
+			LOG_MESSAGE(debug) <<"speedknots = " << speedknots;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursetrue, 0)) {
@@ -723,7 +729,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"coursetrue = " << coursetrue;
+			LOG_MESSAGE(debug) <<"coursetrue = " << coursetrue;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDate(itNmea, mdate, defdate)) {
@@ -731,7 +737,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"mdate = " << mdate;
+			LOG_MESSAGE(debug) <<"mdate = " << mdate;
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticvar, 0)) {
@@ -739,7 +745,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"magneticvar = " << magneticvar;
+			LOG_MESSAGE(debug) <<"magneticvar = " << magneticvar;
 
 			/*------------ Field 11 ---------------*/
 			++itNmea;
@@ -749,14 +755,14 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 			++itNmea;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -765,8 +771,8 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 		double& longitude, std::string& waypointName) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseWPL";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseWPL";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -792,7 +798,7 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"latitude = " << latitude;
+			LOG_MESSAGE(debug) <<"latitude = " << latitude;
 
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
@@ -801,24 +807,24 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"longitude = " << longitude;
+			LOG_MESSAGE(debug) <<"longitude = " << longitude;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeString(itNmea, waypointName, defString)) {
 				ret.set(idxVar, true);
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"waypointName = " << waypointName;
+			LOG_MESSAGE(debug) <<"waypointName = " << waypointName;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << wplSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << wplSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -828,8 +834,8 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 		int& lineCount, char& messageMode, std::string& routeName,
 		std::vector<std::string>& waypointNames) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseRTE";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseRTE";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -854,7 +860,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "totalLines = " << totalLines;
+			LOG_MESSAGE(debug) << "totalLines = " << totalLines;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, lineCount, 0)) {
@@ -862,7 +868,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "lineCount = " << lineCount;
+			LOG_MESSAGE(debug) << "lineCount = " << lineCount;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, messageMode, defChar)) {
@@ -870,7 +876,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"messageMode = " << messageMode;
+			LOG_MESSAGE(debug) <<"messageMode = " << messageMode;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeString(itNmea, routeName, defString)) {
@@ -878,23 +884,23 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"routeName = " << routeName;
+			LOG_MESSAGE(debug) <<"routeName = " << routeName;
 
 			/*------------ Field 05 ---------------*/
 			for (uint i = 0; i < (fields.size() - 6); i++) {
 				waypointNames.push_back((*itNmea));
-				BOOST_LOG_TRIVIAL(debug) <<"waypointName "<< i + 1 <<" = " << (*itNmea);
+				LOG_MESSAGE(debug) <<"waypointName "<< i + 1 <<" = " << (*itNmea);
 				++itNmea;
 			}
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rteSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << rteSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -904,8 +910,8 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 		double& speedInKnots, char& knots, double& speedInKmH,
 		char& kilometers) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVHW";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVHW";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -938,7 +944,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedInKnots = " << speedInKnots;
+			LOG_MESSAGE(debug) <<"speedInKnots = " << speedInKnots;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, knots, defChar)) {
@@ -946,7 +952,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"knots = " << knots;
+			LOG_MESSAGE(debug) <<"knots = " << knots;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedInKmH, 0)) {
@@ -954,7 +960,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedInKmH = " << speedInKmH;
+			LOG_MESSAGE(debug) <<"speedInKmH = " << speedInKmH;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, kilometers, defChar)) {
@@ -962,17 +968,17 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"kilometers = " << kilometers;
+			LOG_MESSAGE(debug) <<"kilometers = " << kilometers;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vhwSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << vhwSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -981,8 +987,8 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 		char& celcius) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseMTW";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseMTW";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1007,7 +1013,7 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"degrees = " << degrees;
+			LOG_MESSAGE(debug) <<"degrees = " << degrees;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, celcius, defChar)) {
@@ -1015,17 +1021,17 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"celcius = " << celcius;
+			LOG_MESSAGE(debug) <<"celcius = " << celcius;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mtwSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << mtwSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1036,8 +1042,8 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 		char& waterDataStatus, double& longitudinalGroundSpeed,
 		double& transverseGroundSpeed, char& groundDataStatus) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVBW";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVBW";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1062,7 +1068,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "longitudinalWaterSpeed = " << longitudinalWaterSpeed;
+			LOG_MESSAGE(debug) << "longitudinalWaterSpeed = " << longitudinalWaterSpeed;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, transverseWaterSpeed, 0)) {
@@ -1070,7 +1076,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "transverseWaterSpeed = " << transverseWaterSpeed;
+			LOG_MESSAGE(debug) << "transverseWaterSpeed = " << transverseWaterSpeed;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, waterDataStatus, defChar)) {
@@ -1078,7 +1084,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"waterDataStatus = " << waterDataStatus;
+			LOG_MESSAGE(debug) <<"waterDataStatus = " << waterDataStatus;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, longitudinalGroundSpeed, 0)) {
@@ -1086,7 +1092,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "longitudinalGroundSpeed = " << longitudinalGroundSpeed;
+			LOG_MESSAGE(debug) << "longitudinalGroundSpeed = " << longitudinalGroundSpeed;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, transverseGroundSpeed, 0)) {
@@ -1094,7 +1100,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "transverseGroundSpeed = " << transverseGroundSpeed;
+			LOG_MESSAGE(debug) << "transverseGroundSpeed = " << transverseGroundSpeed;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, groundDataStatus, defChar)) {
@@ -1102,17 +1108,17 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"groundDataStatus = " << groundDataStatus;
+			LOG_MESSAGE(debug) <<"groundDataStatus = " << groundDataStatus;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vbwSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << vbwSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1122,8 +1128,8 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 		double& totalCumulativeDistance, char& nauticalMiles1,
 		double& distanceSinceReset, char& nauticalMiles2) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVLW";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVLW";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1148,7 +1154,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "totalCumulativeDistance = " << totalCumulativeDistance;
+			LOG_MESSAGE(debug) << "totalCumulativeDistance = " << totalCumulativeDistance;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, nauticalMiles1, defChar)) {
@@ -1156,7 +1162,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"nauticalMiles1 = " << nauticalMiles1;
+			LOG_MESSAGE(debug) <<"nauticalMiles1 = " << nauticalMiles1;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, distanceSinceReset, 0)) {
@@ -1164,7 +1170,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"distanceSinceReset = " << distanceSinceReset;
+			LOG_MESSAGE(debug) <<"distanceSinceReset = " << distanceSinceReset;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, nauticalMiles2, defChar)) {
@@ -1172,17 +1178,17 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"nauticalMiles2 = " << nauticalMiles2;
+			LOG_MESSAGE(debug) <<"nauticalMiles2 = " << nauticalMiles2;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << vlwSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << vlwSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1192,8 +1198,8 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 		double& waterDepthRelativeToTheTransducer, double& offsetFromTransducer,
 		double& maximumRangeScaleInUse) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseDPT";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseDPT";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1219,7 +1225,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
+			LOG_MESSAGE(debug) << "waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
@@ -1227,7 +1233,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "offsetFromTransducer = " << offsetFromTransducer;
+			LOG_MESSAGE(debug) << "offsetFromTransducer = " << offsetFromTransducer;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
@@ -1235,17 +1241,17 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
+			LOG_MESSAGE(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dptSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << dptSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1255,8 +1261,8 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 		double& waterDepthInFeet, char& feet, double& waterDepthInMeters,
 		char& meters, double& waterDepthInFathoms, char& fathoms) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseDBT";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseDBT";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1281,7 +1287,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"waterDepthInFeet = " << waterDepthInFeet;
+			LOG_MESSAGE(debug) <<"waterDepthInFeet = " << waterDepthInFeet;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, feet, defChar)) {
@@ -1289,7 +1295,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"feet = " << feet;
+			LOG_MESSAGE(debug) <<"feet = " << feet;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, waterDepthInMeters, 0)) {
@@ -1297,7 +1303,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"waterDepthInMeters = " << waterDepthInMeters;
+			LOG_MESSAGE(debug) <<"waterDepthInMeters = " << waterDepthInMeters;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
@@ -1305,7 +1311,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"meters = " << meters;
+			LOG_MESSAGE(debug) <<"meters = " << meters;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, waterDepthInFathoms, 0)) {
@@ -1313,7 +1319,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "waterDepthInFathoms = " << waterDepthInFathoms;
+			LOG_MESSAGE(debug) << "waterDepthInFathoms = " << waterDepthInFathoms;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, fathoms, defChar)) {
@@ -1321,17 +1327,17 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"fathoms = " << fathoms;
+			LOG_MESSAGE(debug) <<"fathoms = " << fathoms;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dbtSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << dbtSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1341,8 +1347,8 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 		double& depthBelowKeelFeet, char& feet, double& depthBelowKeelMeters,
 		char& meters, double& depthBelowKeelFathoms, char& fathoms) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseDBK";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseDBK";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1367,7 +1373,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"depthBelowKeelFeet = " << depthBelowKeelFeet;
+			LOG_MESSAGE(debug) <<"depthBelowKeelFeet = " << depthBelowKeelFeet;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, feet, defChar)) {
@@ -1375,7 +1381,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"feet = " << feet;
+			LOG_MESSAGE(debug) <<"feet = " << feet;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, depthBelowKeelMeters, 0)) {
@@ -1383,7 +1389,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "depthBelowKeelMeters = " << depthBelowKeelMeters;
+			LOG_MESSAGE(debug) << "depthBelowKeelMeters = " << depthBelowKeelMeters;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
@@ -1391,7 +1397,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "meters = " << meters;
+			LOG_MESSAGE(debug) << "meters = " << meters;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, depthBelowKeelFathoms, 0)) {
@@ -1399,7 +1405,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "depthBelowKeelFathoms = " << depthBelowKeelFathoms;
+			LOG_MESSAGE(debug) << "depthBelowKeelFathoms = " << depthBelowKeelFathoms;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, fathoms, defChar)) {
@@ -1407,17 +1413,17 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "fathoms = " << fathoms;
+			LOG_MESSAGE(debug) << "fathoms = " << fathoms;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dbkSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << dbkSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1428,8 +1434,8 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 		double& maximumRangeScaleInUse, int& bottomEchoStrength,
 		int& echoSounderChannelNumber, std::string& transducerLocation) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parsePSKPDPT";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parsePSKPDPT";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1455,7 +1461,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
+			LOG_MESSAGE(debug) << "waterDepthRelativeToTheTransducer = " << waterDepthRelativeToTheTransducer;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
@@ -1463,7 +1469,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "offsetFromTransducer = " << offsetFromTransducer;
+			LOG_MESSAGE(debug) << "offsetFromTransducer = " << offsetFromTransducer;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
@@ -1471,7 +1477,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
+			LOG_MESSAGE(debug) << "maximumRangeScaleInUse = " << maximumRangeScaleInUse;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, bottomEchoStrength, 0)) {
@@ -1479,7 +1485,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "bottomEchoStrength = " << bottomEchoStrength;
+			LOG_MESSAGE(debug) << "bottomEchoStrength = " << bottomEchoStrength;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, echoSounderChannelNumber, 0)) {
@@ -1487,7 +1493,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "echoSounderChannelNumber = " << echoSounderChannelNumber;
+			LOG_MESSAGE(debug) << "echoSounderChannelNumber = " << echoSounderChannelNumber;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeString(itNmea, transducerLocation, defString)) {
@@ -1495,17 +1501,17 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "transducerLocation = " << transducerLocation;
+			LOG_MESSAGE(debug) << "transducerLocation = " << transducerLocation;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << dptSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << dptSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1514,8 +1520,8 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 		double& headingDegreesTrue, char& t) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseHDT";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseHDT";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1540,7 +1546,7 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"headingDegreesTrue = " << headingDegreesTrue;
+			LOG_MESSAGE(debug) <<"headingDegreesTrue = " << headingDegreesTrue;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, t, defChar)) {
@@ -1548,17 +1554,17 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"t = " << t;
+			LOG_MESSAGE(debug) <<"t = " << t;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdtSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << hdtSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1569,8 +1575,8 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 		double& magneticDeviationDegrees, char& magneticDeviationDirection,
 		double& magneticVariationDegrees, char& magneticVariationDirection) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseHDG";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseHDG";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1596,7 +1602,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticSensorHeadingInDegrees = " << magneticSensorHeadingInDegrees;
+			LOG_MESSAGE(debug) << "magneticSensorHeadingInDegrees = " << magneticSensorHeadingInDegrees;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticDeviationDegrees, 0)) {
@@ -1604,7 +1610,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticDeviationDegrees = " << magneticDeviationDegrees;
+			LOG_MESSAGE(debug) << "magneticDeviationDegrees = " << magneticDeviationDegrees;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magneticDeviationDirection, defChar)) {
@@ -1612,7 +1618,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticDeviationDirection = " << magneticDeviationDirection;
+			LOG_MESSAGE(debug) << "magneticDeviationDirection = " << magneticDeviationDirection;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticVariationDegrees, 0)) {
@@ -1620,7 +1626,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticVariationDegrees = " << magneticVariationDegrees;
+			LOG_MESSAGE(debug) << "magneticVariationDegrees = " << magneticVariationDegrees;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magneticVariationDirection, defChar)) {
@@ -1628,17 +1634,17 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticVariationDirection = " << magneticVariationDirection;
+			LOG_MESSAGE(debug) << "magneticVariationDirection = " << magneticVariationDirection;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdgSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << hdgSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1647,8 +1653,8 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 		double& headingDegreesMagnetic, char& magnetic) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseHDM";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseHDM";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1673,7 +1679,7 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "headingDegreesMagnetic = " << headingDegreesMagnetic;
+			LOG_MESSAGE(debug) << "headingDegreesMagnetic = " << headingDegreesMagnetic;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magnetic, defChar)) {
@@ -1681,17 +1687,17 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magnetic = " << magnetic;
+			LOG_MESSAGE(debug) << "magnetic = " << magnetic;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << hdmSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << hdmSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1700,8 +1706,8 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 		double& rateOfTurn, char& status) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseROT";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseROT";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1726,7 +1732,7 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "rateOfTurn = " << rateOfTurn;
+			LOG_MESSAGE(debug) << "rateOfTurn = " << rateOfTurn;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
@@ -1734,17 +1740,17 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "status = " << status;
+			LOG_MESSAGE(debug) << "status = " << status;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rotSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << rotSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1754,8 +1760,8 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 		double& windAngle, char& reference, double& windSpeed,
 		char& windSpeedUnits, char& sensorStatus) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseMWV";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseMWV";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1780,7 +1786,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"windAngle = " << windAngle;
+			LOG_MESSAGE(debug) <<"windAngle = " << windAngle;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, reference, defChar)) {
@@ -1788,7 +1794,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"reference = " << reference;
+			LOG_MESSAGE(debug) <<"reference = " << reference;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeed, 0)) {
@@ -1796,7 +1802,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"windSpeed = " << windSpeed;
+			LOG_MESSAGE(debug) <<"windSpeed = " << windSpeed;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, windSpeedUnits, defChar)) {
@@ -1804,7 +1810,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"windSpeedUnits = " << windSpeedUnits;
+			LOG_MESSAGE(debug) <<"windSpeedUnits = " << windSpeedUnits;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, sensorStatus, defChar)) {
@@ -1812,17 +1818,17 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"sensorStatus = " << sensorStatus;
+			LOG_MESSAGE(debug) <<"sensorStatus = " << sensorStatus;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mwvSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << mwvSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1833,8 +1839,8 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 		char& magnetic, double& windSpeedKnots, char& knots,
 		double& windSpeedMeters, char& meters) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseMWD";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseMWD";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1859,7 +1865,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"trueWindDirection = " << trueWindDirection;
+			LOG_MESSAGE(debug) <<"trueWindDirection = " << trueWindDirection;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, t, defChar)) {
@@ -1867,7 +1873,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"t = " << t;
+			LOG_MESSAGE(debug) <<"t = " << t;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticWindDirection, 0)) {
@@ -1875,7 +1881,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "magneticWindDirection = " << magneticWindDirection;
+			LOG_MESSAGE(debug) << "magneticWindDirection = " << magneticWindDirection;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magnetic, defChar)) {
@@ -1883,7 +1889,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"magnetic = " << magnetic;
+			LOG_MESSAGE(debug) <<"magnetic = " << magnetic;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeedKnots, 0)) {
@@ -1891,7 +1897,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"windSpeedKnots = " << windSpeedKnots;
+			LOG_MESSAGE(debug) <<"windSpeedKnots = " << windSpeedKnots;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, knots, defChar)) {
@@ -1899,7 +1905,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"knots = " << knots;
+			LOG_MESSAGE(debug) <<"knots = " << knots;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeedMeters, 0)) {
@@ -1907,7 +1913,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"windSpeedMeters = " << windSpeedMeters;
+			LOG_MESSAGE(debug) <<"windSpeedMeters = " << windSpeedMeters;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
@@ -1915,17 +1921,17 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"meters = " << meters;
+			LOG_MESSAGE(debug) <<"meters = " << meters;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << mwdSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << mwdSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -1939,8 +1945,8 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 		double& humidity, char& humidityUnitsOfMeasurePercent,
 		std::string& nameOfRelativeHumiditySensor) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseXDR";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseXDR";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -1965,7 +1971,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorTemperature = " << typeOfSensorTemperature;
+			LOG_MESSAGE(debug) << "typeOfSensorTemperature = " << typeOfSensorTemperature;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, temperatureReading, 0)) {
@@ -1973,7 +1979,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"temperatureReading = " << temperatureReading;
+			LOG_MESSAGE(debug) <<"temperatureReading = " << temperatureReading;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, centigrade, defChar)) {
@@ -1981,7 +1987,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"centigrade = " << centigrade;
+			LOG_MESSAGE(debug) <<"centigrade = " << centigrade;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfTransducer, defString)) {
@@ -1989,7 +1995,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"nameOfTransducer = " << nameOfTransducer;
+			LOG_MESSAGE(debug) <<"nameOfTransducer = " << nameOfTransducer;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, typeOfSensorPressure, defChar)) {
@@ -1997,7 +2003,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorPressure = " << typeOfSensorPressure;
+			LOG_MESSAGE(debug) << "typeOfSensorPressure = " << typeOfSensorPressure;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, pressureReading, 0)) {
@@ -2005,7 +2011,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "pressureReading = " << pressureReading;
+			LOG_MESSAGE(debug) << "pressureReading = " << pressureReading;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, bars, defChar)) {
@@ -2013,7 +2019,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "bars = " << bars;
+			LOG_MESSAGE(debug) << "bars = " << bars;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfPressureSensor, defString)) {
@@ -2021,7 +2027,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "nameOfPressureSensor = " << nameOfPressureSensor;
+			LOG_MESSAGE(debug) << "nameOfPressureSensor = " << nameOfPressureSensor;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, typeOfSensorHumidity, defChar)) {
@@ -2029,7 +2035,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "typeOfSensorHumidity = " << typeOfSensorHumidity;
+			LOG_MESSAGE(debug) << "typeOfSensorHumidity = " << typeOfSensorHumidity;
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, humidity, 0)) {
@@ -2037,7 +2043,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "humidity = " << humidity;
+			LOG_MESSAGE(debug) << "humidity = " << humidity;
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, humidityUnitsOfMeasurePercent, defChar)) {
@@ -2045,7 +2051,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "humidityUnitsOfMeasurePercent = " << humidityUnitsOfMeasurePercent;
+			LOG_MESSAGE(debug) << "humidityUnitsOfMeasurePercent = " << humidityUnitsOfMeasurePercent;
 
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfRelativeHumiditySensor,
@@ -2054,17 +2060,17 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "nameOfRelativeHumiditySensor = " << nameOfRelativeHumiditySensor;
+			LOG_MESSAGE(debug) << "nameOfRelativeHumiditySensor = " << nameOfRelativeHumiditySensor;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << xdrSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << xdrSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -2079,8 +2085,8 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 		boost::posix_time::time_duration& timeOfData,
 		Nmea_TypeOfAcquisition& typeOfAcquisition) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseTTM";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseTTM";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -2106,7 +2112,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetNumber = " << targetNumber;
+			LOG_MESSAGE(debug) << "targetNumber = " << targetNumber;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetDistance, 0)) {
@@ -2114,7 +2120,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetDistance = " << targetDistance;
+			LOG_MESSAGE(debug) << "targetDistance = " << targetDistance;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetBearing, 0)) {
@@ -2122,7 +2128,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetBearing = " << targetBearing;
+			LOG_MESSAGE(debug) << "targetBearing = " << targetBearing;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
@@ -2136,7 +2142,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetBearingReference = " << auxChar;
+			LOG_MESSAGE(debug) << "targetBearingReference = " << auxChar;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetSpeed, 0)) {
@@ -2144,7 +2150,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetSpeed = " << targetSpeed;
+			LOG_MESSAGE(debug) << "targetSpeed = " << targetSpeed;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetCourse, 0)) {
@@ -2152,7 +2158,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetCourse = " << targetCourse;
+			LOG_MESSAGE(debug) << "targetCourse = " << targetCourse;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
@@ -2166,7 +2172,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetCourseReference = " << auxChar;
+			LOG_MESSAGE(debug) << "targetCourseReference = " << auxChar;
 
 			/*------------ Field 08 ---------------*/
 			// ignorar
@@ -2191,7 +2197,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "speedDistanceUnits = " << auxChar;
+			LOG_MESSAGE(debug) << "speedDistanceUnits = " << auxChar;
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeString(itNmea, targetName, defString)) {
@@ -2199,7 +2205,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetName = " << targetName;
+			LOG_MESSAGE(debug) << "targetName = " << targetName;
 
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
@@ -2215,7 +2221,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "targetStatus = " << auxChar;
+			LOG_MESSAGE(debug) << "targetStatus = " << auxChar;
 
 			/*------------ Field 13 ---------------*/
 			// ignorar
@@ -2227,7 +2233,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				itNmea++;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "timeOfData = " << timeOfData;
+			LOG_MESSAGE(debug) << "timeOfData = " << timeOfData;
 
 			/*------------ Field 15 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
@@ -2243,16 +2249,16 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 				}
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "typeOfAcquisition = " << auxChar;
+			LOG_MESSAGE(debug) << "typeOfAcquisition = " << auxChar;
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ttmSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << ttmSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 }
@@ -2261,8 +2267,8 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 		int& lineCount, int& sequenceIdentifier, std::string& trackData,
 		int& fillBits) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseTTD";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseTTD";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -2289,7 +2295,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 			}
 			totalLines = aux;
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"totalLines = " << totalLines;
+			LOG_MESSAGE(debug) <<"totalLines = " << totalLines;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
@@ -2298,7 +2304,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 			}
 			lineCount = aux;
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"lineCount = " << lineCount;
+			LOG_MESSAGE(debug) <<"lineCount = " << lineCount;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
@@ -2306,7 +2312,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
+			LOG_MESSAGE(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<std::string>(itNmea, trackData, defString)) {
@@ -2314,7 +2320,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"trackData = " << trackData;
+			LOG_MESSAGE(debug) <<"trackData = " << trackData;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, fillBits, 0)) {
@@ -2322,17 +2328,17 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"fillBits = " << fillBits;
+			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << ttdSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << ttdSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -2341,8 +2347,8 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 		std::vector<std::pair<int, std::string>>& trackNumbernLabel) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseTLB";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseTLB";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -2362,13 +2368,13 @@ NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 
 			std::pair<int, std::string> trackPair;
 			for (uint i = 0; i < (fields.size() - 2) / 2; i++) {
-				BOOST_LOG_TRIVIAL(debug) <<"i = " << i;
+				LOG_MESSAGE(debug) <<"i = " << i;
 				/*------------ targetNumber ---------------*/
 				if (!impl::decodeDefault<int>(itNmea, trackPair.first, 0)) {
 					ret.set(i, true);
 					++itNmea;
 				}
-				BOOST_LOG_TRIVIAL(debug) <<"targetNumber = " << trackPair.first;
+				LOG_MESSAGE(debug) <<"targetNumber = " << trackPair.first;
 
 				/*------------ targetLabel ---------------*/
 				if (!impl::decodeDefault<std::string>(itNmea, trackPair.second,
@@ -2376,20 +2382,20 @@ NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 					ret.set(i + 1, true);
 					++itNmea;
 				}
-				BOOST_LOG_TRIVIAL(debug) <<"targetLabel = " << trackPair.second;
+				LOG_MESSAGE(debug) <<"targetLabel = " << trackPair.second;
 
 				trackNumbernLabel.push_back(trackPair);
 
 			}
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << tlbSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << tlbSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -2400,8 +2406,8 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 		double& vesselSpeed, char& referenceSpeed, double& vesselSet,
 		double& vesselDrift, char& speedUnits) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseOSD";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseOSD";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -2426,7 +2432,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"heading = " << heading;
+			LOG_MESSAGE(debug) <<"heading = " << heading;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
@@ -2434,7 +2440,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"status = " << status;
+			LOG_MESSAGE(debug) <<"status = " << status;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselCourse, 0)) {
@@ -2442,7 +2448,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"vesselCourse = " << vesselCourse;
+			LOG_MESSAGE(debug) <<"vesselCourse = " << vesselCourse;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, referenceCourse, defChar)) {
@@ -2450,7 +2456,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"referenceCourse = " << referenceCourse;
+			LOG_MESSAGE(debug) <<"referenceCourse = " << referenceCourse;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselSpeed, 0)) {
@@ -2458,7 +2464,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"vesselSpeed = " << vesselSpeed;
+			LOG_MESSAGE(debug) <<"vesselSpeed = " << vesselSpeed;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, referenceSpeed, defChar)) {
@@ -2466,7 +2472,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"referenceSpeed = " << referenceSpeed;
+			LOG_MESSAGE(debug) <<"referenceSpeed = " << referenceSpeed;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselSet, 0)) {
@@ -2474,7 +2480,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"vesselSet = " << vesselSet;
+			LOG_MESSAGE(debug) <<"vesselSet = " << vesselSet;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselDrift, 0)) {
@@ -2482,7 +2488,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"vesselDrift = " << vesselDrift;
+			LOG_MESSAGE(debug) <<"vesselDrift = " << vesselDrift;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, speedUnits, defChar)) {
@@ -2490,17 +2496,17 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"speedUnits = " << speedUnits;
+			LOG_MESSAGE(debug) <<"speedUnits = " << speedUnits;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << osdSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << osdSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 
@@ -2513,8 +2519,8 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 		double& ebl2, double& cursorRange, double& cursorBearing,
 		double& rangeScale, char& rangeUnits, char& displayRotation) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseRSD";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseRSD";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -2539,7 +2545,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "origin1Range = " << origin1Range;
+			LOG_MESSAGE(debug) << "origin1Range = " << origin1Range;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin1BearingDegrees, 0)) {
@@ -2547,7 +2553,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "origin1BearingDegrees = " << origin1BearingDegrees;
+			LOG_MESSAGE(debug) << "origin1BearingDegrees = " << origin1BearingDegrees;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, variableRangeMarker1, 0)) {
@@ -2555,7 +2561,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "variableRangeMarker1 = " << variableRangeMarker1;
+			LOG_MESSAGE(debug) << "variableRangeMarker1 = " << variableRangeMarker1;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, bearingLine1, 0)) {
@@ -2563,7 +2569,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"bearingLine1 = " << bearingLine1;
+			LOG_MESSAGE(debug) <<"bearingLine1 = " << bearingLine1;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin2Range, 0)) {
@@ -2571,7 +2577,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"origin2Range = " << origin2Range;
+			LOG_MESSAGE(debug) <<"origin2Range = " << origin2Range;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin2Bearing, 0)) {
@@ -2579,7 +2585,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"origin2Bearing = " << origin2Bearing;
+			LOG_MESSAGE(debug) <<"origin2Bearing = " << origin2Bearing;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vrm2, 0)) {
@@ -2587,7 +2593,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"vrm2 = " << vrm2;
+			LOG_MESSAGE(debug) <<"vrm2 = " << vrm2;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, ebl2, 0)) {
@@ -2595,7 +2601,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"ebl2 = " << ebl2;
+			LOG_MESSAGE(debug) <<"ebl2 = " << ebl2;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, cursorRange, 0)) {
@@ -2603,7 +2609,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"cursorRange = " << cursorRange;
+			LOG_MESSAGE(debug) <<"cursorRange = " << cursorRange;
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, cursorBearing, 0)) {
@@ -2611,7 +2617,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"cursorBearing = " << cursorBearing;
+			LOG_MESSAGE(debug) <<"cursorBearing = " << cursorBearing;
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, rangeScale, 0)) {
@@ -2619,7 +2625,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"rangeScale = " << rangeScale;
+			LOG_MESSAGE(debug) <<"rangeScale = " << rangeScale;
 
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, rangeUnits, defChar)) {
@@ -2627,7 +2633,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"rangeUnits = " << rangeUnits;
+			LOG_MESSAGE(debug) <<"rangeUnits = " << rangeUnits;
 
 			/*------------ Field 13 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, displayRotation, defChar)) {
@@ -2635,17 +2641,17 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"displayRotation = " << displayRotation;
+			LOG_MESSAGE(debug) <<"displayRotation = " << displayRotation;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << rsdSizeField;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << rsdSizeField;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 }
@@ -2654,8 +2660,8 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 		int& lineCount, int& sequenceIdentifier, char& aisChannel,
 		std::string& encodedData, int& fillBits) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVDM";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVDM";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	int idxVar = 0;
@@ -2682,7 +2688,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 			}
 			totalLines = aux;
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"totalLines = " << totalLines;
+			LOG_MESSAGE(debug) <<"totalLines = " << totalLines;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
@@ -2691,7 +2697,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 			}
 			lineCount = aux;
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"lineCount = " << lineCount;
+			LOG_MESSAGE(debug) <<"lineCount = " << lineCount;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
@@ -2699,7 +2705,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
+			LOG_MESSAGE(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, aisChannel, defChar)) {
@@ -2707,7 +2713,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) << "aisChannel = " << aisChannel;
+			LOG_MESSAGE(debug) << "aisChannel = " << aisChannel;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<std::string>(itNmea, encodedData, defString)) {
@@ -2715,7 +2721,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"encodedData = " << encodedData;
+			LOG_MESSAGE(debug) <<"encodedData = " << encodedData;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, fillBits, 0)) {
@@ -2723,17 +2729,17 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			++idxVar;
-			BOOST_LOG_TRIVIAL(debug) <<"fillBits = " << fillBits;
+			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 }
@@ -2742,8 +2748,8 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 		int& lineCount, int& sequenceIdentifier, char& aisChannel,
 		std::string& encodedData, int& fillBits) {
 
-	BOOST_LOG_TRIVIAL(trace)<< "NmeaParser::parseVDO";
-	BOOST_LOG_TRIVIAL(debug) << "Nmea : " << nmea.c_str();
+	LOG_MESSAGE(trace)<< "NmeaParser::parseVDO";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
 	ret.reset();
@@ -2768,7 +2774,7 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			totalLines = aux;
-			BOOST_LOG_TRIVIAL(debug) <<"totalLines = " << totalLines;
+			LOG_MESSAGE(debug) <<"totalLines = " << totalLines;
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
@@ -2776,45 +2782,45 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 			lineCount = aux;
-			BOOST_LOG_TRIVIAL(debug) <<"lineCount = " << lineCount;
+			LOG_MESSAGE(debug) <<"lineCount = " << lineCount;
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
 				ret.set(2, true);
 				++itNmea;
 			}
-			BOOST_LOG_TRIVIAL(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
+			LOG_MESSAGE(debug) << "sequenciaIdentifier = " << sequenceIdentifier;
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, aisChannel, defChar)) {
 				ret.set(3, true);
 				++itNmea;
 			}
-			BOOST_LOG_TRIVIAL(debug) << "aisChannel = " << aisChannel;
+			LOG_MESSAGE(debug) << "aisChannel = " << aisChannel;
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<std::string>(itNmea, encodedData, defString)) {
 				ret.set(4, true);
 				++itNmea;
 			}
-			BOOST_LOG_TRIVIAL(debug) <<"encodedData = " << encodedData;
+			LOG_MESSAGE(debug) <<"encodedData = " << encodedData;
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, fillBits, 0)) {
 				ret.set(5, true);
 				++itNmea;
 			}
-			BOOST_LOG_TRIVIAL(debug) <<"fillBits = " << fillBits;
+			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
-			BOOST_LOG_TRIVIAL(error) << "Cabecera incorrecta";
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Campos esperados : " << expectedFieldCount;
-		BOOST_LOG_TRIVIAL(error) << "Campos recibidos : " << fields.size();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "retorno binario : " << ret;
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
 }
@@ -2823,8 +2829,8 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseTTDPayload";
-	BOOST_LOG_TRIVIAL(debug) << "trackData = " << trackData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseTTDPayload";
+	LOG_MESSAGE(debug) << "trackData = " << trackData;
 
 	const int TDD_TOTALBITS = 90;
 	const int TDD_TOTALCHARS = 15;
@@ -2835,7 +2841,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
 
     	// Cada track ocupa 15 caracteres.
         int trackCount = trackData.size() / TDD_TOTALCHARS;
-    	BOOST_LOG_TRIVIAL(debug) << "trackCount = " << trackCount;
+    	LOG_MESSAGE(debug) << "trackCount = " << trackCount;
     	tracks.resize(trackCount);
 
         for (int i = 0; i < trackCount; ++i)
@@ -2844,17 +2850,17 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
             uint offset = i * TDD_TOTALCHARS;
 
             // Decodifica cadena a array de bits
-            BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode INIT";
+            LOG_MESSAGE(debug) << "parseTTDPayload : decode INIT";
             for (int j = 0; j < TDD_TOTALCHARS; ++j)
             {
                 int pos = offset + j;
                 SixBit bitsetDecode = impl::decodeSixBit(trackData.at(pos));
-                BOOST_LOG_TRIVIAL(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
+                LOG_MESSAGE(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
 
                 // Concatenate all six-bit quantities found in the payload, MSB first
                 impl::concatSixBitMSBFirst(j * 6, trackBinary, bitsetDecode);
             }
-            BOOST_LOG_TRIVIAL(debug) << "parseTTDPayload : decode END " << trackBinary;
+            LOG_MESSAGE(debug) << "parseTTDPayload : decode END " << trackBinary;
 
             int cursor = 0;
 
@@ -2864,23 +2870,23 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
             {
             	tracks[i].targetNumber = impl::decodeBitUInt(trackBinary, cursor, 10);
             	cursor += 10;
-                BOOST_LOG_TRIVIAL(debug) << "TargetNumber = " << tracks[i].targetNumber;
+                LOG_MESSAGE(debug) << "TargetNumber = " << tracks[i].targetNumber;
 
                 tracks[i].trueBearing = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
-                BOOST_LOG_TRIVIAL(debug) << "TrueBearing = " << tracks[i].trueBearing;
+                LOG_MESSAGE(debug) << "TrueBearing = " << tracks[i].trueBearing;
 
                 tracks[i].speed = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
-                BOOST_LOG_TRIVIAL(debug) << "Speed = " << tracks[i].speed;
+                LOG_MESSAGE(debug) << "Speed = " << tracks[i].speed;
 
                 tracks[i].course = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
-                BOOST_LOG_TRIVIAL(debug) << "Course = " << tracks[i].course;
+                LOG_MESSAGE(debug) << "Course = " << tracks[i].course;
 
                 tracks[i].aisHeading = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
                 cursor += 12;
-                BOOST_LOG_TRIVIAL(debug) << "AisHeading = " << tracks[i].aisHeading;
+                LOG_MESSAGE(debug) << "AisHeading = " << tracks[i].aisHeading;
 
                 // Track status
                 uint status = impl::decodeBitUInt(trackBinary, cursor, 3);
@@ -2919,7 +2925,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 	tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm_Ack;
                 	break;
                 }
-                BOOST_LOG_TRIVIAL(debug) << "Status = " << tracks[i].status;
+                LOG_MESSAGE(debug) << "Status = " << tracks[i].status;
 
                 // Operation mode
                 if (trackBinary[cursor++] == false)
@@ -2928,11 +2934,11 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 } else {
                 	tracks[i].operation = Nmea_Operation_TestTarget;
                 }
-                BOOST_LOG_TRIVIAL(debug) << "Operation = " << tracks[i].operation;
+                LOG_MESSAGE(debug) << "Operation = " << tracks[i].operation;
 
                 tracks[i].distance = impl::decodeBitUInt(trackBinary, cursor, 14) * 0.01f;
                 cursor += 14;
-                BOOST_LOG_TRIVIAL(debug) << "Distance = " << tracks[i].distance;
+                LOG_MESSAGE(debug) << "Distance = " << tracks[i].distance;
 
                 // Speed mode
                 if (trackBinary[cursor++] == false)
@@ -2941,7 +2947,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 } else {
                 	tracks[i].speedMode = Nmea_SpeedMode_Relative;
                 }
-                BOOST_LOG_TRIVIAL(debug) << "Speed mode = " << tracks[i].speedMode;
+                LOG_MESSAGE(debug) << "Speed mode = " << tracks[i].speedMode;
 
                 // Stabilisation mode
                 if (trackBinary[cursor++] == false)
@@ -2950,7 +2956,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
                 } else {
                 	tracks[i].stabilisationMode = Nmea_StabilisationMode_ThroughWater;
                 }
-                BOOST_LOG_TRIVIAL(debug) << "Stabilisation mode = " << tracks[i].stabilisationMode;
+                LOG_MESSAGE(debug) << "Stabilisation mode = " << tracks[i].stabilisationMode;
 
                 // Reservado
                 // Skip 2 bit
@@ -2959,7 +2965,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaT
 
                 tracks[i].correlationNumber = impl::decodeBitUInt(trackBinary, cursor, 8);
                 cursor += 8;
-                BOOST_LOG_TRIVIAL(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
+                LOG_MESSAGE(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
             }
         }
     }
@@ -2971,17 +2977,17 @@ bool NmeaParser::parseAISMessageType(const std::string& encodedData, Nmea_AisMes
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISMessageType";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISMessageType";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	if (encodedData.length() > 0)
 	{
 		ret = true;
 		SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
-		BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
+		LOG_MESSAGE(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
 
 		messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
-		BOOST_LOG_TRIVIAL(debug) << "MessageType = " << messageType;
+		LOG_MESSAGE(debug) << "MessageType = " << messageType;
 	}
 
 	return ret;
@@ -2991,8 +2997,8 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISPositionReportClassA";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISPositionReportClassA";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	const int TYPE1_TOTALBITS = 168;
 	const int TYPE1_TOTALCHARS = 28;
@@ -3003,16 +3009,16 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
     	boost::dynamic_bitset<> binaryData(TYPE1_TOTALBITS);
 
         // Decodifica cadena a array de bits
-        BOOST_LOG_TRIVIAL(debug) << "parseAISPositionReportClassA : decode INIT";
+        LOG_MESSAGE(debug) << "parseAISPositionReportClassA : decode INIT";
         for (int i = 0; i < TYPE1_TOTALCHARS; ++i)
         {
             SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
             // Concatenate all six-bit quantities found in the payload, MSB first
             impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
         }
-        BOOST_LOG_TRIVIAL(debug) << "parseAISPositionReportClassA : decode END " << binaryData;
+        LOG_MESSAGE(debug) << "parseAISPositionReportClassA : decode END " << binaryData;
 
         int cursor = 0;
 
@@ -3025,15 +3031,15 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
 
         	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
         	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
 
             data.navigationStatus = static_cast<Nmea_NavigationStatus>(impl::decodeBitUInt(binaryData, cursor, 4));
             cursor += 4;
-            BOOST_LOG_TRIVIAL(debug) << "NavigationStatus = " << data.navigationStatus;
+            LOG_MESSAGE(debug) << "NavigationStatus = " << data.navigationStatus;
 
             float auxrot = impl::decodeBitInt(binaryData, cursor, 8);
             cursor += 8;
@@ -3042,11 +3048,11 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             	auxrot = 0.0f;
             }
             data.rateOfTurn = std::copysign((auxrot / 4.733f) * (auxrot / 4.733f), auxrot);
-            BOOST_LOG_TRIVIAL(debug) << "RateOfTurn = " << data.rateOfTurn;
+            LOG_MESSAGE(debug) << "RateOfTurn = " << data.rateOfTurn;
 
             data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
             cursor += 10;
-            BOOST_LOG_TRIVIAL(debug) << "SpeedOverGround = " << data.speedOverGround;
+            LOG_MESSAGE(debug) << "SpeedOverGround = " << data.speedOverGround;
 
             if (binaryData[cursor++] == false)
             {
@@ -3054,31 +3060,31 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             } else {
             	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
             }
-            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
 
             data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
             cursor += 28;
-            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
 
             data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
             cursor += 27;
-            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
 
             data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
             cursor += 12;
-            BOOST_LOG_TRIVIAL(debug) << "CourseOverGround = " << data.courseOverGround;
+            LOG_MESSAGE(debug) << "CourseOverGround = " << data.courseOverGround;
 
             data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
             cursor += 9;
-            BOOST_LOG_TRIVIAL(debug) << "TrueHeading = " << data.trueHeading;
+            LOG_MESSAGE(debug) << "TrueHeading = " << data.trueHeading;
 
             data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
+            LOG_MESSAGE(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
 
             data.maneuverIndicator = static_cast<Nmea_ManeuverIndicator>(impl::decodeBitUInt(binaryData, cursor, 2));
             cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "ManeuverIndicator = " << data.maneuverIndicator;
+            LOG_MESSAGE(debug) << "ManeuverIndicator = " << data.maneuverIndicator;
 
             if (binaryData[cursor++] == false)
             {
@@ -3086,7 +3092,7 @@ bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AI
             } else {
             	data.raim = Nmea_RAIM_InUse;
             }
-            BOOST_LOG_TRIVIAL(debug) << "RAIM = " << data.raim;
+            LOG_MESSAGE(debug) << "RAIM = " << data.raim;
         }
 	}
 	return ret;
@@ -3096,8 +3102,8 @@ bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBa
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISBaseStationReport";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISBaseStationReport";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	const int TYPE4_TOTALBITS = 168;
 	const int TYPE4_TOTALCHARS = 28;
@@ -3108,16 +3114,16 @@ bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBa
     	boost::dynamic_bitset<> binaryData(TYPE4_TOTALBITS);
 
         // Decodifica cadena a array de bits
-        BOOST_LOG_TRIVIAL(debug) << "parseAISBaseStationReport : decode INIT";
+        LOG_MESSAGE(debug) << "parseAISBaseStationReport : decode INIT";
         for (int i = 0; i < TYPE4_TOTALCHARS; ++i)
         {
             SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
             // Concatenate all six-bit quantities found in the payload, MSB first
             impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
         }
-        BOOST_LOG_TRIVIAL(debug) << "parseAISBaseStationReport : decode END " << binaryData;
+        LOG_MESSAGE(debug) << "parseAISBaseStationReport : decode END " << binaryData;
 
         int cursor = 0;
 
@@ -3130,35 +3136,35 @@ bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBa
 
         	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
         	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
 
             data.year = impl::decodeBitUInt(binaryData, cursor, 14);
             cursor += 14;
-            BOOST_LOG_TRIVIAL(debug) << "Year = " << data.year;
+            LOG_MESSAGE(debug) << "Year = " << data.year;
 
             data.month = impl::decodeBitUInt(binaryData, cursor, 4);
             cursor += 4;
-            BOOST_LOG_TRIVIAL(debug) << "Month = " << data.month;
+            LOG_MESSAGE(debug) << "Month = " << data.month;
 
             data.day = impl::decodeBitUInt(binaryData, cursor, 5);
             cursor += 5;
-            BOOST_LOG_TRIVIAL(debug) << "Day = " << data.day;
+            LOG_MESSAGE(debug) << "Day = " << data.day;
 
             data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
             cursor += 5;
-            BOOST_LOG_TRIVIAL(debug) << "Hour = " << data.hour;
+            LOG_MESSAGE(debug) << "Hour = " << data.hour;
 
             data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "Minute = " << data.minute;
+            LOG_MESSAGE(debug) << "Minute = " << data.minute;
 
             data.second = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "Second = " << data.second;
+            LOG_MESSAGE(debug) << "Second = " << data.second;
 
             if (binaryData[cursor++] == false)
             {
@@ -3166,19 +3172,19 @@ bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBa
             } else {
             	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
             }
-            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
 
             data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
             cursor += 28;
-            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
 
             data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
             cursor += 27;
-            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
 
             data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
             cursor += 4;
-            BOOST_LOG_TRIVIAL(debug) << "EPFD = " << data.epfd;
+            LOG_MESSAGE(debug) << "EPFD = " << data.epfd;
 
             // Spare
             cursor += 10;
@@ -3189,7 +3195,7 @@ bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBa
             } else {
             	data.raim = Nmea_RAIM_InUse;
             }
-            BOOST_LOG_TRIVIAL(debug) << "RAIM = " << data.raim;
+            LOG_MESSAGE(debug) << "RAIM = " << data.raim;
         }
 	}
 	return ret;
@@ -3199,8 +3205,8 @@ bool NmeaParser::parseAISStaticAndVoyageRelatedData(const std::string& encodedDa
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStaticAndVoyageRelatedData";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISStaticAndVoyageRelatedData";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	const int TYPE5_TOTALBITS = 426;
 	const int TYPE5_TOTALCHARS = 71;
@@ -3211,16 +3217,16 @@ bool NmeaParser::parseAISStaticAndVoyageRelatedData(const std::string& encodedDa
     	boost::dynamic_bitset<> binaryData(TYPE5_TOTALBITS);
 
         // Decodifica cadena a array de bits
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticAndVoyageRelatedData : decode INIT";
+        LOG_MESSAGE(debug) << "parseAISStaticAndVoyageRelatedData : decode INIT";
         for (int i = 0; i < TYPE5_TOTALCHARS; ++i)
         {
             SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
             // Concatenate all six-bit quantities found in the payload, MSB first
             impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
         }
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticAndVoyageRelatedData : decode END " << binaryData;
+        LOG_MESSAGE(debug) << "parseAISStaticAndVoyageRelatedData : decode END " << binaryData;
 
         int cursor = 0;
 
@@ -3233,75 +3239,75 @@ bool NmeaParser::parseAISStaticAndVoyageRelatedData(const std::string& encodedDa
 
         	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
         	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
 
             data.aisVersion = impl::decodeBitUInt(binaryData, cursor, 2);
             cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "AisVersion = " << data.aisVersion;
+            LOG_MESSAGE(debug) << "AisVersion = " << data.aisVersion;
 
             data.imoNumber = impl::decodeBitUInt(binaryData, cursor, 30);
             cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "ImoNumber = " << data.imoNumber;
+            LOG_MESSAGE(debug) << "ImoNumber = " << data.imoNumber;
 
             data.callsign = impl::decodeBitString(binaryData, cursor, 42);
             cursor += 42;
-            BOOST_LOG_TRIVIAL(debug) << "CallSign = '" << data.callsign << "'";
+            LOG_MESSAGE(debug) << "CallSign = '" << data.callsign << "'";
 
             data.vesselName = impl::decodeBitString(binaryData, cursor, 120);
             cursor += 120;
-            BOOST_LOG_TRIVIAL(debug) << "VesselName = '" << data.vesselName << "'";
+            LOG_MESSAGE(debug) << "VesselName = '" << data.vesselName << "'";
 
             data.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
             cursor += 8;
-            BOOST_LOG_TRIVIAL(debug) << "ShipType = " << data.shipType;
+            LOG_MESSAGE(debug) << "ShipType = " << data.shipType;
 
             data.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
             cursor += 9;
-            BOOST_LOG_TRIVIAL(debug) << "DimensionToBow = " << data.dimensionToBow;
+            LOG_MESSAGE(debug) << "DimensionToBow = " << data.dimensionToBow;
 
             data.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
             cursor += 9;
-            BOOST_LOG_TRIVIAL(debug) << "DimensionToStern = " << data.dimensionToStern;
+            LOG_MESSAGE(debug) << "DimensionToStern = " << data.dimensionToStern;
 
             data.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.dimensionToPort;
+            LOG_MESSAGE(debug) << "DimensionToPort = " << data.dimensionToPort;
 
             data.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.dimensionToPort;
+            LOG_MESSAGE(debug) << "DimensionToPort = " << data.dimensionToPort;
 
             data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
             cursor += 4;
-            BOOST_LOG_TRIVIAL(debug) << "EPFD = " << data.epfd;
+            LOG_MESSAGE(debug) << "EPFD = " << data.epfd;
 
             data.month = impl::decodeBitUInt(binaryData, cursor, 4);
             cursor += 4;
-            BOOST_LOG_TRIVIAL(debug) << "Month = " << data.month;
+            LOG_MESSAGE(debug) << "Month = " << data.month;
 
             data.day = impl::decodeBitUInt(binaryData, cursor, 5);
             cursor += 5;
-            BOOST_LOG_TRIVIAL(debug) << "Day = " << data.day;
+            LOG_MESSAGE(debug) << "Day = " << data.day;
 
             data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
             cursor += 5;
-            BOOST_LOG_TRIVIAL(debug) << "Hour = " << data.hour;
+            LOG_MESSAGE(debug) << "Hour = " << data.hour;
 
             data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "Minute = " << data.minute;
+            LOG_MESSAGE(debug) << "Minute = " << data.minute;
 
             data.draught = impl::decodeBitUInt(binaryData, cursor, 8);
             cursor += 8;
-            BOOST_LOG_TRIVIAL(debug) << "Draught = " << data.draught * 0.1f;
+            LOG_MESSAGE(debug) << "Draught = " << data.draught * 0.1f;
 
             data.destination = impl::decodeBitString(binaryData, cursor, 120);
             cursor += 120;
-            BOOST_LOG_TRIVIAL(debug) << "Destination = " << data.destination;
+            LOG_MESSAGE(debug) << "Destination = " << data.destination;
         }
 	}
 	return ret;
@@ -3311,8 +3317,8 @@ bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encod
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStandardClassBCSPositionReport";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISStandardClassBCSPositionReport";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	const int TYPE18_TOTALBITS = 168;
 	const int TYPE18_TOTALCHARS = 27;
@@ -3323,16 +3329,16 @@ bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encod
     	boost::dynamic_bitset<> binaryData(TYPE18_TOTALBITS);
 
         // Decodifica cadena a array de bits
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStandardClassBCSPositionReport : decode INIT";
+        LOG_MESSAGE(debug) << "parseAISStandardClassBCSPositionReport : decode INIT";
         for (int i = 0; i < TYPE18_TOTALCHARS; ++i)
         {
             SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
             // Concatenate all six-bit quantities found in the payload, MSB first
             impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
         }
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStandardClassBCSPositionReport : decode END " << binaryData;
+        LOG_MESSAGE(debug) << "parseAISStandardClassBCSPositionReport : decode END " << binaryData;
 
         int cursor = 0;
 
@@ -3345,18 +3351,18 @@ bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encod
 
         	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
         	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
 
             // Reserved
             cursor += 8;
 
             data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
             cursor += 10;
-            BOOST_LOG_TRIVIAL(debug) << "SpeedOverGround = " << data.speedOverGround;
+            LOG_MESSAGE(debug) << "SpeedOverGround = " << data.speedOverGround;
 
             if (binaryData[cursor++] == false)
             {
@@ -3364,27 +3370,27 @@ bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encod
             } else {
             	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
             }
-            BOOST_LOG_TRIVIAL(debug) << "PositionAccuracy = " << data.positionAccuracy;
+            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
 
             data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
             cursor += 28;
-            BOOST_LOG_TRIVIAL(debug) << "Longitude = " << data.longitude;
+            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
 
             data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
             cursor += 27;
-            BOOST_LOG_TRIVIAL(debug) << "Latitude = " << data.latitude;
+            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
 
             data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
             cursor += 12;
-            BOOST_LOG_TRIVIAL(debug) << "CourseOverGround = " << data.courseOverGround;
+            LOG_MESSAGE(debug) << "CourseOverGround = " << data.courseOverGround;
 
             data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
             cursor += 9;
-            BOOST_LOG_TRIVIAL(debug) << "TrueHeading = " << data.trueHeading;
+            LOG_MESSAGE(debug) << "TrueHeading = " << data.trueHeading;
 
             data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
             cursor += 6;
-            BOOST_LOG_TRIVIAL(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
+            LOG_MESSAGE(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
         }
 	}
 	return ret;
@@ -3394,8 +3400,8 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISSta
 {
 	bool ret = false;
 
-	BOOST_LOG_TRIVIAL(trace) << "NmeaParser::parseAISStaticDataReport";
-	BOOST_LOG_TRIVIAL(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace) << "NmeaParser::parseAISStaticDataReport";
+	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
 
 	const int TYPE24_TOTALBITS = 168;
 	const int TYPE24_TOTALCHARS = 27;
@@ -3406,16 +3412,16 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISSta
     	boost::dynamic_bitset<> binaryData(TYPE24_TOTALBITS);
 
         // Decodifica cadena a array de bits
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticDataReport : decode INIT";
+        LOG_MESSAGE(debug) << "parseAISStaticDataReport : decode INIT";
         for (int i = 0; i < TYPE24_TOTALCHARS; ++i)
         {
             SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            BOOST_LOG_TRIVIAL(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
             // Concatenate all six-bit quantities found in the payload, MSB first
             impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
         }
-        BOOST_LOG_TRIVIAL(debug) << "parseAISStaticDataReport : decode END " << binaryData;
+        LOG_MESSAGE(debug) << "parseAISStaticDataReport : decode END " << binaryData;
 
         int cursor = 0;
 
@@ -3428,61 +3434,61 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISSta
 
         	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
         	cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "RepeatIndicator = " << data.repeatIndicator;
+            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
 
         	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
         	cursor += 30;
-            BOOST_LOG_TRIVIAL(debug) << "MMSI = " << data.mmsi;
+            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
 
             data.partNumber = impl::decodeBitUInt(binaryData, cursor, 2);
             cursor += 2;
-            BOOST_LOG_TRIVIAL(debug) << "PartNumber = " << data.partNumber;
+            LOG_MESSAGE(debug) << "PartNumber = " << data.partNumber;
 
             if (data.partNumber == 0)
             {
             	data.partA.vesselName = impl::decodeBitString(binaryData, cursor, 120);
                 cursor += 120;
-                BOOST_LOG_TRIVIAL(debug) << "VesselName = '" << data.partA.vesselName << "'";
+                LOG_MESSAGE(debug) << "VesselName = '" << data.partA.vesselName << "'";
             } else if (data.partNumber == 1) {
             	data.partB.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
                 cursor += 8;
-                BOOST_LOG_TRIVIAL(debug) << "ShipType = " << data.partB.shipType;
+                LOG_MESSAGE(debug) << "ShipType = " << data.partB.shipType;
 
                 data.partB.vendorId = impl::decodeBitString(binaryData, cursor, 18);
                 cursor += 18;
-                BOOST_LOG_TRIVIAL(debug) << "VendorId = '" << data.partB.vendorId << "'";
+                LOG_MESSAGE(debug) << "VendorId = '" << data.partB.vendorId << "'";
 
                 data.partB.unitModelCode = impl::decodeBitUInt(binaryData, cursor, 4);
             	cursor += 4;
-                BOOST_LOG_TRIVIAL(debug) << "UnitModelCode = " << data.partB.unitModelCode;
+                LOG_MESSAGE(debug) << "UnitModelCode = " << data.partB.unitModelCode;
 
                 data.partB.serialNumber = impl::decodeBitUInt(binaryData, cursor, 20);
             	cursor += 20;
-                BOOST_LOG_TRIVIAL(debug) << "SerialNumber = " << data.partB.serialNumber;
+                LOG_MESSAGE(debug) << "SerialNumber = " << data.partB.serialNumber;
 
                 data.partB.callsign = impl::decodeBitString(binaryData, cursor, 42);
                 cursor += 42;
-                BOOST_LOG_TRIVIAL(debug) << "CallSign = '" << data.partB.callsign << "'";
+                LOG_MESSAGE(debug) << "CallSign = '" << data.partB.callsign << "'";
 
                 data.partB.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
                 cursor += 9;
-                BOOST_LOG_TRIVIAL(debug) << "DimensionToBow = " << data.partB.dimensionToBow;
+                LOG_MESSAGE(debug) << "DimensionToBow = " << data.partB.dimensionToBow;
 
                 data.partB.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
                 cursor += 9;
-                BOOST_LOG_TRIVIAL(debug) << "DimensionToStern = " << data.partB.dimensionToStern;
+                LOG_MESSAGE(debug) << "DimensionToStern = " << data.partB.dimensionToStern;
 
                 data.partB.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
                 cursor += 6;
-                BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
 
                 data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
                 cursor += 6;
-                BOOST_LOG_TRIVIAL(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
 
             	data.partB.mothershipmmsi = impl::decodeBitUInt(binaryData, cursor, 30);
             	cursor += 30;
-                BOOST_LOG_TRIVIAL(debug) << "Mothership MMSI = " << data.partB.mothershipmmsi;
+                LOG_MESSAGE(debug) << "Mothership MMSI = " << data.partB.mothershipmmsi;
             }
         }
 	}
