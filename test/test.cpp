@@ -79,7 +79,6 @@ BOOST_AUTO_TEST_CASE( parseVTG ) {
 
 //  ----------------------------------------- 05  GPRMC -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseRMC ) {
-	std::string nmeaRMC = "$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	//std::string nmeaRMC = "$GPRMC,,,,,,,,,,,,,*56";
 
 	boost::posix_time::time_duration mtime;
@@ -90,9 +89,16 @@ BOOST_AUTO_TEST_CASE( parseRMC ) {
 	boost::gregorian::date mdate;
 	double magneticvar;
 
+	std::string nmeaRMC = "$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseRMC(nmeaRMC, mtime, latitude, longitude,
 					speedknots, coursetrue, mdate, magneticvar));
+
+	nmeaRMC = "$GPRMC,165417,A,1202.34,S,07708.77,W,00.0,045,160117,002.6,W,A*23";
+	BOOST_REQUIRE_NO_THROW(
+			NmeaParser::parseRMC(nmeaRMC, mtime, latitude, longitude,
+					speedknots, coursetrue, mdate, magneticvar));
+
 }
 
 //  ----------------------------------------- 06  GPWPL -----------------------------------------
@@ -522,6 +528,9 @@ BOOST_AUTO_TEST_CASE( parseAISStaticDataReport ) {
 	AISStaticDataReport data;
 
 	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
+	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
+
+	encodedData = "H55gJH5J653hhhiFl39kPP1`=440";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
 
 }

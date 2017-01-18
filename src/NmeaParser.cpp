@@ -676,10 +676,9 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rmcSizeField = 15;
-	uint rmcSizeFieldAlt = 13;
+	uint rmcSizeField = 13;
 
-	if (fields.size() == rmcSizeField || fields.size() == rmcSizeFieldAlt) {
+	if (fields.size() >= rmcSizeField) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -758,7 +757,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
+		LOG_MESSAGE(error) << "Campos esperados : igual o mas de " << rmcSizeField;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -3484,11 +3483,7 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISSta
 
                 data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
                 cursor += 6;
-                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
-
-            	data.partB.mothershipmmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-            	cursor += 30;
-                LOG_MESSAGE(debug) << "Mothership MMSI = " << data.partB.mothershipmmsi;
+                LOG_MESSAGE(debug) << "DimensionToStarboard = " << data.partB.dimensionToStarboard;
             }
         }
 	}
