@@ -362,7 +362,6 @@ struct AISStaticDataReport {
 		int dimensionToStern;
 		int dimensionToPort;
 		int dimensionToStarboard;
-		uint mothershipmmsi;
 	} partB;
 };
 
