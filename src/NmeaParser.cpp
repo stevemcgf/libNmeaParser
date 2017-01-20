@@ -365,9 +365,10 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint expectedFieldCount = 9;
+	uint expectedFieldCountMin = 8;
+	uint expectedFieldCountMax = 9;
 
-	if (fields.size() == expectedFieldCount) {
+	if (fields.size() >= expectedFieldCountMin && fields.size() <= expectedFieldCountMax) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -408,18 +409,23 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 			++idxVar;
 			LOG_MESSAGE(debug) << "status = " << status;
 
-			/*------------ Field 07 ---------------*/
-			if (!impl::decodeDefault<char>(itNmea, modeIndicator, defChar)) {
+			if (itNmea != fields.end())
+			{
+				/*------------ Field 07 ---------------*/
+				if (!impl::decodeDefault<char>(itNmea, modeIndicator, defChar)) {
+					ret.set(idxVar, true);
+				}
+			} else {
+				modeIndicator = 'N';
 				ret.set(idxVar, true);
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "modeIndicator = " << modeIndicator;
-
 		} else {
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin << " max " << expectedFieldCountMax;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -602,9 +608,10 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint vtgSizeField = 11;
+	uint expectedFieldCountMin = 10;
+	uint expectedFieldCountMax = 11;
 
-	if (fields.size() == vtgSizeField) {
+	if (fields.size() >= expectedFieldCountMin && fields.size() <= expectedFieldCountMax) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -650,7 +657,7 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << vtgSizeField;
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin << " max " << expectedFieldCountMax;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -676,9 +683,10 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rmcSizeField = 13;
+	uint rmcSizeField = 15;
+	uint rmcSizeFieldAlt = 13;
 
-	if (fields.size() >= rmcSizeField) {
+	if (fields.size() == rmcSizeField || fields.size() == rmcSizeFieldAlt) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -757,7 +765,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : igual o mas de " << rmcSizeField;
+		LOG_MESSAGE(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -3483,7 +3491,7 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISSta
 
                 data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
                 cursor += 6;
-                LOG_MESSAGE(debug) << "DimensionToStarboard = " << data.partB.dimensionToStarboard;
+                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
             }
         }
 	}

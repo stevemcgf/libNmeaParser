@@ -29,7 +29,8 @@ BOOST_AUTO_TEST_CASE( parseZDA ) {
 
 //  ----------------------------------------- 02  GPGLL -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseGLL ) {
-	std::string nmeaGLL = "$GPGLL,1202.5313138,S,07708.5464255,W,155730.00,A,A*65";
+	std::string nmeaGLL;
+
 	//std::string nmeaGLL = "$GPGLL,,,,,,,*19";
 	double latitude;
 	double longitude;
@@ -37,15 +38,22 @@ BOOST_AUTO_TEST_CASE( parseGLL ) {
 	char status;
 	char modeIndicator;
 
+	nmeaGLL = "$GPGLL,1202.5313138,S,07708.5464255,W,155730.00,A,A*65";
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
 					modeIndicator));
+
+	nmeaGLL = "$GPGLL,1151.08,S,07718.65,W,165700,A*26";
+	BOOST_REQUIRE_NO_THROW(
+			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
+					modeIndicator));
+
 }
 
 //  ----------------------------------------- 03  GPGGA -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseGGA ) {
-	std::string nmeaGGA = "$GPGGA,172814.0,3723.46587704,N,12202.26957864,W,4,6,1.2,18.893,M,-25.669,M,2.5,0031*19";
-	//std::string nmeaGGA = "$GPGGA,,,,,,,,,,,,,,*19";
+	std::string nmeaGGA;
+
 	boost::posix_time::time_duration mtime;
 	double latitude;
 	double longitude;
@@ -57,28 +65,45 @@ BOOST_AUTO_TEST_CASE( parseGGA ) {
 	double agediffgps;
 	std::string refid;
 
+	nmeaGGA = "$GPGGA,172814.0,3723.46587704,N,12202.26957864,W,4,6,1.2,18.893,M,-25.669,M,2.5,0031*19";
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseGGA(nmeaGGA, mtime, latitude, longitude, quality,
 					numSV, hdop, orthometricheight, geoidseparation, agediffgps,
 					refid));
+
+	nmeaGGA = "$GPGGA,165702,1151.0742,S,07718.6472,W,1,09,00.9,24.9,M,10.6,M,,*49";
+	BOOST_REQUIRE_NO_THROW(
+			NmeaParser::parseGGA(nmeaGGA, mtime, latitude, longitude, quality,
+					numSV, hdop, orthometricheight, geoidseparation, agediffgps,
+					refid));
+
 }
 
 //  ----------------------------------------- 04  GPVTG -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseVTG ) {
-	std::string nmeaVTG = "$GPVTG,8.86,T,10.29,M,0.02,N,0.04,K,A*19";
+	std::string nmeaVTG;
+
 	//std::string nmeaVTG = "$GPVTG,,,,,,,,,*19";
 	double coursetrue;
 	double coursemagnetic;
 	double speedknots;
 	double speedkph;
 
+	nmeaVTG = "$GPVTG,8.86,T,10.29,M,0.02,N,0.04,K,A*19";
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
 					speedknots, speedkph));
+
+	nmeaVTG = "$GPVTG,212,T,215,M,12.8,N,23.8,K*4B";
+	BOOST_REQUIRE_NO_THROW(
+			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
+					speedknots, speedkph));
+
 }
 
 //  ----------------------------------------- 05  GPRMC -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseRMC ) {
+	std::string nmeaRMC = "$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	//std::string nmeaRMC = "$GPRMC,,,,,,,,,,,,,*56";
 
 	boost::posix_time::time_duration mtime;
@@ -89,16 +114,9 @@ BOOST_AUTO_TEST_CASE( parseRMC ) {
 	boost::gregorian::date mdate;
 	double magneticvar;
 
-	std::string nmeaRMC = "$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	BOOST_REQUIRE_NO_THROW(
 			NmeaParser::parseRMC(nmeaRMC, mtime, latitude, longitude,
 					speedknots, coursetrue, mdate, magneticvar));
-
-	nmeaRMC = "$GPRMC,165417,A,1202.34,S,07708.77,W,00.0,045,160117,002.6,W,A*23";
-	BOOST_REQUIRE_NO_THROW(
-			NmeaParser::parseRMC(nmeaRMC, mtime, latitude, longitude,
-					speedknots, coursetrue, mdate, magneticvar));
-
 }
 
 //  ----------------------------------------- 06  GPWPL -----------------------------------------
@@ -528,9 +546,6 @@ BOOST_AUTO_TEST_CASE( parseAISStaticDataReport ) {
 	AISStaticDataReport data;
 
 	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
-
-	encodedData = "H55gJH5J653hhhiFl39kPP1`=440";
 	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
 
 }
