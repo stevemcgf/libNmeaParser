@@ -41,10 +41,14 @@ public:
 			Target &out, const Target& def);
 
 	static SixBit decodeSixBit(char data);
-	static void concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain);
-	static uint decodeBitUInt(const boost::dynamic_bitset<>& data, int pointer, int size);
-	static int decodeBitInt(const boost::dynamic_bitset<>& data, int pointer, int size);
-	static std::string decodeBitString(const boost::dynamic_bitset<>& data, int pointer, int size);
+	static void concatSixBitMSBFirst(int pointer,
+			boost::dynamic_bitset<>& dataout, const SixBit& datain);
+	static uint decodeBitUInt(const boost::dynamic_bitset<>& data, int pointer,
+			int size);
+	static int decodeBitInt(const boost::dynamic_bitset<>& data, int pointer,
+			int size);
+	static std::string decodeBitString(const boost::dynamic_bitset<>& data,
+			int pointer, int size);
 };
 
 NmeaParser::NmeaParser() {
@@ -120,8 +124,8 @@ bool NmeaParser::impl::decodeDefault(std::vector<std::string>::iterator &i,
 	return ret;
 }
 
-bool NmeaParser::impl::decodeHex(std::vector<std::string>::iterator &i, uint& out,
-		const uint& def) {
+bool NmeaParser::impl::decodeHex(std::vector<std::string>::iterator &i,
+		uint& out, const uint& def) {
 	bool ret = false;
 	try {
 		std::stringstream ss(*i, std::ios_base::in);
@@ -204,46 +208,41 @@ inline SixBit NmeaParser::impl::decodeSixBit(char data) {
 	}
 }
 
-inline void NmeaParser::impl::concatSixBitMSBFirst(int pointer, boost::dynamic_bitset<>& dataout, const SixBit& datain)
-{
-    for (int i = 0; i < 6; ++i)
-    {
-    	dataout.set(pointer + i, datain[5 - i]);
-    }
+inline void NmeaParser::impl::concatSixBitMSBFirst(int pointer,
+		boost::dynamic_bitset<>& dataout, const SixBit& datain) {
+	for (int i = 0; i < 6; ++i) {
+		dataout.set(pointer + i, datain[5 - i]);
+	}
 }
 
-inline uint NmeaParser::impl::decodeBitUInt(const boost::dynamic_bitset<>& data, int pointer, int size)
-{
+inline uint NmeaParser::impl::decodeBitUInt(const boost::dynamic_bitset<>& data,
+		int pointer, int size) {
 	boost::dynamic_bitset<> binVariable(size);
-    for (int i = 0; i < size; i++)
-    {
-    	binVariable[size - 1 - i] = data[pointer + i];
-    }
-    return binVariable.to_ulong();
+	for (int i = 0; i < size; i++) {
+		binVariable[size - 1 - i] = data[pointer + i];
+	}
+	return binVariable.to_ulong();
 }
 
-inline int NmeaParser::impl::decodeBitInt(const boost::dynamic_bitset<>& data, int pointer, int size)
-{
-    uint val = decodeBitUInt(data, pointer, size);
-    int const m = 1U << (size - 1);
-    return (val ^ m) - m;
+inline int NmeaParser::impl::decodeBitInt(const boost::dynamic_bitset<>& data,
+		int pointer, int size) {
+	uint val = decodeBitUInt(data, pointer, size);
+	int const m = 1U << (size - 1);
+	return (val ^ m) - m;
 }
 
-std::string NmeaParser::impl::decodeBitString(const boost::dynamic_bitset<>& data, int pointer, int size)
-{
+std::string NmeaParser::impl::decodeBitString(
+		const boost::dynamic_bitset<>& data, int pointer, int size) {
 	int len = size / 6;
 	std::string strVariable(len, '\0');
 
 	SixBit bitChar;
 
-	for (int i = 0; i < len; ++i)
-	{
-		for (int j = 0; j < 6; ++j)
-		{
+	for (int i = 0; i < len; ++i) {
+		for (int j = 0; j < 6; ++j) {
 			bitChar[5 - j] = data[pointer + i * 6 + j];
 		}
-		if (bitChar.to_ulong() < 32)
-		{
+		if (bitChar.to_ulong() < 32) {
 			strVariable[i] = '@' + bitChar.to_ulong();
 		} else {
 			strVariable[i] = ' ' + (bitChar.to_ulong() - 32);
@@ -262,8 +261,8 @@ std::string NmeaParser::impl::decodeBitString(const boost::dynamic_bitset<>& dat
 boost::posix_time::time_duration deftime(0, 0, 0, 0);
 boost::gregorian::date defdate(1400, 1, 1);
 const double defLatLong = 99.999;
-char defChar = 'X';
-std::string defString = "XXXX";
+char defChar = '-';
+std::string defString = "-";
 
 NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, int& day, int& month,
@@ -280,9 +279,9 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint expectedFieldCount = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == expectedFieldCount) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -291,7 +290,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeTime(itNmea, mtime, deftime)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -299,7 +298,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, day, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -307,7 +306,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, month, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -315,7 +314,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, year, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -323,7 +322,7 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, localZoneHours, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -331,23 +330,24 @@ NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, localZoneMinutes, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "localZoneMinutes = " << localZoneMinutes;
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
 	LOG_MESSAGE(debug) << "retorno binario : " << ret;
 
 	return ret;
-
 }
 
 NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
@@ -366,9 +366,8 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 	impl::tokenizeSentence(nmea, fields);
 
 	uint expectedFieldCountMin = 8;
-	uint expectedFieldCountMax = 9;
 
-	if (fields.size() >= expectedFieldCountMin && fields.size() <= expectedFieldCountMax) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -377,7 +376,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 01,02 ---------------*/
 			if (!impl::decodeLatLng(itNmea, latitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -386,7 +385,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -395,7 +394,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeTime(itNmea, mtime, deftime)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -403,7 +402,7 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -413,19 +412,21 @@ NmeaParserResult NmeaParser::parseGLL(const std::string& nmea, double& latitude,
 			{
 				/*------------ Field 07 ---------------*/
 				if (!impl::decodeDefault<char>(itNmea, modeIndicator, defChar)) {
-					ret.set(idxVar, true);
+					ret.set(idxVar);
 				}
 			} else {
-				modeIndicator = 'N';
-				ret.set(idxVar, true);
+				modeIndicator = defChar;
+				ret.set(idxVar);
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "modeIndicator = " << modeIndicator;
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin << " max " << expectedFieldCountMax;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -452,9 +453,9 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint ggaSizeField = 16;
+	uint expectedFieldCountMin = 16;
 
-	if (fields.size() == ggaSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -463,7 +464,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeTime(itNmea, mtime, deftime)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -471,26 +472,26 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			/*------------ Field 02,03 ---------------*/
 			if (!impl::decodeLatLng(itNmea, latitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"latitude = " << latitude;
+			LOG_MESSAGE(debug) << "latitude = " << latitude;
 
 			/*------------ Field 04,05 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"longitude = " << longitude;
+			LOG_MESSAGE(debug) << "longitude = " << longitude;
 
 			/*------------ Field 06 ---------------*/
 			int qualityIndicator;
 			if (!impl::decodeDefault<int>(itNmea, qualityIndicator, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			} else {
 				switch (qualityIndicator) {
@@ -515,7 +516,7 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 						break;
 					}
 					default: {
-						ret.set(idxVar, true);
+						ret.set(idxVar);
 						quality = Nmea_GPSQualityIndicator_FixNotValid;
 						break;
 					}
@@ -526,23 +527,23 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, numSV, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"numSV = " << numSV;
+			LOG_MESSAGE(debug) << "numSV = " << numSV;
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, hdop, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"hdop = " << hdop;
+			LOG_MESSAGE(debug) << "hdop = " << hdop;
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, orthometricheight, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -554,11 +555,11 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, geoidseparation, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"geoidseparation = " << geoidseparation;
+			LOG_MESSAGE(debug) << "geoidseparation = " << geoidseparation;
 
 			/*------------ Field 12 ---------------*/
 			// Se salta unidad de medida siempre Metros.
@@ -566,24 +567,26 @@ NmeaParserResult NmeaParser::parseGGA(const std::string& nmea,
 
 			/*------------ Field 13 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, agediffgps, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"agediffgps = " << agediffgps;
+			LOG_MESSAGE(debug) << "agediffgps = " << agediffgps;
 
 			/*------------ Field 14 ---------------*/
 			if (!impl::decodeString(itNmea, refid, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"refid = " << refid;
+			LOG_MESSAGE(debug) << "refid = " << refid;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << ggaSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -609,9 +612,8 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 	impl::tokenizeSentence(nmea, fields);
 
 	uint expectedFieldCountMin = 10;
-	uint expectedFieldCountMax = 11;
 
-	if (fields.size() >= expectedFieldCountMin && fields.size() <= expectedFieldCountMax) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -620,44 +622,46 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 
 			/*------------ Field 01,02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursetrue, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"coursetrue = " << coursetrue;
+			LOG_MESSAGE(debug) << "coursetrue = " << coursetrue;
 			++itNmea;
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursemagnetic, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"coursemagnetic = " << coursemagnetic;
+			LOG_MESSAGE(debug) << "coursemagnetic = " << coursemagnetic;
 			++itNmea;
 			/*------------ Field 05,06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedknots, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"speedknots = " << speedknots;
+			LOG_MESSAGE(debug) << "speedknots = " << speedknots;
 			++itNmea;
 			/*------------ Field 07,08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedkph, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
-			LOG_MESSAGE(debug) <<"speedkph = " << speedkph;
+			LOG_MESSAGE(debug) << "speedkph = " << speedkph;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin << " max " << expectedFieldCountMax;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -683,10 +687,9 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rmcSizeField = 15;
-	uint rmcSizeFieldAlt = 13;
+	uint expectedFieldCountMin = 13;
 
-	if (fields.size() == rmcSizeField || fields.size() == rmcSizeFieldAlt) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -695,7 +698,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeTime(itNmea, mtime, deftime)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -706,7 +709,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeLatLng(itNmea, latitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -715,7 +718,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 05,06 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -724,7 +727,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedknots, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -732,7 +735,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursetrue, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -740,7 +743,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDate(itNmea, mdate, defdate)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -748,7 +751,7 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticvar, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -762,10 +765,12 @@ NmeaParserResult NmeaParser::parseRMC(const std::string& nmea,
 			++itNmea;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << rmcSizeField << " o " << rmcSizeFieldAlt;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -789,9 +794,9 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint wplSizeField = 7;
+	uint expectedFieldCountMin = 7;
 
-	if (fields.size() == wplSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -800,7 +805,7 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 01,02 ---------------*/
 			if (!impl::decodeLatLng(itNmea, latitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -809,7 +814,7 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeLatLng(itNmea, longitude, defLatLong)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 				++itNmea;
 			}
@@ -818,16 +823,18 @@ NmeaParserResult NmeaParser::parseWPL(const std::string& nmea, double& latitude,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeString(itNmea, waypointName, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"waypointName = " << waypointName;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << wplSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -852,9 +859,9 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rteSizeField = 7;
+	uint expectedFieldCountMin = 7;
 
-	if (fields.size() >= rteSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -863,7 +870,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, totalLines, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -871,7 +878,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, lineCount, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -879,7 +886,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, messageMode, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -887,7 +894,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeString(itNmea, routeName, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -900,10 +907,12 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 				++itNmea;
 			}
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << rteSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -928,9 +937,9 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint vhwSizeField = 10;
+	uint expectedFieldCountMin = 10;
 
-	if (fields.size() == vhwSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -947,7 +956,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedInKnots, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -955,7 +964,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, knots, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -963,7 +972,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedInKmH, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -971,17 +980,19 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, kilometers, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"kilometers = " << kilometers;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << vhwSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1005,9 +1016,9 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint mtwSizeField = 4;
+	uint expectedFieldCountMin = 4;
 
-	if (fields.size() == mtwSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1016,7 +1027,7 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, degrees, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1024,17 +1035,19 @@ NmeaParserResult NmeaParser::parseMTW(const std::string& nmea, double& degrees,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, celcius, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"celcius = " << celcius;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << mtwSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1060,9 +1073,9 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint vbwSizeField = 12;
+	uint expectedFieldCountMin = 12;
 
-	if (fields.size() == vbwSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1071,7 +1084,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, longitudinalWaterSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1079,7 +1092,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, transverseWaterSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1087,7 +1100,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, waterDataStatus, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1095,7 +1108,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, longitudinalGroundSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1103,7 +1116,7 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, transverseGroundSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1111,17 +1124,19 @@ NmeaParserResult NmeaParser::parseVBW(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, groundDataStatus, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"groundDataStatus = " << groundDataStatus;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << vbwSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1146,9 +1161,9 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint vlwSizeField = 6;
+	uint expectedFieldCountMin = 6;
 
-	if (fields.size() == vlwSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1157,7 +1172,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, totalCumulativeDistance, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1165,7 +1180,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, nauticalMiles1, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1173,7 +1188,7 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, distanceSinceReset, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1181,17 +1196,19 @@ NmeaParserResult NmeaParser::parseVLW(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, nauticalMiles2, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"nauticalMiles2 = " << nauticalMiles2;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << vlwSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1216,9 +1233,9 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint dptSizeField = 5;
+	uint expectedFieldCountMin = 5;
 
-	if (fields.size() == dptSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1228,7 +1245,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea,
 							waterDepthRelativeToTheTransducer, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1236,7 +1253,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1244,7 +1261,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1254,7 +1271,7 @@ NmeaParserResult NmeaParser::parseDPT(const std::string& nmea,
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << dptSizeField;
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1279,9 +1296,9 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint dbtSizeField = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == dbtSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1290,7 +1307,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, waterDepthInFeet, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1298,7 +1315,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, feet, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1306,7 +1323,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, waterDepthInMeters, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1314,7 +1331,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1322,7 +1339,7 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, waterDepthInFathoms, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1330,17 +1347,19 @@ NmeaParserResult NmeaParser::parseDBT(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, fathoms, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"fathoms = " << fathoms;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << dbtSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1365,9 +1384,9 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint dbkSizeField = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == dbkSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1376,7 +1395,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, depthBelowKeelFeet, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1384,7 +1403,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, feet, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1392,7 +1411,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, depthBelowKeelMeters, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1400,7 +1419,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1408,7 +1427,7 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, depthBelowKeelFathoms, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1416,17 +1435,19 @@ NmeaParserResult NmeaParser::parseDBK(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, fathoms, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "fathoms = " << fathoms;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << dbkSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1452,9 +1473,9 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint dptSizeField = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == dptSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1464,7 +1485,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea,
 							waterDepthRelativeToTheTransducer, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1472,7 +1493,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, offsetFromTransducer, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1480,7 +1501,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, maximumRangeScaleInUse, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1488,7 +1509,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, bottomEchoStrength, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1496,7 +1517,7 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, echoSounderChannelNumber, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1504,17 +1525,19 @@ NmeaParserResult NmeaParser::parsePSKPDPT(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeString(itNmea, transducerLocation, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "transducerLocation = " << transducerLocation;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << dptSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1538,9 +1561,9 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint hdtSizeField = 4;
+	uint expectedFieldCountMin = 4;
 
-	if (fields.size() == hdtSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1549,7 +1572,7 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, headingDegreesTrue, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1557,17 +1580,19 @@ NmeaParserResult NmeaParser::parseHDT(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, t, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"t = " << t;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << hdtSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1593,9 +1618,9 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint hdgSizeField = 7;
+	uint expectedFieldCountMin = 7;
 
-	if (fields.size() == hdgSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1605,7 +1630,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticSensorHeadingInDegrees,
 							0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1613,7 +1638,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticDeviationDegrees, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1621,7 +1646,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magneticDeviationDirection, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1629,7 +1654,7 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticVariationDegrees, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1637,17 +1662,19 @@ NmeaParserResult NmeaParser::parseHDG(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magneticVariationDirection, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "magneticVariationDirection = " << magneticVariationDirection;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << hdgSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1671,9 +1698,9 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint hdmSizeField = 4;
+	uint expectedFieldCountMin = 4;
 
-	if (fields.size() == hdmSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1682,7 +1709,7 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, headingDegreesMagnetic, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1690,17 +1717,19 @@ NmeaParserResult NmeaParser::parseHDM(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magnetic, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "magnetic = " << magnetic;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << hdmSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1724,9 +1753,9 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rotSizeField = 4;
+	uint expectedFieldCountMin = 4;
 
-	if (fields.size() == rotSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1735,7 +1764,7 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, rateOfTurn, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1743,17 +1772,19 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "status = " << status;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << rotSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1778,9 +1809,9 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint mwvSizeField = 7;
+	uint expectedFieldCountMin = 7;
 
-	if (fields.size() == mwvSizeField) {
+	if (fields.size() == expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1789,7 +1820,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windAngle, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1797,7 +1828,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, reference, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1805,7 +1836,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1813,7 +1844,7 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, windSpeedUnits, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1821,17 +1852,19 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, sensorStatus, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"sensorStatus = " << sensorStatus;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << mwvSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1857,9 +1890,9 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint mwdSizeField = 10;
+	uint expectedFieldCountMin = 10;
 
-	if (fields.size() == mwdSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1868,7 +1901,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, trueWindDirection, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1876,7 +1909,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, t, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1884,7 +1917,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, magneticWindDirection, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1892,7 +1925,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, magnetic, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1900,7 +1933,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeedKnots, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1908,7 +1941,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, knots, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1916,7 +1949,7 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, windSpeedMeters, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1924,17 +1957,19 @@ NmeaParserResult NmeaParser::parseMWD(const std::string& nmea,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, meters, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"meters = " << meters;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << mwdSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -1963,9 +1998,9 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint xdrSizeField = 14;
+	uint expectedFieldCountMin = 14;
 
-	if (fields.size() == xdrSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -1974,7 +2009,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, typeOfSensorTemperature, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1982,7 +2017,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, temperatureReading, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1990,7 +2025,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, centigrade, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -1998,7 +2033,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfTransducer, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2006,7 +2041,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, typeOfSensorPressure, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2014,7 +2049,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, pressureReading, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2022,7 +2057,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, bars, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2030,7 +2065,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfPressureSensor, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2038,7 +2073,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, typeOfSensorHumidity, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2046,7 +2081,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, humidity, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2054,7 +2089,7 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, humidityUnitsOfMeasurePercent, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2063,17 +2098,19 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeString(itNmea, nameOfRelativeHumiditySensor,
 							defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "nameOfRelativeHumiditySensor = " << nameOfRelativeHumiditySensor;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << xdrSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2105,8 +2142,9 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 	char auxChar;
 
-	uint ttmSizeField = 17;
-	if (fields.size() == ttmSizeField) {
+	uint expectedFieldCountMin = 17;
+
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2115,7 +2153,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, targetNumber, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2123,7 +2161,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetDistance, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2131,7 +2169,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetBearing, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2139,7 +2177,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			} else {
 				if (auxChar == 'T') {
@@ -2153,7 +2191,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2161,7 +2199,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, targetCourse, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2169,7 +2207,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			} else {
 				if (auxChar == 'T') {
@@ -2191,7 +2229,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			} else {
 				if (auxChar == 'K') {
@@ -2208,7 +2246,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeString(itNmea, targetName, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2216,7 +2254,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			} else {
 				if (auxChar == 'L') {
@@ -2236,7 +2274,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 14 ---------------*/
 			if (!impl::decodeTime(itNmea, timeOfData, deftime)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			}
 			++idxVar;
@@ -2244,7 +2282,7 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 
 			/*------------ Field 15 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, auxChar, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				itNmea++;
 			} else {
 				if (auxChar == 'A') {
@@ -2258,10 +2296,12 @@ NmeaParserResult NmeaParser::parseTTM(const std::string& nmea,
 			++idxVar;
 			LOG_MESSAGE(debug) << "typeOfAcquisition = " << auxChar;
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << ttmSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2285,9 +2325,9 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint ttdSizeField = 7;
+	uint expectedFieldCountMin = 7;
 
-	if (fields.size() == ttdSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2297,7 +2337,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 			uint aux;
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			totalLines = aux;
@@ -2306,7 +2346,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			lineCount = aux;
@@ -2315,7 +2355,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2323,7 +2363,7 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<std::string>(itNmea, trackData, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2331,17 +2371,19 @@ NmeaParserResult NmeaParser::parseTTD(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, fillBits, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << ttdSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2364,9 +2406,9 @@ NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint tlbSizeField = 4;
+	uint expectedFieldCountMin = 4;
 
-	if (fields.size() >= tlbSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2395,10 +2437,12 @@ NmeaParserResult NmeaParser::parseTLB(const std::string& nmea,
 
 			}
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << tlbSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2424,9 +2468,9 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint osdSizeField = 11;
+	uint expectedFieldCountMin = 11;
 
-	if (fields.size() == osdSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2435,7 +2479,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, heading, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2443,7 +2487,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, status, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2451,7 +2495,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselCourse, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2459,7 +2503,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, referenceCourse, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2467,7 +2511,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselSpeed, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2475,7 +2519,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, referenceSpeed, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2483,7 +2527,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselSet, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2491,7 +2535,7 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vesselDrift, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2499,17 +2543,19 @@ NmeaParserResult NmeaParser::parseOSD(const std::string& nmea, double& heading,
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, speedUnits, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"speedUnits = " << speedUnits;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << osdSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2537,9 +2583,9 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint rsdSizeField = 15;
+	uint expectedFieldCountMin = 15;
 
-	if (fields.size() == rsdSizeField) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2548,7 +2594,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin1Range, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2556,7 +2602,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin1BearingDegrees, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2564,7 +2610,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, variableRangeMarker1, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2572,7 +2618,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, bearingLine1, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2580,7 +2626,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin2Range, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2588,7 +2634,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, origin2Bearing, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2596,7 +2642,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, vrm2, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2604,7 +2650,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, ebl2, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2612,7 +2658,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 09 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, cursorRange, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2620,7 +2666,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 10 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, cursorBearing, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2628,7 +2674,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 11 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, rangeScale, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2636,7 +2682,7 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 12 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, rangeUnits, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2644,17 +2690,19 @@ NmeaParserResult NmeaParser::parseRSD(const std::string& nmea,
 
 			/*------------ Field 13 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, displayRotation, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"displayRotation = " << displayRotation;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << rsdSizeField;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2678,9 +2726,9 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint expectedFieldCount = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == expectedFieldCount) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2690,7 +2738,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 			uint aux;
 			/*------------ Field 01 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			totalLines = aux;
@@ -2699,7 +2747,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 02 ---------------*/
 			if (!impl::decodeHex(itNmea, aux, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			lineCount = aux;
@@ -2708,7 +2756,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 03 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, sequenceIdentifier, -1)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2716,7 +2764,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 04 ---------------*/
 			if (!impl::decodeDefault<char>(itNmea, aisChannel, defChar)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2724,7 +2772,7 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 05 ---------------*/
 			if (!impl::decodeDefault<std::string>(itNmea, encodedData, defString)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
@@ -2732,17 +2780,19 @@ NmeaParserResult NmeaParser::parseVDM(const std::string& nmea, int& totalLines,
 
 			/*------------ Field 06 ---------------*/
 			if (!impl::decodeDefault<int>(itNmea, fillBits, 0)) {
-				ret.set(idxVar, true);
+				ret.set(idxVar);
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2759,15 +2809,14 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
 
 	NmeaParserResult ret;
-	ret.reset();
 
 	std::vector<std::string> fields;
 
 	impl::tokenizeSentence(nmea, fields);
 
-	uint expectedFieldCount = 8;
+	uint expectedFieldCountMin = 8;
 
-	if (fields.size() == expectedFieldCount) {
+	if (fields.size() >= expectedFieldCountMin) {
 
 		std::vector<std::string>::iterator itNmea = fields.begin();
 
@@ -2820,10 +2869,12 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 			LOG_MESSAGE(debug) <<"fillBits = " << fillBits;
 
 		} else {
+			ret.set();
 			LOG_MESSAGE(error) << "Cabecera incorrecta";
 		}
 	} else {
-		LOG_MESSAGE(error) << "Campos esperados : " << expectedFieldCount;
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min " << expectedFieldCountMin;
 		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
 	}
 
@@ -2832,668 +2883,684 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 	return ret;
 }
 
-bool NmeaParser::parseTTDPayload(const std::string& trackData, std::vector<NmeaTrackData>& tracks)
-{
+bool NmeaParser::parseTTDPayload(const std::string& trackData,
+		std::vector<NmeaTrackData>& tracks) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseTTDPayload";
-	LOG_MESSAGE(debug) << "trackData = " << trackData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseTTDPayload";
+	LOG_MESSAGE(debug)<< "trackData = " << trackData;
 
 	const int TDD_TOTALBITS = 90;
 	const int TDD_TOTALCHARS = 15;
 
-    if (trackData.size() % TDD_TOTALCHARS == 0)
-    {
-    	ret = true;
-
-    	// Cada track ocupa 15 caracteres.
-        int trackCount = trackData.size() / TDD_TOTALCHARS;
-    	LOG_MESSAGE(debug) << "trackCount = " << trackCount;
-    	tracks.resize(trackCount);
-
-        for (int i = 0; i < trackCount; ++i)
-        {
-        	boost::dynamic_bitset<> trackBinary(TDD_TOTALBITS);
-            uint offset = i * TDD_TOTALCHARS;
-
-            // Decodifica cadena a array de bits
-            LOG_MESSAGE(debug) << "parseTTDPayload : decode INIT";
-            for (int j = 0; j < TDD_TOTALCHARS; ++j)
-            {
-                int pos = offset + j;
-                SixBit bitsetDecode = impl::decodeSixBit(trackData.at(pos));
-                LOG_MESSAGE(debug) << "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
-
-                // Concatenate all six-bit quantities found in the payload, MSB first
-                impl::concatSixBitMSBFirst(j * 6, trackBinary, bitsetDecode);
-            }
-            LOG_MESSAGE(debug) << "parseTTDPayload : decode END " << trackBinary;
-
-            int cursor = 0;
-
-            // Solo version 0
-            if (trackBinary[cursor++] == false
-                    && trackBinary[cursor++] == false)
-            {
-            	tracks[i].targetNumber = impl::decodeBitUInt(trackBinary, cursor, 10);
-            	cursor += 10;
-                LOG_MESSAGE(debug) << "TargetNumber = " << tracks[i].targetNumber;
-
-                tracks[i].trueBearing = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
-                cursor += 12;
-                LOG_MESSAGE(debug) << "TrueBearing = " << tracks[i].trueBearing;
-
-                tracks[i].speed = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
-                cursor += 12;
-                LOG_MESSAGE(debug) << "Speed = " << tracks[i].speed;
-
-                tracks[i].course = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
-                cursor += 12;
-                LOG_MESSAGE(debug) << "Course = " << tracks[i].course;
-
-                tracks[i].aisHeading = impl::decodeBitUInt(trackBinary, cursor, 12) * 0.1f;
-                cursor += 12;
-                LOG_MESSAGE(debug) << "AisHeading = " << tracks[i].aisHeading;
-
-                // Track status
-                uint status = impl::decodeBitUInt(trackBinary, cursor, 3);
-                cursor += 3;
-                switch (status)
-                {
-                case 0:
-                	tracks[i].status = Nmea_TrackStatus_Non_tracking;
-                	break;
-
-                case 1:
-                	tracks[i].status = Nmea_TrackStatus_Acquiring;
-                	break;
-
-                case 2:
-                	tracks[i].status = Nmea_TrackStatus_Lost;
-                	break;
-
-                case 3:
-                	tracks[i].status = Nmea_TrackStatus_Reserved_1;
-                	break;
-
-                case 4:
-                	tracks[i].status = Nmea_TrackStatus_Tracking;
-                	break;
-
-                case 5:
-                	tracks[i].status = Nmea_TrackStatus_Reserved_2;
-                	break;
-
-                case 6:
-                	tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm;
-                	break;
-
-                case 7:
-                	tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm_Ack;
-                	break;
-                }
-                LOG_MESSAGE(debug) << "Status = " << tracks[i].status;
-
-                // Operation mode
-                if (trackBinary[cursor++] == false)
-                {
-                	tracks[i].operation = Nmea_Operation_Autonomous;
-                } else {
-                	tracks[i].operation = Nmea_Operation_TestTarget;
-                }
-                LOG_MESSAGE(debug) << "Operation = " << tracks[i].operation;
-
-                tracks[i].distance = impl::decodeBitUInt(trackBinary, cursor, 14) * 0.01f;
-                cursor += 14;
-                LOG_MESSAGE(debug) << "Distance = " << tracks[i].distance;
-
-                // Speed mode
-                if (trackBinary[cursor++] == false)
-                {
-                	tracks[i].speedMode = Nmea_SpeedMode_TrueSpeedCourse;
-                } else {
-                	tracks[i].speedMode = Nmea_SpeedMode_Relative;
-                }
-                LOG_MESSAGE(debug) << "Speed mode = " << tracks[i].speedMode;
-
-                // Stabilisation mode
-                if (trackBinary[cursor++] == false)
-                {
-                	tracks[i].stabilisationMode = Nmea_StabilisationMode_OverGround;
-                } else {
-                	tracks[i].stabilisationMode = Nmea_StabilisationMode_ThroughWater;
-                }
-                LOG_MESSAGE(debug) << "Stabilisation mode = " << tracks[i].stabilisationMode;
-
-                // Reservado
-                // Skip 2 bit
-                cursor++;
-                cursor++;
-
-                tracks[i].correlationNumber = impl::decodeBitUInt(trackBinary, cursor, 8);
-                cursor += 8;
-                LOG_MESSAGE(debug) << "CorrelationNumber = " << tracks[i].correlationNumber;
-            }
-        }
-    }
-
-    return ret;
-}
-
-bool NmeaParser::parseAISMessageType(const std::string& encodedData, Nmea_AisMessageType& messageType)
-{
-	bool ret = false;
-
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISMessageType";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
-
-	if (encodedData.length() > 0)
-	{
+	if (trackData.size() % TDD_TOTALCHARS == 0) {
 		ret = true;
-		SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
-		LOG_MESSAGE(debug) << "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
 
-		messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
-		LOG_MESSAGE(debug) << "MessageType = " << messageType;
+		// Cada track ocupa 15 caracteres.
+		int trackCount = trackData.size() / TDD_TOTALCHARS;
+		LOG_MESSAGE(debug)<< "trackCount = " << trackCount;
+		tracks.resize(trackCount);
+
+		for (int i = 0; i < trackCount; ++i) {
+			boost::dynamic_bitset<> trackBinary(TDD_TOTALBITS);
+			uint offset = i * TDD_TOTALCHARS;
+
+			// Decodifica cadena a array de bits
+			LOG_MESSAGE(debug)<< "parseTTDPayload : decode INIT";
+			for (int j = 0; j < TDD_TOTALCHARS; ++j) {
+				int pos = offset + j;
+				SixBit bitsetDecode = impl::decodeSixBit(trackData.at(pos));
+				LOG_MESSAGE(debug)<< "Char: " << trackData.at(pos) << " Bits: " << bitsetDecode;
+
+				// Concatenate all six-bit quantities found in the payload, MSB first
+				impl::concatSixBitMSBFirst(j * 6, trackBinary, bitsetDecode);
+			}
+			LOG_MESSAGE(debug)<< "parseTTDPayload : decode END " << trackBinary;
+
+			int cursor = 0;
+
+			// Solo version 0
+			if (trackBinary[cursor++] == false
+					&& trackBinary[cursor++] == false) {
+				tracks[i].targetNumber = impl::decodeBitUInt(trackBinary,
+						cursor, 10);
+				cursor += 10;
+				LOG_MESSAGE(debug)<< "TargetNumber = " << tracks[i].targetNumber;
+
+				tracks[i].trueBearing = impl::decodeBitUInt(trackBinary, cursor,
+						12) * 0.1f;
+				cursor += 12;
+				LOG_MESSAGE(debug)<< "TrueBearing = " << tracks[i].trueBearing;
+
+				tracks[i].speed = impl::decodeBitUInt(trackBinary, cursor, 12)
+						* 0.1f;
+				cursor += 12;
+				LOG_MESSAGE(debug)<< "Speed = " << tracks[i].speed;
+
+				tracks[i].course = impl::decodeBitUInt(trackBinary, cursor, 12)
+						* 0.1f;
+				cursor += 12;
+				LOG_MESSAGE(debug)<< "Course = " << tracks[i].course;
+
+				tracks[i].aisHeading = impl::decodeBitUInt(trackBinary, cursor,
+						12) * 0.1f;
+				cursor += 12;
+				LOG_MESSAGE(debug)<< "AisHeading = " << tracks[i].aisHeading;
+
+				// Track status
+				uint status = impl::decodeBitUInt(trackBinary, cursor, 3);
+				cursor += 3;
+				switch (status) {
+				case 0:
+					tracks[i].status = Nmea_TrackStatus_Non_tracking;
+					break;
+
+				case 1:
+					tracks[i].status = Nmea_TrackStatus_Acquiring;
+					break;
+
+				case 2:
+					tracks[i].status = Nmea_TrackStatus_Lost;
+					break;
+
+				case 3:
+					tracks[i].status = Nmea_TrackStatus_Reserved_1;
+					break;
+
+				case 4:
+					tracks[i].status = Nmea_TrackStatus_Tracking;
+					break;
+
+				case 5:
+					tracks[i].status = Nmea_TrackStatus_Reserved_2;
+					break;
+
+				case 6:
+					tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm;
+					break;
+
+				case 7:
+					tracks[i].status = Nmea_TrackStatus_Tracking_CPA_Alarm_Ack;
+					break;
+				}
+				LOG_MESSAGE(debug)<< "Status = " << tracks[i].status;
+
+				// Operation mode
+				if (trackBinary[cursor++] == false) {
+					tracks[i].operation = Nmea_Operation_Autonomous;
+				} else {
+					tracks[i].operation = Nmea_Operation_TestTarget;
+				}
+				LOG_MESSAGE(debug)<< "Operation = " << tracks[i].operation;
+
+				tracks[i].distance = impl::decodeBitUInt(trackBinary, cursor,
+						14) * 0.01f;
+				cursor += 14;
+				LOG_MESSAGE(debug)<< "Distance = " << tracks[i].distance;
+
+				// Speed mode
+				if (trackBinary[cursor++] == false) {
+					tracks[i].speedMode = Nmea_SpeedMode_TrueSpeedCourse;
+				} else {
+					tracks[i].speedMode = Nmea_SpeedMode_Relative;
+				}
+				LOG_MESSAGE(debug)<< "Speed mode = " << tracks[i].speedMode;
+
+				// Stabilisation mode
+				if (trackBinary[cursor++] == false) {
+					tracks[i].stabilisationMode =
+							Nmea_StabilisationMode_OverGround;
+				} else {
+					tracks[i].stabilisationMode =
+							Nmea_StabilisationMode_ThroughWater;
+				}
+				LOG_MESSAGE(debug)<< "Stabilisation mode = " << tracks[i].stabilisationMode;
+
+				// Reservado
+				// Skip 2 bit
+				cursor++;
+				cursor++;
+
+				tracks[i].correlationNumber = impl::decodeBitUInt(trackBinary,
+						cursor, 8);
+				cursor += 8;
+				LOG_MESSAGE(debug)<< "CorrelationNumber = " << tracks[i].correlationNumber;
+			}
+		}
 	}
 
 	return ret;
 }
 
-bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData, AISPositionReportClassA& data)
-{
+bool NmeaParser::parseAISMessageType(const std::string& encodedData,
+		Nmea_AisMessageType& messageType) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISPositionReportClassA";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISMessageType";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
+
+	if (encodedData.length() > 0) {
+		ret = true;
+		SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(0));
+		LOG_MESSAGE(debug)<< "Char: " << encodedData.at(0) << " Bits: " << bitsetDecode;
+
+		messageType = static_cast<Nmea_AisMessageType>(bitsetDecode.to_ulong());
+		LOG_MESSAGE(debug)<< "MessageType = " << messageType;
+	}
+
+	return ret;
+}
+
+bool NmeaParser::parseAISPositionReportClassA(const std::string& encodedData,
+		AISPositionReportClassA& data) {
+	bool ret = false;
+
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISPositionReportClassA";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
 
 	const int TYPE1_TOTALBITS = 168;
 	const int TYPE1_TOTALCHARS = 28;
 
-	if (encodedData.length() >= TYPE1_TOTALCHARS)
-	{
+	if (encodedData.length() >= TYPE1_TOTALCHARS) {
 
-    	boost::dynamic_bitset<> binaryData(TYPE1_TOTALBITS);
+		boost::dynamic_bitset<> binaryData(TYPE1_TOTALBITS);
 
-        // Decodifica cadena a array de bits
-        LOG_MESSAGE(debug) << "parseAISPositionReportClassA : decode INIT";
-        for (int i = 0; i < TYPE1_TOTALCHARS; ++i)
-        {
-            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+		// Decodifica cadena a array de bits
+		LOG_MESSAGE(debug)<< "parseAISPositionReportClassA : decode INIT";
+		for (int i = 0; i < TYPE1_TOTALCHARS; ++i) {
+			SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+			LOG_MESSAGE(debug)<< "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
-            // Concatenate all six-bit quantities found in the payload, MSB first
-            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
-        }
-        LOG_MESSAGE(debug) << "parseAISPositionReportClassA : decode END " << binaryData;
+			// Concatenate all six-bit quantities found in the payload, MSB first
+			impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+		}
+		LOG_MESSAGE(debug)<< "parseAISPositionReportClassA : decode END " << binaryData;
 
-        int cursor = 0;
+		int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
-        cursor += 6;
+		Nmea_AisMessageType messageType =
+				static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData,
+						cursor, 6));
+		cursor += 6;
 
-        if (messageType == Nmea_AisMessageType_PositionReportClassA || messageType == Nmea_AisMessageType_PositionReportClassA_AssignedSchedule || messageType == Nmea_AisMessageType_PositionReportClassA_ResponseToInterrogation)
-        {
-        	ret = true;
+		if (messageType == Nmea_AisMessageType_PositionReportClassA
+				|| messageType
+						== Nmea_AisMessageType_PositionReportClassA_AssignedSchedule
+				|| messageType
+						== Nmea_AisMessageType_PositionReportClassA_ResponseToInterrogation) {
+			ret = true;
 
-        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
-        	cursor += 2;
-            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
+			data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-        	cursor += 30;
-            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
+			data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "MMSI = " << data.mmsi;
 
-            data.navigationStatus = static_cast<Nmea_NavigationStatus>(impl::decodeBitUInt(binaryData, cursor, 4));
-            cursor += 4;
-            LOG_MESSAGE(debug) << "NavigationStatus = " << data.navigationStatus;
+			data.navigationStatus =
+					static_cast<Nmea_NavigationStatus>(impl::decodeBitUInt(
+							binaryData, cursor, 4));
+			cursor += 4;
+			LOG_MESSAGE(debug)<< "NavigationStatus = " << data.navigationStatus;
 
-            float auxrot = impl::decodeBitInt(binaryData, cursor, 8);
-            cursor += 8;
-            if (auxrot == 128.0f)
-            {
-            	auxrot = 0.0f;
-            }
-            data.rateOfTurn = std::copysign((auxrot / 4.733f) * (auxrot / 4.733f), auxrot);
-            LOG_MESSAGE(debug) << "RateOfTurn = " << data.rateOfTurn;
+			float auxrot = impl::decodeBitInt(binaryData, cursor, 8);
+			cursor += 8;
+			if (auxrot == 128.0f) {
+				auxrot = 0.0f;
+			}
+			data.rateOfTurn = std::copysign(
+					(auxrot / 4.733f) * (auxrot / 4.733f), auxrot);
+			LOG_MESSAGE(debug)<< "RateOfTurn = " << data.rateOfTurn;
 
-            data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
-            cursor += 10;
-            LOG_MESSAGE(debug) << "SpeedOverGround = " << data.speedOverGround;
+			data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10)
+					* 0.1f;
+			cursor += 10;
+			LOG_MESSAGE(debug)<< "SpeedOverGround = " << data.speedOverGround;
 
-            if (binaryData[cursor++] == false)
-            {
-            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
-            } else {
-            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
-            }
-            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
+			if (binaryData[cursor++] == false) {
+				data.positionAccuracy =
+						Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+			} else {
+				data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+			}
+			LOG_MESSAGE(debug)<< "PositionAccuracy = " << data.positionAccuracy;
 
-            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
-            cursor += 28;
-            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
+			data.longitude = impl::decodeBitInt(binaryData, cursor, 28)
+					/ 600000.0f;
+			cursor += 28;
+			LOG_MESSAGE(debug)<< "Longitude = " << data.longitude;
 
-            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
-            cursor += 27;
-            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
+			data.latitude = impl::decodeBitInt(binaryData, cursor, 27)
+					/ 600000.0f;
+			cursor += 27;
+			LOG_MESSAGE(debug)<< "Latitude = " << data.latitude;
 
-            data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
-            cursor += 12;
-            LOG_MESSAGE(debug) << "CourseOverGround = " << data.courseOverGround;
+			data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12)
+					* 0.1f;
+			cursor += 12;
+			LOG_MESSAGE(debug)<< "CourseOverGround = " << data.courseOverGround;
 
-            data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
-            cursor += 9;
-            LOG_MESSAGE(debug) << "TrueHeading = " << data.trueHeading;
+			data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
+			cursor += 9;
+			LOG_MESSAGE(debug)<< "TrueHeading = " << data.trueHeading;
 
-            data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
+			data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "TimestapUTCSecond = " << data.timestapUTCSecond;
 
-            data.maneuverIndicator = static_cast<Nmea_ManeuverIndicator>(impl::decodeBitUInt(binaryData, cursor, 2));
-            cursor += 2;
-            LOG_MESSAGE(debug) << "ManeuverIndicator = " << data.maneuverIndicator;
+			data.maneuverIndicator =
+					static_cast<Nmea_ManeuverIndicator>(impl::decodeBitUInt(
+							binaryData, cursor, 2));
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "ManeuverIndicator = " << data.maneuverIndicator;
 
-            if (binaryData[cursor++] == false)
-            {
-            	data.raim = Nmea_RAIM_NotInUse;
-            } else {
-            	data.raim = Nmea_RAIM_InUse;
-            }
-            LOG_MESSAGE(debug) << "RAIM = " << data.raim;
-        }
+			if (binaryData[cursor++] == false) {
+				data.raim = Nmea_RAIM_NotInUse;
+			} else {
+				data.raim = Nmea_RAIM_InUse;
+			}
+			LOG_MESSAGE(debug)<< "RAIM = " << data.raim;
+		}
 	}
 	return ret;
 }
 
-bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData, AISBaseStationReport& data)
-{
+bool NmeaParser::parseAISBaseStationReport(const std::string& encodedData,
+		AISBaseStationReport& data) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISBaseStationReport";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISBaseStationReport";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
 
 	const int TYPE4_TOTALBITS = 168;
 	const int TYPE4_TOTALCHARS = 28;
 
-	if (encodedData.length() >= TYPE4_TOTALCHARS)
-	{
+	if (encodedData.length() >= TYPE4_TOTALCHARS) {
 
-    	boost::dynamic_bitset<> binaryData(TYPE4_TOTALBITS);
+		boost::dynamic_bitset<> binaryData(TYPE4_TOTALBITS);
 
-        // Decodifica cadena a array de bits
-        LOG_MESSAGE(debug) << "parseAISBaseStationReport : decode INIT";
-        for (int i = 0; i < TYPE4_TOTALCHARS; ++i)
-        {
-            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+		// Decodifica cadena a array de bits
+		LOG_MESSAGE(debug)<< "parseAISBaseStationReport : decode INIT";
+		for (int i = 0; i < TYPE4_TOTALCHARS; ++i) {
+			SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+			LOG_MESSAGE(debug)<< "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
-            // Concatenate all six-bit quantities found in the payload, MSB first
-            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
-        }
-        LOG_MESSAGE(debug) << "parseAISBaseStationReport : decode END " << binaryData;
+			// Concatenate all six-bit quantities found in the payload, MSB first
+			impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+		}
+		LOG_MESSAGE(debug)<< "parseAISBaseStationReport : decode END " << binaryData;
 
-        int cursor = 0;
+		int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
-        cursor += 6;
+		Nmea_AisMessageType messageType =
+				static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData,
+						cursor, 6));
+		cursor += 6;
 
-        if (messageType == Nmea_AisMessageType_BaseStationReport)
-        {
-        	ret = true;
+		if (messageType == Nmea_AisMessageType_BaseStationReport) {
+			ret = true;
 
-        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
-        	cursor += 2;
-            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
+			data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-        	cursor += 30;
-            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
+			data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "MMSI = " << data.mmsi;
 
-            data.year = impl::decodeBitUInt(binaryData, cursor, 14);
-            cursor += 14;
-            LOG_MESSAGE(debug) << "Year = " << data.year;
+			data.year = impl::decodeBitUInt(binaryData, cursor, 14);
+			cursor += 14;
+			LOG_MESSAGE(debug)<< "Year = " << data.year;
 
-            data.month = impl::decodeBitUInt(binaryData, cursor, 4);
-            cursor += 4;
-            LOG_MESSAGE(debug) << "Month = " << data.month;
+			data.month = impl::decodeBitUInt(binaryData, cursor, 4);
+			cursor += 4;
+			LOG_MESSAGE(debug)<< "Month = " << data.month;
 
-            data.day = impl::decodeBitUInt(binaryData, cursor, 5);
-            cursor += 5;
-            LOG_MESSAGE(debug) << "Day = " << data.day;
+			data.day = impl::decodeBitUInt(binaryData, cursor, 5);
+			cursor += 5;
+			LOG_MESSAGE(debug)<< "Day = " << data.day;
 
-            data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
-            cursor += 5;
-            LOG_MESSAGE(debug) << "Hour = " << data.hour;
+			data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
+			cursor += 5;
+			LOG_MESSAGE(debug)<< "Hour = " << data.hour;
 
-            data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "Minute = " << data.minute;
+			data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "Minute = " << data.minute;
 
-            data.second = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "Second = " << data.second;
+			data.second = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "Second = " << data.second;
 
-            if (binaryData[cursor++] == false)
-            {
-            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
-            } else {
-            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
-            }
-            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
+			if (binaryData[cursor++] == false) {
+				data.positionAccuracy =
+						Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+			} else {
+				data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+			}
+			LOG_MESSAGE(debug)<< "PositionAccuracy = " << data.positionAccuracy;
 
-            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
-            cursor += 28;
-            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
+			data.longitude = impl::decodeBitInt(binaryData, cursor, 28)
+					/ 600000.0f;
+			cursor += 28;
+			LOG_MESSAGE(debug)<< "Longitude = " << data.longitude;
 
-            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
-            cursor += 27;
-            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
+			data.latitude = impl::decodeBitInt(binaryData, cursor, 27)
+					/ 600000.0f;
+			cursor += 27;
+			LOG_MESSAGE(debug)<< "Latitude = " << data.latitude;
 
-            data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
-            cursor += 4;
-            LOG_MESSAGE(debug) << "EPFD = " << data.epfd;
+			data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(
+					binaryData, cursor, 4));
+			cursor += 4;
+			LOG_MESSAGE(debug)<< "EPFD = " << data.epfd;
 
-            // Spare
-            cursor += 10;
+			// Spare
+			cursor += 10;
 
-            if (binaryData[cursor++] == false)
-            {
-            	data.raim = Nmea_RAIM_NotInUse;
-            } else {
-            	data.raim = Nmea_RAIM_InUse;
-            }
-            LOG_MESSAGE(debug) << "RAIM = " << data.raim;
-        }
+			if (binaryData[cursor++] == false) {
+				data.raim = Nmea_RAIM_NotInUse;
+			} else {
+				data.raim = Nmea_RAIM_InUse;
+			}
+			LOG_MESSAGE(debug)<< "RAIM = " << data.raim;
+		}
 	}
 	return ret;
 }
 
-bool NmeaParser::parseAISStaticAndVoyageRelatedData(const std::string& encodedData, AISStaticAndVoyageRelatedData& data)
-{
+bool NmeaParser::parseAISStaticAndVoyageRelatedData(
+		const std::string& encodedData, AISStaticAndVoyageRelatedData& data) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISStaticAndVoyageRelatedData";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISStaticAndVoyageRelatedData";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
 
 	const int TYPE5_TOTALBITS = 426;
 	const int TYPE5_TOTALCHARS = 71;
 
-	if (encodedData.length() >= TYPE5_TOTALCHARS)
-	{
+	if (encodedData.length() >= TYPE5_TOTALCHARS) {
 
-    	boost::dynamic_bitset<> binaryData(TYPE5_TOTALBITS);
+		boost::dynamic_bitset<> binaryData(TYPE5_TOTALBITS);
 
-        // Decodifica cadena a array de bits
-        LOG_MESSAGE(debug) << "parseAISStaticAndVoyageRelatedData : decode INIT";
-        for (int i = 0; i < TYPE5_TOTALCHARS; ++i)
-        {
-            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+		// Decodifica cadena a array de bits
+		LOG_MESSAGE(debug)<< "parseAISStaticAndVoyageRelatedData : decode INIT";
+		for (int i = 0; i < TYPE5_TOTALCHARS; ++i) {
+			SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+			LOG_MESSAGE(debug)<< "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
-            // Concatenate all six-bit quantities found in the payload, MSB first
-            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
-        }
-        LOG_MESSAGE(debug) << "parseAISStaticAndVoyageRelatedData : decode END " << binaryData;
+			// Concatenate all six-bit quantities found in the payload, MSB first
+			impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+		}
+		LOG_MESSAGE(debug)<< "parseAISStaticAndVoyageRelatedData : decode END " << binaryData;
 
-        int cursor = 0;
+		int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
-        cursor += 6;
+		Nmea_AisMessageType messageType =
+				static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData,
+						cursor, 6));
+		cursor += 6;
 
-        if (messageType == Nmea_AisMessageType_StaticAndVoyageRelatedData)
-        {
-        	ret = true;
+		if (messageType == Nmea_AisMessageType_StaticAndVoyageRelatedData) {
+			ret = true;
 
-        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
-        	cursor += 2;
-            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
+			data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-        	cursor += 30;
-            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
+			data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "MMSI = " << data.mmsi;
 
-            data.aisVersion = impl::decodeBitUInt(binaryData, cursor, 2);
-            cursor += 2;
-            LOG_MESSAGE(debug) << "AisVersion = " << data.aisVersion;
+			data.aisVersion = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "AisVersion = " << data.aisVersion;
 
-            data.imoNumber = impl::decodeBitUInt(binaryData, cursor, 30);
-            cursor += 30;
-            LOG_MESSAGE(debug) << "ImoNumber = " << data.imoNumber;
+			data.imoNumber = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "ImoNumber = " << data.imoNumber;
 
-            data.callsign = impl::decodeBitString(binaryData, cursor, 42);
-            cursor += 42;
-            LOG_MESSAGE(debug) << "CallSign = '" << data.callsign << "'";
+			data.callsign = impl::decodeBitString(binaryData, cursor, 42);
+			cursor += 42;
+			LOG_MESSAGE(debug)<< "CallSign = '" << data.callsign << "'";
 
-            data.vesselName = impl::decodeBitString(binaryData, cursor, 120);
-            cursor += 120;
-            LOG_MESSAGE(debug) << "VesselName = '" << data.vesselName << "'";
+			data.vesselName = impl::decodeBitString(binaryData, cursor, 120);
+			cursor += 120;
+			LOG_MESSAGE(debug)<< "VesselName = '" << data.vesselName << "'";
 
-            data.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
-            cursor += 8;
-            LOG_MESSAGE(debug) << "ShipType = " << data.shipType;
+			data.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(
+					binaryData, cursor, 8));
+			cursor += 8;
+			LOG_MESSAGE(debug)<< "ShipType = " << data.shipType;
 
-            data.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
-            cursor += 9;
-            LOG_MESSAGE(debug) << "DimensionToBow = " << data.dimensionToBow;
+			data.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
+			cursor += 9;
+			LOG_MESSAGE(debug)<< "DimensionToBow = " << data.dimensionToBow;
 
-            data.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
-            cursor += 9;
-            LOG_MESSAGE(debug) << "DimensionToStern = " << data.dimensionToStern;
+			data.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
+			cursor += 9;
+			LOG_MESSAGE(debug)<< "DimensionToStern = " << data.dimensionToStern;
 
-            data.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "DimensionToPort = " << data.dimensionToPort;
+			data.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "DimensionToPort = " << data.dimensionToPort;
 
-            data.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "DimensionToPort = " << data.dimensionToPort;
+			data.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor,
+					6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "DimensionToPort = " << data.dimensionToPort;
 
-            data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(binaryData, cursor, 4));
-            cursor += 4;
-            LOG_MESSAGE(debug) << "EPFD = " << data.epfd;
+			data.epfd = static_cast<Nmea_EPFDFix>(impl::decodeBitUInt(
+					binaryData, cursor, 4));
+			cursor += 4;
+			LOG_MESSAGE(debug)<< "EPFD = " << data.epfd;
 
-            data.month = impl::decodeBitUInt(binaryData, cursor, 4);
-            cursor += 4;
-            LOG_MESSAGE(debug) << "Month = " << data.month;
+			data.month = impl::decodeBitUInt(binaryData, cursor, 4);
+			cursor += 4;
+			LOG_MESSAGE(debug)<< "Month = " << data.month;
 
-            data.day = impl::decodeBitUInt(binaryData, cursor, 5);
-            cursor += 5;
-            LOG_MESSAGE(debug) << "Day = " << data.day;
+			data.day = impl::decodeBitUInt(binaryData, cursor, 5);
+			cursor += 5;
+			LOG_MESSAGE(debug)<< "Day = " << data.day;
 
-            data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
-            cursor += 5;
-            LOG_MESSAGE(debug) << "Hour = " << data.hour;
+			data.hour = impl::decodeBitUInt(binaryData, cursor, 5);
+			cursor += 5;
+			LOG_MESSAGE(debug)<< "Hour = " << data.hour;
 
-            data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "Minute = " << data.minute;
+			data.minute = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "Minute = " << data.minute;
 
-            data.draught = impl::decodeBitUInt(binaryData, cursor, 8);
-            cursor += 8;
-            LOG_MESSAGE(debug) << "Draught = " << data.draught * 0.1f;
+			data.draught = impl::decodeBitUInt(binaryData, cursor, 8);
+			cursor += 8;
+			LOG_MESSAGE(debug)<< "Draught = " << data.draught * 0.1f;
 
-            data.destination = impl::decodeBitString(binaryData, cursor, 120);
-            cursor += 120;
-            LOG_MESSAGE(debug) << "Destination = " << data.destination;
-        }
+			data.destination = impl::decodeBitString(binaryData, cursor, 120);
+			cursor += 120;
+			LOG_MESSAGE(debug)<< "Destination = " << data.destination;
+		}
 	}
 	return ret;
 }
 
-bool NmeaParser::parseAISStandardClassBCSPositionReport(const std::string& encodedData, AISStandardClassBCSPositionReport& data)
-{
+bool NmeaParser::parseAISStandardClassBCSPositionReport(
+		const std::string& encodedData,
+		AISStandardClassBCSPositionReport& data) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISStandardClassBCSPositionReport";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISStandardClassBCSPositionReport";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
 
 	const int TYPE18_TOTALBITS = 168;
 	const int TYPE18_TOTALCHARS = 27;
 
-	if (encodedData.length() >= TYPE18_TOTALCHARS)
-	{
+	if (encodedData.length() >= TYPE18_TOTALCHARS) {
 
-    	boost::dynamic_bitset<> binaryData(TYPE18_TOTALBITS);
+		boost::dynamic_bitset<> binaryData(TYPE18_TOTALBITS);
 
-        // Decodifica cadena a array de bits
-        LOG_MESSAGE(debug) << "parseAISStandardClassBCSPositionReport : decode INIT";
-        for (int i = 0; i < TYPE18_TOTALCHARS; ++i)
-        {
-            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+		// Decodifica cadena a array de bits
+		LOG_MESSAGE(debug)<< "parseAISStandardClassBCSPositionReport : decode INIT";
+		for (int i = 0; i < TYPE18_TOTALCHARS; ++i) {
+			SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+			LOG_MESSAGE(debug)<< "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
-            // Concatenate all six-bit quantities found in the payload, MSB first
-            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
-        }
-        LOG_MESSAGE(debug) << "parseAISStandardClassBCSPositionReport : decode END " << binaryData;
+			// Concatenate all six-bit quantities found in the payload, MSB first
+			impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+		}
+		LOG_MESSAGE(debug)<< "parseAISStandardClassBCSPositionReport : decode END " << binaryData;
 
-        int cursor = 0;
+		int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
-        cursor += 6;
+		Nmea_AisMessageType messageType =
+				static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData,
+						cursor, 6));
+		cursor += 6;
 
-        if (messageType == Nmea_AisMessageType_StandardClassBCSPositionReport)
-        {
-        	ret = true;
+		if (messageType == Nmea_AisMessageType_StandardClassBCSPositionReport) {
+			ret = true;
 
-        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
-        	cursor += 2;
-            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
+			data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-        	cursor += 30;
-            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
+			data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "MMSI = " << data.mmsi;
 
-            // Reserved
-            cursor += 8;
+			// Reserved
+			cursor += 8;
 
-            data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10) * 0.1f;
-            cursor += 10;
-            LOG_MESSAGE(debug) << "SpeedOverGround = " << data.speedOverGround;
+			data.speedOverGround = impl::decodeBitUInt(binaryData, cursor, 10)
+					* 0.1f;
+			cursor += 10;
+			LOG_MESSAGE(debug)<< "SpeedOverGround = " << data.speedOverGround;
 
-            if (binaryData[cursor++] == false)
-            {
-            	data.positionAccuracy = Nmea_PositionAccuracy_UnaugmentedGNSSFix;
-            } else {
-            	data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
-            }
-            LOG_MESSAGE(debug) << "PositionAccuracy = " << data.positionAccuracy;
+			if (binaryData[cursor++] == false) {
+				data.positionAccuracy =
+						Nmea_PositionAccuracy_UnaugmentedGNSSFix;
+			} else {
+				data.positionAccuracy = Nmea_PositionAccuracy_DGPSQualityFix;
+			}
+			LOG_MESSAGE(debug)<< "PositionAccuracy = " << data.positionAccuracy;
 
-            data.longitude = impl::decodeBitInt(binaryData, cursor, 28) / 600000.0f;
-            cursor += 28;
-            LOG_MESSAGE(debug) << "Longitude = " << data.longitude;
+			data.longitude = impl::decodeBitInt(binaryData, cursor, 28)
+					/ 600000.0f;
+			cursor += 28;
+			LOG_MESSAGE(debug)<< "Longitude = " << data.longitude;
 
-            data.latitude = impl::decodeBitInt(binaryData, cursor, 27) / 600000.0f;
-            cursor += 27;
-            LOG_MESSAGE(debug) << "Latitude = " << data.latitude;
+			data.latitude = impl::decodeBitInt(binaryData, cursor, 27)
+					/ 600000.0f;
+			cursor += 27;
+			LOG_MESSAGE(debug)<< "Latitude = " << data.latitude;
 
-            data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12) * 0.1f;
-            cursor += 12;
-            LOG_MESSAGE(debug) << "CourseOverGround = " << data.courseOverGround;
+			data.courseOverGround = impl::decodeBitUInt(binaryData, cursor, 12)
+					* 0.1f;
+			cursor += 12;
+			LOG_MESSAGE(debug)<< "CourseOverGround = " << data.courseOverGround;
 
-            data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
-            cursor += 9;
-            LOG_MESSAGE(debug) << "TrueHeading = " << data.trueHeading;
+			data.trueHeading = impl::decodeBitUInt(binaryData, cursor, 9);
+			cursor += 9;
+			LOG_MESSAGE(debug)<< "TrueHeading = " << data.trueHeading;
 
-            data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
-            cursor += 6;
-            LOG_MESSAGE(debug) << "TimestapUTCSecond = " << data.timestapUTCSecond;
-        }
+			data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
+			cursor += 6;
+			LOG_MESSAGE(debug)<< "TimestapUTCSecond = " << data.timestapUTCSecond;
+		}
 	}
 	return ret;
 }
 
-bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData, AISStaticDataReport& data)
-{
+bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData,
+		AISStaticDataReport& data) {
 	bool ret = false;
 
-	LOG_MESSAGE(trace) << "NmeaParser::parseAISStaticDataReport";
-	LOG_MESSAGE(debug) << "encodedData = " << encodedData;
+	LOG_MESSAGE(trace)<< "NmeaParser::parseAISStaticDataReport";
+	LOG_MESSAGE(debug)<< "encodedData = " << encodedData;
 
 	const int TYPE24_TOTALBITS = 168;
 	const int TYPE24_TOTALCHARS = 27;
 
-	if (encodedData.length() >= TYPE24_TOTALCHARS)
-	{
+	if (encodedData.length() >= TYPE24_TOTALCHARS) {
 
-    	boost::dynamic_bitset<> binaryData(TYPE24_TOTALBITS);
+		boost::dynamic_bitset<> binaryData(TYPE24_TOTALBITS);
 
-        // Decodifica cadena a array de bits
-        LOG_MESSAGE(debug) << "parseAISStaticDataReport : decode INIT";
-        for (int i = 0; i < TYPE24_TOTALCHARS; ++i)
-        {
-            SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
-            LOG_MESSAGE(debug) << "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
+		// Decodifica cadena a array de bits
+		LOG_MESSAGE(debug)<< "parseAISStaticDataReport : decode INIT";
+		for (int i = 0; i < TYPE24_TOTALCHARS; ++i) {
+			SixBit bitsetDecode = impl::decodeSixBit(encodedData.at(i));
+			LOG_MESSAGE(debug)<< "Char: " << encodedData.at(i) << " Bits: " << bitsetDecode;
 
-            // Concatenate all six-bit quantities found in the payload, MSB first
-            impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
-        }
-        LOG_MESSAGE(debug) << "parseAISStaticDataReport : decode END " << binaryData;
+			// Concatenate all six-bit quantities found in the payload, MSB first
+			impl::concatSixBitMSBFirst(i * 6, binaryData, bitsetDecode);
+		}
+		LOG_MESSAGE(debug)<< "parseAISStaticDataReport : decode END " << binaryData;
 
-        int cursor = 0;
+		int cursor = 0;
 
-        Nmea_AisMessageType messageType = static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData, cursor, 6));
-        cursor += 6;
+		Nmea_AisMessageType messageType =
+				static_cast<Nmea_AisMessageType>(impl::decodeBitUInt(binaryData,
+						cursor, 6));
+		cursor += 6;
 
-        if (messageType == Nmea_AisMessageType_StaticDataReport)
-        {
-        	ret = true;
+		if (messageType == Nmea_AisMessageType_StaticDataReport) {
+			ret = true;
 
-        	data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
-        	cursor += 2;
-            LOG_MESSAGE(debug) << "RepeatIndicator = " << data.repeatIndicator;
+			data.repeatIndicator = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "RepeatIndicator = " << data.repeatIndicator;
 
-        	data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
-        	cursor += 30;
-            LOG_MESSAGE(debug) << "MMSI = " << data.mmsi;
+			data.mmsi = impl::decodeBitUInt(binaryData, cursor, 30);
+			cursor += 30;
+			LOG_MESSAGE(debug)<< "MMSI = " << data.mmsi;
 
-            data.partNumber = impl::decodeBitUInt(binaryData, cursor, 2);
-            cursor += 2;
-            LOG_MESSAGE(debug) << "PartNumber = " << data.partNumber;
+			data.partNumber = impl::decodeBitUInt(binaryData, cursor, 2);
+			cursor += 2;
+			LOG_MESSAGE(debug)<< "PartNumber = " << data.partNumber;
 
-            if (data.partNumber == 0)
-            {
-            	data.partA.vesselName = impl::decodeBitString(binaryData, cursor, 120);
-                cursor += 120;
-                LOG_MESSAGE(debug) << "VesselName = '" << data.partA.vesselName << "'";
-            } else if (data.partNumber == 1) {
-            	data.partB.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
-                cursor += 8;
-                LOG_MESSAGE(debug) << "ShipType = " << data.partB.shipType;
+			if (data.partNumber == 0) {
+				data.partA.vesselName = impl::decodeBitString(binaryData,
+						cursor, 120);
+				cursor += 120;
+				LOG_MESSAGE(debug)<< "VesselName = '" << data.partA.vesselName << "'";
+			} else if (data.partNumber == 1) {
+				data.partB.shipType = static_cast<Nmea_ShipType>(impl::decodeBitUInt(binaryData, cursor, 8));
+				cursor += 8;
+				LOG_MESSAGE(debug) << "ShipType = " << data.partB.shipType;
 
-                data.partB.vendorId = impl::decodeBitString(binaryData, cursor, 18);
-                cursor += 18;
-                LOG_MESSAGE(debug) << "VendorId = '" << data.partB.vendorId << "'";
+				data.partB.vendorId = impl::decodeBitString(binaryData, cursor, 18);
+				cursor += 18;
+				LOG_MESSAGE(debug) << "VendorId = '" << data.partB.vendorId << "'";
 
-                data.partB.unitModelCode = impl::decodeBitUInt(binaryData, cursor, 4);
-            	cursor += 4;
-                LOG_MESSAGE(debug) << "UnitModelCode = " << data.partB.unitModelCode;
+				data.partB.unitModelCode = impl::decodeBitUInt(binaryData, cursor, 4);
+				cursor += 4;
+				LOG_MESSAGE(debug) << "UnitModelCode = " << data.partB.unitModelCode;
 
-                data.partB.serialNumber = impl::decodeBitUInt(binaryData, cursor, 20);
-            	cursor += 20;
-                LOG_MESSAGE(debug) << "SerialNumber = " << data.partB.serialNumber;
+				data.partB.serialNumber = impl::decodeBitUInt(binaryData, cursor, 20);
+				cursor += 20;
+				LOG_MESSAGE(debug) << "SerialNumber = " << data.partB.serialNumber;
 
-                data.partB.callsign = impl::decodeBitString(binaryData, cursor, 42);
-                cursor += 42;
-                LOG_MESSAGE(debug) << "CallSign = '" << data.partB.callsign << "'";
+				data.partB.callsign = impl::decodeBitString(binaryData, cursor, 42);
+				cursor += 42;
+				LOG_MESSAGE(debug) << "CallSign = '" << data.partB.callsign << "'";
 
-                data.partB.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
-                cursor += 9;
-                LOG_MESSAGE(debug) << "DimensionToBow = " << data.partB.dimensionToBow;
+				data.partB.dimensionToBow = impl::decodeBitUInt(binaryData, cursor, 9);
+				cursor += 9;
+				LOG_MESSAGE(debug) << "DimensionToBow = " << data.partB.dimensionToBow;
 
-                data.partB.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
-                cursor += 9;
-                LOG_MESSAGE(debug) << "DimensionToStern = " << data.partB.dimensionToStern;
+				data.partB.dimensionToStern = impl::decodeBitUInt(binaryData, cursor, 9);
+				cursor += 9;
+				LOG_MESSAGE(debug) << "DimensionToStern = " << data.partB.dimensionToStern;
 
-                data.partB.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
-                cursor += 6;
-                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+				data.partB.dimensionToPort = impl::decodeBitUInt(binaryData, cursor, 6);
+				cursor += 6;
+				LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
 
-                data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
-                cursor += 6;
-                LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
-            }
-        }
+				data.partB.dimensionToStarboard = impl::decodeBitUInt(binaryData, cursor, 6);
+				cursor += 6;
+				LOG_MESSAGE(debug) << "DimensionToPort = " << data.partB.dimensionToPort;
+			}
+		}
 	}
 	return ret;
 }

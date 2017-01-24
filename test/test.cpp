@@ -13,8 +13,8 @@
 
 //  ----------------------------------------- 01  GPZDA -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseZDA ) {
-	std::string nmeaZDA = "$GPZDA,160619.00,20,04,2016,8,3*6C";
-	//std::string nmeaZDA = "$GPZDA,,,,,,*19";
+	std::string nmeaZDA;
+
 	boost::posix_time::time_duration mtime;
 	int day;
 	int month;
@@ -22,16 +22,26 @@ BOOST_AUTO_TEST_CASE( parseZDA ) {
 	int localZoneHours;
 	int localZoneMinutes;
 
-	BOOST_REQUIRE_NO_THROW(
+	nmeaZDA = "$GPZDA,160619.00,20,04,2016,8,3*6C";
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseZDA(nmeaZDA, mtime, day, month, year,
-					localZoneHours, localZoneMinutes));
+					localZoneHours, localZoneMinutes), 0UL);
+
+	nmeaZDA = "$GPZDA,,20,04,2016,8,3*6C";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseZDA(nmeaZDA, mtime, day, month, year,
+					localZoneHours, localZoneMinutes), 0b0000000000000001);
+
+	nmeaZDA = "$GPZDA,,,,,,*19";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseZDA(nmeaZDA, mtime, day, month, year,
+					localZoneHours, localZoneMinutes), 0b0000000000111111);
 }
 
 //  ----------------------------------------- 02  GPGLL -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseGLL ) {
 	std::string nmeaGLL;
 
-	//std::string nmeaGLL = "$GPGLL,,,,,,,*19";
 	double latitude;
 	double longitude;
 	boost::posix_time::time_duration mtime;
@@ -39,14 +49,19 @@ BOOST_AUTO_TEST_CASE( parseGLL ) {
 	char modeIndicator;
 
 	nmeaGLL = "$GPGLL,1202.5313138,S,07708.5464255,W,155730.00,A,A*65";
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
-					modeIndicator));
+					modeIndicator), 0UL);
 
 	nmeaGLL = "$GPGLL,1151.08,S,07718.65,W,165700,A*26";
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
-					modeIndicator));
+					modeIndicator), 0b0000000000010000);
+
+	nmeaGLL = "$GPGLL,,,,,,,*19";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
+					modeIndicator), 0b0000000000011111);
 
 }
 
@@ -65,17 +80,19 @@ BOOST_AUTO_TEST_CASE( parseGGA ) {
 	double agediffgps;
 	std::string refid;
 
-	nmeaGGA = "$GPGGA,172814.0,3723.46587704,N,12202.26957864,W,4,6,1.2,18.893,M,-25.669,M,2.5,0031*19";
-	BOOST_REQUIRE_NO_THROW(
+	nmeaGGA =
+			"$GPGGA,172814.0,3723.46587704,N,12202.26957864,W,4,6,1.2,18.893,M,-25.669,M,2.5,0031*19";
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseGGA(nmeaGGA, mtime, latitude, longitude, quality,
 					numSV, hdop, orthometricheight, geoidseparation, agediffgps,
-					refid));
+					refid), 0UL);
 
-	nmeaGGA = "$GPGGA,165702,1151.0742,S,07718.6472,W,1,09,00.9,24.9,M,10.6,M,,*49";
-	BOOST_REQUIRE_NO_THROW(
+	nmeaGGA =
+			"$GPGGA,165702,1151.0742,S,07718.6472,W,1,09,00.9,24.9,M,10.6,M,,*49";
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseGGA(nmeaGGA, mtime, latitude, longitude, quality,
 					numSV, hdop, orthometricheight, geoidseparation, agediffgps,
-					refid));
+					refid), 0b0000001100000000);
 
 }
 
@@ -90,20 +107,26 @@ BOOST_AUTO_TEST_CASE( parseVTG ) {
 	double speedkph;
 
 	nmeaVTG = "$GPVTG,8.86,T,10.29,M,0.02,N,0.04,K,A*19";
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
-					speedknots, speedkph));
+					speedknots, speedkph), 0UL);
 
 	nmeaVTG = "$GPVTG,212,T,215,M,12.8,N,23.8,K*4B";
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
-					speedknots, speedkph));
+					speedknots, speedkph), 0UL);
+
+	nmeaVTG = "$GPVTG,044,T,044,M,00.0,N,,*1B";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
+					speedknots, speedkph), 0b0000000000001000);
 
 }
 
 //  ----------------------------------------- 05  GPRMC -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseRMC ) {
-	std::string nmeaRMC = "$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
+	std::string nmeaRMC =
+			"$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
 	//std::string nmeaRMC = "$GPRMC,,,,,,,,,,,,,*56";
 
 	boost::posix_time::time_duration mtime;
@@ -114,9 +137,9 @@ BOOST_AUTO_TEST_CASE( parseRMC ) {
 	boost::gregorian::date mdate;
 	double magneticvar;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseRMC(nmeaRMC, mtime, latitude, longitude,
-					speedknots, coursetrue, mdate, magneticvar));
+					speedknots, coursetrue, mdate, magneticvar), 0UL);
 }
 
 //  ----------------------------------------- 06  GPWPL -----------------------------------------
@@ -127,8 +150,9 @@ BOOST_AUTO_TEST_CASE( parseWPL ) {
 	double longitude;
 	std::string waypointName;
 
-	BOOST_REQUIRE_NO_THROW(
-			NmeaParser::parseWPL(nmeaWPL, latitude, longitude, waypointName));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseWPL(nmeaWPL, latitude, longitude, waypointName),
+			0UL);
 }
 
 //  ----------------------------------------- 07  GPRTE -----------------------------------------
@@ -142,9 +166,9 @@ BOOST_AUTO_TEST_CASE( parseRTE ) {
 	std::string routeName;
 	std::vector<std::string> waypointNames;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseRTE(nmeaRTE, messagesTransmitted, messageNumber,
-					messageMode, routeName, waypointNames));
+					messageMode, routeName, waypointNames), 0UL);
 }
 
 //  ----------------------------------------- 08  VDVHW -----------------------------------------
@@ -156,9 +180,9 @@ BOOST_AUTO_TEST_CASE( parseVHW ) {
 	double speedInKmH;
 	char kilometers;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVHW(nmeaVHW, speedInKnots, knots, speedInKmH,
-					kilometers));
+					kilometers), 0UL);
 }
 
 //  ----------------------------------------- 09  VDMTW -----------------------------------------
@@ -168,7 +192,7 @@ BOOST_AUTO_TEST_CASE( parseMTW ) {
 	double degrees;
 	char celcius;
 
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseMTW(nmeaMTW, degrees, celcius));
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseMTW(nmeaMTW, degrees, celcius), 0UL);
 }
 
 //  ----------------------------------------- 10  VDVBW -----------------------------------------
@@ -183,11 +207,11 @@ BOOST_AUTO_TEST_CASE( parseVBW ) {
 	double transverseGroundSpeed;
 	char groundDataStatus;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVBW(nmeaVBW, longitudinalWaterSpeed,
 					transverseWaterSpeed, waterDataStatus,
 					longitudinalGroundSpeed, transverseGroundSpeed,
-					groundDataStatus));
+					groundDataStatus), 0UL);
 }
 
 //  ----------------------------------------- 11  VDVLW -----------------------------------------
@@ -199,9 +223,9 @@ BOOST_AUTO_TEST_CASE( parseVLW ) {
 	double distanceSinceReset;
 	char nauticalMiles2;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVLW(nmeaVLW, totalCumulativeDistance,
-					nauticalMiles1, distanceSinceReset, nauticalMiles2));
+					nauticalMiles1, distanceSinceReset, nauticalMiles2), 0UL);
 }
 
 //  ----------------------------------------- 12  SDDPT -----------------------------------------
@@ -212,9 +236,9 @@ BOOST_AUTO_TEST_CASE( parseDPT ) {
 	double offsetFromTransducer;
 	double maximumRangeScaleInUse;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseDPT(nmeaDPT, waterDepthRelativeToTheTransducer,
-					offsetFromTransducer, maximumRangeScaleInUse));
+					offsetFromTransducer, maximumRangeScaleInUse), 0UL);
 }
 
 //  ----------------------------------------- 13  SDDBT -----------------------------------------
@@ -228,9 +252,10 @@ BOOST_AUTO_TEST_CASE( parseDBT ) {
 	double waterDepthInFathoms;
 	char fathoms;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseDBT(nmeaDBT, waterDepthInFeet, feet,
-					waterDepthInMeters, meters, waterDepthInFathoms, fathoms));
+					waterDepthInMeters, meters, waterDepthInFathoms, fathoms),
+			0UL);
 }
 
 //  ----------------------------------------- 14  SDDBK -----------------------------------------
@@ -244,10 +269,10 @@ BOOST_AUTO_TEST_CASE( parseDBK ) {
 	double depthBelowKeelFathoms;
 	char fathoms;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseDBK(nmeaDBK, depthBelowKeelFeet, feet,
 					depthBelowKeelMeters, meters, depthBelowKeelFathoms,
-					fathoms));
+					fathoms), 0UL);
 }
 
 //  ----------------------------------------- 15  PSKPDPT -----------------------------------------
@@ -261,11 +286,11 @@ BOOST_AUTO_TEST_CASE( parsePSKPDPT ) {
 	int echoSounderChannelNumber;
 	std::string transducerLocation;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parsePSKPDPT(nmeaPSKPDP,
 					waterDepthRelativeToTheTransducer, offsetFromTransducer,
 					maximumRangeScaleInUse, bottomEchoStrength,
-					echoSounderChannelNumber, transducerLocation));
+					echoSounderChannelNumber, transducerLocation), 0UL);
 }
 
 //  ----------------------------------------- 16  HCHDT -----------------------------------------
@@ -275,8 +300,8 @@ BOOST_AUTO_TEST_CASE( parseHDT ) {
 	double headingDegreesTrue;
 	char t;
 
-	BOOST_REQUIRE_NO_THROW(
-			NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue, t));
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue, t),
+			0UL);
 }
 
 //  ----------------------------------------- 17  HCHDG -----------------------------------------
@@ -290,10 +315,10 @@ BOOST_AUTO_TEST_CASE( parseHDG ) {
 	double magneticVariationDegrees;
 	char magneticVariationDirection;
 
-	BOOST_REQUIRE_NO_THROW(
+	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseHDG(nmeaHDG, magneticSensorHeadingInDegrees,
 					magneticDeviationDegrees, magneticDeviationDirection,
-					magneticVariationDegrees, magneticVariationDirection));
+					magneticVariationDegrees, magneticVariationDirection), 0UL);
 }
 
 //  ----------------------------------------- 18  HCHDM -----------------------------------------
@@ -303,8 +328,9 @@ BOOST_AUTO_TEST_CASE( parseHDM ) {
 	double headingDegreesMagnetic;
 	char magnetic;
 
-	BOOST_REQUIRE_NO_THROW(
-			NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic, magnetic));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic, magnetic),
+			0UL);
 }
 
 //  ----------------------------------------- 19  TIROT -----------------------------------------
@@ -314,8 +340,7 @@ BOOST_AUTO_TEST_CASE( parseROT ) {
 	double rateOfTurn;
 	char status;
 
-	BOOST_REQUIRE_NO_THROW(
-	NmeaParser::parseROT(nmeaROT, rateOfTurn, status));
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseROT(nmeaROT, rateOfTurn, status), 0UL);
 }
 
 //  ----------------------------------------- 20  IIMWV -----------------------------------------
@@ -328,9 +353,9 @@ BOOST_AUTO_TEST_CASE( parseMWV ) {
 	char windSpeedUnits;
 	char sensorStatus;
 
-	BOOST_REQUIRE_NO_THROW(
-	NmeaParser::parseMWV(nmeaMWV, windAngle, reference, windSpeed,
-			windSpeedUnits, sensorStatus));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseMWV(nmeaMWV, windAngle, reference, windSpeed,
+					windSpeedUnits, sensorStatus), 0UL);
 }
 
 //  ----------------------------------------- 21  WIMWD -----------------------------------------
@@ -346,60 +371,65 @@ BOOST_AUTO_TEST_CASE( parseMWD ) {
 	double windSpeedMeters;
 	char meters;
 
-	BOOST_REQUIRE_NO_THROW(
-	NmeaParser::parseMWD(nmeaMWD, trueWindDirection, truee,
-			magneticWindDirection, magnetic, windSpeedKnots, knots,
-			windSpeedMeters, meters));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseMWD(nmeaMWD, trueWindDirection, truee,
+					magneticWindDirection, magnetic, windSpeedKnots, knots,
+					windSpeedMeters, meters), 0UL);
 }
 
 //  ----------------------------------------- 22  IIXDR -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseXDR ) {
-		std::string nmeaXDR = "$IIXDR,C,25.4,C,TEMP,P,28.4,B,PRESS,H,27.4,P,RH*19";
-		//std::string nmeaXDR = "IIXDR,,,a,,G,0.5,b,PRESS,G,2.1,,HUM";
-		//std::string nmeaXDR = "$IIXDR,,,,,,,,,,,,*19";
-		char typeOfSensorTemperature;
-		double temperatureReading;
-		char centigrade;
-		std::string nameOfTransducer;
-		char typeOfSensorPressure;
-		double pressureReading;
-		char bars;
-		std::string nameOfPressureSensor;
-		char typeOfSensorHumidity;
-		double humidity;
-		char humidityUnitsOfMeasurePercent;
-		std::string nameOfRelativeHumiditySensor;
+	std::string nmeaXDR = "$IIXDR,C,25.4,C,TEMP,P,28.4,B,PRESS,H,27.4,P,RH*19";
+	//std::string nmeaXDR = "IIXDR,,,a,,G,0.5,b,PRESS,G,2.1,,HUM";
+	//std::string nmeaXDR = "$IIXDR,,,,,,,,,,,,*19";
+	char typeOfSensorTemperature;
+	double temperatureReading;
+	char centigrade;
+	std::string nameOfTransducer;
+	char typeOfSensorPressure;
+	double pressureReading;
+	char bars;
+	std::string nameOfPressureSensor;
+	char typeOfSensorHumidity;
+	double humidity;
+	char humidityUnitsOfMeasurePercent;
+	std::string nameOfRelativeHumiditySensor;
 
-		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseXDR(nmeaXDR, typeOfSensorTemperature, temperatureReading,
-				centigrade, nameOfTransducer, typeOfSensorPressure, pressureReading,
-				bars, nameOfPressureSensor, typeOfSensorHumidity, humidity,
-				humidityUnitsOfMeasurePercent, nameOfRelativeHumiditySensor));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseXDR(nmeaXDR, typeOfSensorTemperature,
+					temperatureReading, centigrade, nameOfTransducer,
+					typeOfSensorPressure, pressureReading, bars,
+					nameOfPressureSensor, typeOfSensorHumidity, humidity,
+					humidityUnitsOfMeasurePercent,
+					nameOfRelativeHumiditySensor), 0UL);
 }
 
 //  ----------------------------------------- 23  IITTD -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseTTD ) {
-		//  -------------------- 23  IITTD --------------------
-		std::string nmeaTTD = "!INTTD,01,01,,0PP10Eg@wwP74@0,0*2F";
-		int totalLines;
-		int lineCount;
-		int sequenceIdentifier;
-		std::string trackData;
-		int fillBits;
+	//  -------------------- 23  IITTD --------------------
+	std::string nmeaTTD = "!INTTD,01,01,,0PP10Eg@wwP74@0,0*2F";
+	int totalLines;
+	int lineCount;
+	int sequenceIdentifier;
+	std::string trackData;
+	int fillBits;
 
-		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseTTD(nmeaTTD, totalLines, lineCount, sequenceIdentifier, trackData, fillBits));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseTTD(nmeaTTD, totalLines, lineCount,
+					sequenceIdentifier, trackData, fillBits),
+			0b0000000000000100);
 }
 
 //  ----------------------------------------- 24  RATLB -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseTLB ) {
-		//std::string nmeaTLB = "$RATLB,5.5,cinco,1.1,uno,2.2,dos,3.3,tres,4.4,cuatro*19";
-		std::string nmeaTLB = "$INTLB,81,,17,,10,cauti*39";
-		//std::string nmeaTLB = "$RATLB,01,uno*19";
-		std::vector<std::pair<int, std::string>> trackPair;
+	std::string nmeaTLB;
 
-		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseTLB(nmeaTLB, trackPair));
+	//std::string nmeaTLB = "$INTLB,81,,17,,10,cauti*39";
+	//std::string nmeaTLB = "$RATLB,01,uno*19";
+	std::vector<std::pair<int, std::string>> trackPair;
+
+	nmeaTLB = "$RATLB,5.5,cinco,1.1,uno,2.2,dos,3.3,tres,4.4,cuatro*19";
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseTLB(nmeaTLB, trackPair), 0UL);
 }
 
 //  ----------------------------------------- 25  RAOSD -----------------------------------------
@@ -416,38 +446,65 @@ BOOST_AUTO_TEST_CASE( parseOSD ) {
 	double vesselDrift;
 	char speedUnits;
 
-	BOOST_REQUIRE_NO_THROW(
-	NmeaParser::parseOSD(nmeaOSD, heading, status, vesselCourse,
-			referenceCourse, vesselSpeed, referenceSpeed, vesselSet,
-			vesselDrift, speedUnits));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseOSD(nmeaOSD, heading, status, vesselCourse,
+					referenceCourse, vesselSpeed, referenceSpeed, vesselSet,
+					vesselDrift, speedUnits), 0UL);
 
 }
 
 //  ----------------------------------------- 26  RARSD -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseRSD ) {
-		std::string nmeaRSD =
-				"$RARSD,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,4.10,4.11,N,C*19";
-		//std::string nmeaRSD =
-			//	"$RARSD,,,,,,,,,,,,,*19";
-		double origin1Range;
-		double origin1BearingDegrees;
-		double variableRangeMarker1;
-		double bearingLine1;
-		double origin2Range;
-		double origin2Bearing;
-		double vrm2;
-		double ebl2;
-		double cursorRange;
-		double cursorBearing;
-		double rangeScale;
-		char rangeUnits;
-		char displayRotation;
+	std::string nmeaRSD =
+			"$RARSD,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,4.10,4.11,N,C*19";
+	//std::string nmeaRSD =
+	//	"$RARSD,,,,,,,,,,,,,*19";
+	double origin1Range;
+	double origin1BearingDegrees;
+	double variableRangeMarker1;
+	double bearingLine1;
+	double origin2Range;
+	double origin2Bearing;
+	double vrm2;
+	double ebl2;
+	double cursorRange;
+	double cursorBearing;
+	double rangeScale;
+	char rangeUnits;
+	char displayRotation;
 
-		BOOST_REQUIRE_NO_THROW(
-		NmeaParser::parseRSD(nmeaRSD, origin1Range, origin1BearingDegrees,
-				variableRangeMarker1, bearingLine1, origin2Range, origin2Bearing,
-				vrm2, ebl2, cursorRange, cursorBearing, rangeScale, rangeUnits,
-				displayRotation));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseRSD(nmeaRSD, origin1Range, origin1BearingDegrees,
+					variableRangeMarker1, bearingLine1, origin2Range,
+					origin2Bearing, vrm2, ebl2, cursorRange, cursorBearing,
+					rangeScale, rangeUnits, displayRotation), 0UL);
+}
+
+//  ----------------------------------------- 26  RATTM -----------------------------------------
+BOOST_AUTO_TEST_CASE( parseTTM ) {
+	std::string nmeaTTM;
+
+	int targetNumber;
+	double targetDistance;
+	double targetBearing;
+	Nmea_AngleReference targetBearingReference;
+	double targetSpeed;
+	double targetCourse;
+	Nmea_AngleReference targetCourseReference;
+	Nmea_SpeedDistanceUnits speedDistanceUnits;
+	std::string targetName;
+	Nmea_TargetStatus targetStatus;
+	boost::posix_time::time_duration timeOfData;
+	Nmea_TypeOfAcquisition typeOfAcquisition;
+
+	nmeaTTM = "$RATTM,04,2.18,247.8,T,0.5,350.0,T,2.1,51.0,N,,T,,171443,M*23";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseTTM(nmeaTTM, targetNumber, targetDistance,
+					targetBearing, targetBearingReference, targetSpeed,
+					targetCourse, targetCourseReference, speedDistanceUnits,
+					targetName, targetStatus, timeOfData, typeOfAcquisition),
+			0b0000000100000000);
+
 }
 
 //	//  -------------------- 27  AIVDM --------------------
@@ -462,18 +519,18 @@ BOOST_AUTO_TEST_CASE( parseRSD ) {
 //	float courseAIS;
 //	float headingAIS;
 //
-//	//BOOST_REQUIRE_NO_THROW(
+//	//BOOST_REQUIRE_EQUAL(
 //	NmeaParser::parseVDM(nmeaVDM, typeAIS, mmsiAIS, latitudeAIS, longitudeAIS,
 //			speedAIS, courseAIS, headingAIS);
 
 //}
 
 BOOST_AUTO_TEST_CASE( parseTTDPayload ) {
-		std::string trackData = "0PP10Eg@wwP74@0";
+	std::string trackData = "0PP10Eg@wwP74@0";
 
-		std::vector<NmeaTrackData> tracks;
+	std::vector<NmeaTrackData> tracks;
 
-		BOOST_REQUIRE_NO_THROW(NmeaParser::parseTTDPayload(trackData, tracks));
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseTTDPayload(trackData, tracks), true);
 }
 
 BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
@@ -482,16 +539,21 @@ BOOST_AUTO_TEST_CASE( parseAISMessageType ) {
 	Nmea_AisMessageType messageType;
 
 	encodedData = "B6K8C4P006Wf1lNAijT03wt7kP06";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISMessageType(encodedData, messageType), true);
 
 	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISMessageType(encodedData, messageType), true);
 
-	encodedData = "5;Djh9P2=K8@t7;37<0<4t00000000000000000l1P=554Kh0=j0DPSmD`855Ah00000000";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+	encodedData =
+			"5;Djh9P2=K8@t7;37<0<4t00000000000000000l1P=554Kh0=j0DPSmD`855Ah00000000";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISMessageType(encodedData, messageType), true);
 
 	encodedData = "D2C30K41DUH8880";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISMessageType(encodedData, messageType));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISMessageType(encodedData, messageType), true);
 
 }
 
@@ -502,7 +564,8 @@ BOOST_AUTO_TEST_CASE( parseAISPositionReportClassA ) {
 	AISPositionReportClassA data;
 
 	encodedData = "3;DjhdPP@3JNfEIq6uHjlUCp00w1";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISPositionReportClassA(encodedData, data));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISPositionReportClassA(encodedData, data), true);
 
 }
 
@@ -513,7 +576,8 @@ BOOST_AUTO_TEST_CASE( parseAISBaseStationReport ) {
 	AISBaseStationReport data;
 
 	encodedData = "400TcdiuiT7VDR>3nIfr6>i00000";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISBaseStationReport(encodedData, data));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISBaseStationReport(encodedData, data), true);
 
 }
 
@@ -523,8 +587,11 @@ BOOST_AUTO_TEST_CASE( parseAISStaticAndVoyageRelatedData ) {
 
 	AISStaticAndVoyageRelatedData data;
 
-	encodedData = "58wt8Ui`g??r21`7S=:22058<v05Htp000000015>8OA;0skeQ8823mDm3kP00000000000";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticAndVoyageRelatedData(encodedData, data));
+	encodedData =
+			"58wt8Ui`g??r21`7S=:22058<v05Htp000000015>8OA;0skeQ8823mDm3kP00000000000";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISStaticAndVoyageRelatedData(encodedData, data),
+			true);
 
 }
 
@@ -535,7 +602,9 @@ BOOST_AUTO_TEST_CASE( parseAISStandardClassBCSPositionReport ) {
 	AISStandardClassBCSPositionReport data;
 
 	encodedData = "B;Djf2h01fWd0qNAh;M0cwb7kP06";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStandardClassBCSPositionReport(encodedData, data));
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseAISStandardClassBCSPositionReport(encodedData,
+					data), true);
 
 }
 
@@ -546,6 +615,7 @@ BOOST_AUTO_TEST_CASE( parseAISStaticDataReport ) {
 	AISStaticDataReport data;
 
 	encodedData = "H6K8C4Q<Dq<QF0l59F0pvs>2220";
-	BOOST_REQUIRE_NO_THROW(NmeaParser::parseAISStaticDataReport(encodedData, data));
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseAISStaticDataReport(encodedData, data),
+			true);
 
 }
