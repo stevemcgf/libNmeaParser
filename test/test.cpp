@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE( parseTLB ) {
 	//std::string nmeaTLB = "$RATLB,01,uno*19";
 	std::vector<std::pair<int, std::string>> trackPair;
 
-	nmeaTLB = "$RATLB,5.5,cinco,1.1,uno,2.2,dos,3.3,tres,4.4,cuatro*19";
+	nmeaTLB = "$RATLB,5,cinco,1,uno,2,dos,3,tres,4,cuatro*19";
 	BOOST_REQUIRE_EQUAL(NmeaParser::parseTLB(nmeaTLB, trackPair), 0UL);
 }
 
