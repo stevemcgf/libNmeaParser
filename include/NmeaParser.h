@@ -1,6 +1,6 @@
 /**
  *	@file NmeaParser.h
- *	@brief NmeaParser main class
+ *	@brief Header for NmeaParser class
  *
  *   NmeaParser class with all parsing methods.
  */

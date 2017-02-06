@@ -1,8 +1,6 @@
-/*
- * NmeaSentences.cpp
- *
- *  Created on: May 12, 2016
- *      Author: steve
+/**
+ * @file NmeaSentences.cpp
+ * @brief Implementation of Talker Id and Nmea Sentence Id to Description Mappings.
  */
 
 #include "NmeaSentences.h"

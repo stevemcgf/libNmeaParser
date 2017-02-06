@@ -1,6 +1,6 @@
 /**
 *	@file NmeaEnums.h
-*	@brief Enumerators and Structures used by NmeaParser
+*	@brief Header for Enumerators and Structures used by NmeaParser
 *
 *   This set of Enumerators and Structures are use by NmeaParser to return
 *   information.

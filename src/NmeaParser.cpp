@@ -1,8 +1,6 @@
-/*
- * NmeaParser.cpp
- *
- *  Created on: Feb 3, 2016
- *      Author: steve
+/**
+ *	@file NmeaParser.cpp
+ *	@brief NmeaParser Implementation
  */
 
 #include "NmeaParser.h"

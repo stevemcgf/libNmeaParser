@@ -1,8 +1,6 @@
-/*
- * NmeaSentences.h
- *
- *  Created on: Feb 9, 2016
- *      Author: steve
+/**
+ *	@file NmeaSentences.h
+ *	@brief Header for translation of Talker Id and Nmea Sentence Id into description.
  */
 
 #ifndef SRC_NMEASENTENCES_H_
@@ -71,7 +69,7 @@ std::string getNmeaSentence(const std::string& nmea);
 /**
  * @brief Nmea Talker Id description
  *
- * @param [in] nmea TalkerId String containing Talker Id
+ * @param [in] nmeaTalkerId String containing Talker Id
  *
  * @return Talker Id description.
  */
@@ -80,7 +78,7 @@ std::string getNmeaTalkerIdName(const std::string& nmeaTalkerId);
 /**
  * @brief Nmea Sentence description
  *
- * @param [in] nmea Nmea Sentence String containing Nmea Sentence Id
+ * @param [in] nmeaSentence String containing Nmea Sentence Id
  *
  * @return NMEA Sentence description.
  */

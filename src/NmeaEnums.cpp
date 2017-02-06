@@ -1,8 +1,6 @@
-/*
- * NmeaEnums.cpp
- *
- *  Created on: Nov 23, 2016
- *      Author: steve
+/**
+ * @file NmeaEnums.cpp
+ * @brief Implementation of helper methods to convert enums to strings.
  */
 
 #include "NmeaEnums.h"
