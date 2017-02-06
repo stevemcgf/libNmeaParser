@@ -324,9 +324,8 @@ BOOST_AUTO_TEST_CASE( parseROT ) {
 	std::string nmeaROT = "$TIROT,01.7,A*19";
 	//std::string nmeaROT = "$TIROT,,*19";
 	double rateOfTurn;
-	char status;
 
-	BOOST_REQUIRE_EQUAL(NmeaParser::parseROT(nmeaROT, rateOfTurn, status), 0UL);
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseROT(nmeaROT, rateOfTurn), 0UL);
 }
 
 //  ----------------------------------------- 20  IIMWV -----------------------------------------
@@ -349,18 +348,12 @@ BOOST_AUTO_TEST_CASE( parseMWD ) {
 	std::string nmeaMWD = "$WIMWD,004.2,T,004.2,M,007.2,N,003.7,M*19";
 	//std::string nmeaMWD = "$WIMWD,,,,,,,,*19";
 	double trueWindDirection;
-	char truee;
 	double magneticWindDirection;
-	char magnetic;
 	double windSpeedKnots;
-	char knots;
 	double windSpeedMeters;
-	char meters;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseMWD(nmeaMWD, trueWindDirection, truee,
-					magneticWindDirection, magnetic, windSpeedKnots, knots,
-					windSpeedMeters, meters), 0UL);
+			NmeaParser::parseMWD(nmeaMWD, trueWindDirection, magneticWindDirection, windSpeedKnots,	windSpeedMeters), 0UL);
 }
 
 //  ----------------------------------------- 22  IIXDR -----------------------------------------
@@ -368,26 +361,11 @@ BOOST_AUTO_TEST_CASE( parseXDR ) {
 	std::string nmeaXDR = "$IIXDR,C,25.4,C,TEMP,P,28.4,B,PRESS,H,27.4,P,RH*19";
 	//std::string nmeaXDR = "IIXDR,,,a,,G,0.5,b,PRESS,G,2.1,,HUM";
 	//std::string nmeaXDR = "$IIXDR,,,,,,,,,,,,*19";
-	char typeOfSensorTemperature;
-	double temperatureReading;
-	char centigrade;
-	std::string nameOfTransducer;
-	char typeOfSensorPressure;
-	double pressureReading;
-	char bars;
-	std::string nameOfPressureSensor;
-	char typeOfSensorHumidity;
-	double humidity;
-	char humidityUnitsOfMeasurePercent;
-	std::string nameOfRelativeHumiditySensor;
+
+	std::vector<TransducerMeasurement> measurements;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseXDR(nmeaXDR, typeOfSensorTemperature,
-					temperatureReading, centigrade, nameOfTransducer,
-					typeOfSensorPressure, pressureReading, bars,
-					nameOfPressureSensor, typeOfSensorHumidity, humidity,
-					humidityUnitsOfMeasurePercent,
-					nameOfRelativeHumiditySensor), 0UL);
+			NmeaParser::parseXDR(nmeaXDR, measurements), 0UL);
 }
 
 //  ----------------------------------------- 23  IITTD -----------------------------------------

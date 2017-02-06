@@ -544,4 +544,14 @@ struct AISStaticDataReport {
 	} partB;
 };
 
+/**
+ * @brief Struct used to pass Transducer Measurement in XDR NMEA message. Used in NmeaParser::parseXDR().
+ */
+struct TransducerMeasurement {
+	char transducerType;
+	float measurementData;
+	char unitsOfMeasurement;
+	std::string nameOfTransducer;
+};
+
 #endif /* SRC_NMEAENUMS_H_ */

@@ -27,7 +27,9 @@ public:
 	/**
 	 * @brief ZDA NMEA Message parser
 	 *
-	 * <b>ZDA NMEA message fields</b>
+	 * <b>ZDA NMEA message fields</b><br>
+	 * <i>Time & Date - UTC, day, month, year and local time zone</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--ZDA
@@ -39,13 +41,13 @@ public:
 	 * 6 | Local time zone offset from GMT, ranging from 00 through 59 minutes
 	 * 7 | The checksum data, always begins with *
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param mtime out UTC time
-	 * @param day out UTC Day
-	 * @param month out UTC Month
-	 * @param year out UTC Year
-	 * @param localZoneHours out Local time zone Hours
-	 * @param localZoneMinutes out Local time zone Minutes
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] mtime UTC time
+	 * @param [out] day UTC Day
+	 * @param [out] month UTC Month
+	 * @param [out] year UTC Year
+	 * @param [out] localZoneHours Local time zone Hours
+	 * @param [out] localZoneMinutes Local time zone Minutes
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -56,7 +58,9 @@ public:
 	/**
 	 * @brief GLL NMEA Message parser
 	 *
-	 * <b>GLL NMEA message fields</b>
+	 * <b>GLL NMEA message fields</b><br>
+	 * <i>Geographic Position - Latitude/Longitude</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--GLL
@@ -69,12 +73,12 @@ public:
 	 * 7 | Fixed text "A" shows that data is valid
 	 * 8 | The checksum data, always begins with *
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param latitude out Latitude
-	 * @param longitude out Longitude
-	 * @param mtime out UTC time
-	 * @param status out Status
-	 * @param modeIndicator out Mode Indicator
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] latitude Latitude
+	 * @param [out] longitude Longitude
+	 * @param [out] mtime UTC time
+	 * @param [out] status Status
+	 * @param [out] modeIndicator Mode Indicator
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -85,7 +89,9 @@ public:
 	/**
 	 * @brief GGA NMEA Message parser
 	 *
-	 * <b>GGA NMEA message fields</b>
+	 * <b>GGA NMEA message fields</b><br>
+	 * <i>Global Positioning System Fix Data</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--GGA
@@ -105,17 +111,17 @@ public:
 	 * 14 | Reference station ID, range 0000-4095. A null field when any reference station ID is selected and no corrections are received1.
 	 * 15 | The checksum data, always begins with *
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param mtime out UTC time
-	 * @param latitude out Latitude
-	 * @param longitude out Longitude
-	 * @param quality out Quality Indicator
-	 * @param numSV out SVs in use
-	 * @param hdop out HDOP
-	 * @param orthometricheight out Orthometric height (MSL reference)
-	 * @param geoidseparation out geoid separation measured in meters
-	 * @param agediffgps out Age of differential GPS data record
-	 * @param refid out Reference station ID
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] mtime UTC time
+	 * @param [out] latitude Latitude
+	 * @param [out] longitude Longitude
+	 * @param [out] quality Quality Indicator
+	 * @param [out] numSV SVs in use
+	 * @param [out] hdop HDOP
+	 * @param [out] orthometricheight Orthometric height (MSL reference)
+	 * @param [out] geoidseparation geoid separation measured in meters
+	 * @param [out] agediffgps Age of differential GPS data record
+	 * @param [out] refid Reference station ID
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -128,7 +134,9 @@ public:
 	/**
 	 * @brief VTG NMEA Message parser
 	 *
-	 * <b>VTG NMEA message fields</b>
+	 * <b>VTG NMEA message fields</b><br>
+	 * <i>Track made good and Ground speed</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--VTG
@@ -142,11 +150,11 @@ public:
 	 * 8 | K: speed over ground is measured in kph
 	 * 9 | The checksum data, always begins with *
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param coursetrue out Course Over Ground
-	 * @param coursemagnetic out Course Over Ground (relative magnetic north)
-	 * @param speedknots out Speed in knots
-	 * @param speedkph out Speed in Kph
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] coursetrue Course Over Ground
+	 * @param [out] coursemagnetic Course Over Ground (relative magnetic north)
+	 * @param [out] speedknots Speed in knots
+	 * @param [out] speedkph Speed in Kph
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -157,7 +165,9 @@ public:
 	/**
 	 * @brief RMC NMEA Message parser
 	 *
-	 * <b>RMC NMEA message fields</b>
+	 * <b>RMC NMEA message fields</b><br>
+	 * <i>Recommended Minimum Navigation Information</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--RMC
@@ -176,14 +186,14 @@ public:
 	 * 13 | Navigational status
 	 * 14 | The checksum data, always begins with *
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param mtime out UTC time
-	 * @param latitude out Latitude
-	 * @param longitude out Longitude
-	 * @param speedknots out Speed in Knots
-	 * @param coursetrue out Course relative to true north
-	 * @param mdate out UTC date
-	 * @param magneticvar out Magnetic variation
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] mtime UTC time
+	 * @param [out] latitude Latitude
+	 * @param [out] longitude Longitude
+	 * @param [out] speedknots Speed in Knots
+	 * @param [out] coursetrue Course relative to true north
+	 * @param [out] mdate UTC date
+	 * @param [out] magneticvar Magnetic variation
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -195,7 +205,9 @@ public:
 	/**
 	 * @brief WPL NMEA Message parser
 	 *
-	 * <b>WPL NMEA message fields</b>
+	 * <b>WPL NMEA message fields</b><br>
+	 * <i>Waypoint Location</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--WPL
@@ -206,10 +218,10 @@ public:
 	 * 5 | Waypoint Name
 	 * 6 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param latitude out Latitude
-	 * @param longitude out Longitude
-	 * @param waypointName out Waypoint Name
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] latitude Latitude
+	 * @param [out] longitude Longitude
+	 * @param [out] waypointName Waypoint Name
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -219,7 +231,9 @@ public:
 	/**
 	 * @brief RTE NMEA Message parser
 	 *
-	 * <b>RTE NMEA message fields</b>
+	 * <b>RTE NMEA message fields</b><br>
+	 * <i>RoutesSFI - Scanning Frequency Information</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $--RTE
@@ -230,12 +244,12 @@ public:
 	 * 5 | onwards, Names of waypoints in Route
 	 * 6 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param totalLines out Total Lines
-	 * @param lineCount out Current Line
-	 * @param messageMode out Message mode
-	 * @param routeIdentifier out Route Identifier
-	 * @param waypointNames out Waypoint Names
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] totalLines Total Lines
+	 * @param [out] lineCount Current Line
+	 * @param [out] messageMode Message mode
+	 * @param [out] routeIdentifier Route Identifier
+	 * @param [out] waypointNames Waypoint Names
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -246,7 +260,9 @@ public:
 	/**
 	 * @brief VHW NMEA Message parser
 	 *
-	 * <b>VHW NMEA message fields</b>
+	 * <b>VHW NMEA message fields</b><br>
+	 * <i>Water speed and heading</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $VDVHW
@@ -260,9 +276,9 @@ public:
 	 * 8 | K = Kilometres
 	 * 9 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param speedInKnots out Speed in Knots
-	 * @param speedInKmH out Speed in Km/h
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] speedInKnots Speed in Knots
+	 * @param [out] speedInKmH Speed in Km/h
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -272,7 +288,9 @@ public:
 	/**
 	 * @brief MTW NMEA Message parser
 	 *
-	 * <b>MTW NMEA message fields</b>
+	 * <b>MTW NMEA message fields</b><br>
+	 * <i>Mean Temperature of Water</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $VDMTW
@@ -280,9 +298,9 @@ public:
 	 * 2 | Unit of Measurement, Celsius
 	 * 3 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param degrees out Temperature degrees
-	 * @param units out Temperature Units
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] degrees Temperature degrees
+	 * @param [out] units Temperature Units
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -292,7 +310,9 @@ public:
 	/**
 	 * @brief VBW NMEA Message parser
 	 *
-	 * <b>VBW NMEA message fields</b>
+	 * <b>VBW NMEA message fields</b><br>
+	 * <i>Dual Ground/Water Speed</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $VDVBW
@@ -304,13 +324,13 @@ public:
 	 * 6 | Ground Data Status, A = data valid
 	 * 7 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param longitudinalWaterSpeed out Longitudinal water speed, negative means astern
-	 * @param transverseWaterSpeed out Transverse water speed, negative means port
-	 * @param waterDataStatus out Water Data Status
-	 * @param longitudinalGroundSpeed out Longitudinal ground speed, negative means astern
-	 * @param transverseGroundSpeed out Transverse ground speed, negative means port
-	 * @param groundDataStatus out Ground Data Status
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] longitudinalWaterSpeed Longitudinal water speed, negative means astern
+	 * @param [out] transverseWaterSpeed Transverse water speed, negative means port
+	 * @param [out] waterDataStatus Water Data Status
+	 * @param [out] longitudinalGroundSpeed Longitudinal ground speed, negative means astern
+	 * @param [out] transverseGroundSpeed Transverse ground speed, negative means port
+	 * @param [out] groundDataStatus Ground Data Status
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -322,7 +342,9 @@ public:
 	/**
 	 * @brief VLW NMEA Message parser
 	 *
-	 * <b>VLW NMEA message fields</b>
+	 * <b>VLW NMEA message fields</b><br>
+	 * <i>Distance Traveled through Water</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $VDVLW
@@ -332,9 +354,9 @@ public:
 	 * 4 | N = Nautical Miles
 	 * 5 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param totalCumulativeDistance out Total cumulative distance in Nautical Miles
-	 * @param distanceSinceReset out Distance since reset in Nautical Miles
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] totalCumulativeDistance Total cumulative distance in Nautical Miles
+	 * @param [out] distanceSinceReset Distance since reset in Nautical Miles
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -344,7 +366,9 @@ public:
 	/**
 	 * @brief DPT NMEA Message parser
 	 *
-	 * <b>DPT NMEA message fields</b>
+	 * <b>DPT NMEA message fields</b><br>
+	 * <i>Depth of Water</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $SDDPT
@@ -353,10 +377,10 @@ public:
 	 * 3 | Maximum range scale in use, meters
 	 * 4 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param waterDepthRelativeToTheTransducer out Water Depth Relative to transducer in meters
-	 * @param offsetFromTransducer out Offset from transducer
-	 * @param maximumRangeScaleInUse out Maximum range scale in use
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] waterDepthRelativeToTheTransducer Water Depth Relative to transducer in meters
+	 * @param [out] offsetFromTransducer Offset from transducer
+	 * @param [out] maximumRangeScaleInUse Maximum range scale in use
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -367,7 +391,9 @@ public:
 	/**
 	 * @brief DBT NMEA Message parser
 	 *
-	 * <b>DBT NMEA message fields</b>
+	 * <b>DBT NMEA message fields</b><br>
+	 * <i>Depth below transducer</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $SDDBT
@@ -378,10 +404,10 @@ public:
 	 * 5 | Depth, Fathoms
 	 * 6 | F = Fathoms
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param waterDepthInFeet out Water Depth in Feet
-	 * @param waterDepthInMeters out Water Depth in Meters
-	 * @param waterDepthInFathoms out Water Depth in Fathoms
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] waterDepthInFeet Water Depth in Feet
+	 * @param [out] waterDepthInMeters Water Depth in Meters
+	 * @param [out] waterDepthInFathoms Water Depth in Fathoms
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -392,7 +418,9 @@ public:
 	/**
 	 * @brief DBK NMEA Message parser
 	 *
-	 * <b>DBK NMEA message fields</b>
+	 * <b>DBK NMEA message fields</b><br>
+	 * <i>Depth Below Keel</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $SDDBK
@@ -404,25 +432,26 @@ public:
 	 * 6 | F = Fathoms
 	 * 7 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param depthBelowKeelFeet out Depth below Keel in Feet
-	 * @param depthBelowKeelMeters out Depth below Keel in Meter
-	 * @param depthBelowKeelFathoms out Depth below Keel in Fathoms
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] depthBelowKeelFeet Depth below Keel in Feet
+	 * @param [out] depthBelowKeelMeters Depth below Keel in Meter
+	 * @param [out] depthBelowKeelFathoms Depth below Keel in Fathoms
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
 	static NmeaParserResult parseDBK(const std::string& nmea,
-			double& depthBelowKeelFeet,
-			double& depthBelowKeelMeters,
+			double& depthBelowKeelFeet, double& depthBelowKeelMeters,
 			double& depthBelowKeelFathoms);
 
 	/**
 	 * @brief PSKPDPT NMEA Message parser
 	 *
-	 * <b>PSKPDPT NMEA message fields</b>
+	 * <b>PSKPDPT NMEA message fields</b><br>
+	 * <i>SKIPPER proprietary sentence for multiple transducers installation</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
-	 * 0 | Message ID $GPPSKPDPT
+	 * 0 | Message ID $PSKPDPT
 	 * 1 | Water depth relative to transducer, meters
 	 * 2 | Offset from transducer, meters
 	 * 3 | Maximum range scale in use, meters
@@ -431,13 +460,13 @@ public:
 	 * 6 | Transducer location
 	 * 7 | Check sum, possible to turn on/off (see screen 8)
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param waterDepthRelativeToTheTransducer out Water Depth Relative to the Transducer
-	 * @param offsetFromTransducer out Offset from Transducer
-	 * @param maximumRangeScaleInUse out Maximum Range Scale in Use
-	 * @param bottomEchoStrength out Bottom Echo Strength
-	 * @param echoSounderChannelNumber out Echo Sounder Channel Number
-	 * @param transducerLocation out Transducer Location
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] waterDepthRelativeToTheTransducer Water Depth Relative to the Transducer
+	 * @param [out] offsetFromTransducer Offset from Transducer
+	 * @param [out] maximumRangeScaleInUse Maximum Range Scale in Use
+	 * @param [out] bottomEchoStrength Bottom Echo Strength
+	 * @param [out] echoSounderChannelNumber Echo Sounder Channel Number
+	 * @param [out] transducerLocation Transducer Location
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -450,7 +479,9 @@ public:
 	/**
 	 * @brief HDT NMEA Message parser
 	 *
-	 * <b>HDT NMEA message fields</b>
+	 * <b>HDT NMEA message fields</b><br>
+	 * <i>Heading - 1</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $HCHDT
@@ -458,8 +489,8 @@ public:
 	 * 2 | T = True
 	 * 3 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param headingDegreesTrue out Heading degrees relative to true north
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] headingDegreesTrue Heading degrees relative to true north
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -467,9 +498,11 @@ public:
 			double& headingDegreesTrue);
 
 	/**
-	 * @brief HDT NMEA Message parser
+	 * @brief HDG NMEA Message parser
 	 *
-	 * <b>HDT NMEA message fields</b>
+	 * <b>HDG NMEA message fields</b><br>
+	 * <i>Heading - Deviation & Variation</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $HCHDG
@@ -480,12 +513,12 @@ public:
 	 * 5 | Magnetic Variation direction, E = Easterly, W = Westerly
 	 * 6 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param magneticSensorHeadingInDegrees out Magnetic Sensor Heading in Degrees
-	 * @param magneticDeviationDegrees out Magnetic Deviation Degrees
-	 * @param magneticDeviationDirection out Magnetic Deviation Direction
-	 * @param magneticVariationDegrees out Magnetic Variation Degrees
-	 * @param magneticVariationDirection out Magnetic Variation Direction
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] magneticSensorHeadingInDegrees Magnetic Sensor Heading in Degrees
+	 * @param [out] magneticDeviationDegrees Magnetic Deviation Degrees
+	 * @param [out] magneticDeviationDirection Magnetic Deviation Direction
+	 * @param [out] magneticVariationDegrees Magnetic Variation Degrees
+	 * @param [out] magneticVariationDirection Magnetic Variation Direction
 	 *
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
@@ -494,17 +527,12 @@ public:
 			double& magneticDeviationDegrees, char& magneticDeviationDirection,
 			double& magneticVariationDegrees, char& magneticVariationDirection);
 
-	//  -------------------- 18  HCHDM --------------------
-	//	HCHDM message fields
-	//	Field 	Meaning
-	//	0 	Message ID $HCHDM
-	//	1 	Heading Degrees, magnetic
-	//	2 	M = magnetic
-	//	3 	Checksum
 	/**
-	 * @brief HDT NMEA Message parser
+	 * @brief HDM NMEA Message parser
 	 *
-	 * <b>HDT NMEA message fields</b>
+	 * <b>HDM NMEA message fields</b><br>
+	 * <i>Heading - Magnetic</i>
+	 *
 	 * Field | Meaning
 	 * ------|---------
 	 * 0 | Message ID $HCHDM
@@ -512,100 +540,161 @@ public:
 	 * 2 | M = magnetic
 	 * 3 | Checksum
 	 *
-	 * @param nmea in String with NMEA Sentence
-	 * @param headingDegreesMagnetic out Heading Degrees relative to magnetic North
-	 * @return
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] headingDegreesMagnetic Heading Degrees relative to magnetic North
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
 	static NmeaParserResult parseHDM(const std::string& nmea,
 			double& headingDegreesMagnetic);
 
-	//  -------------------- 19  TIROT --------------------
-	//	--ROT message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--ROT
-	//	1 	Rate Of Turn, degrees per minute, "-" means bow turns to port
-	//	2 	Status, A means data is valid
-	//	3 	Checksum
+	/**
+	 * @brief ROT NMEA Message parser
+	 *
+	 * <b>ROT NMEA message fields</b><br>
+	 * <i>Rate Of Turn</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--ROT
+	 * 1 | Rate Of Turn, degrees per minute, "-" means bow turns to port
+	 * 2 | Status, A means data is valid
+	 * 3 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] rateOfTurn Rate of Turn, Degrees per minute. Negative means to port.
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseROT(const std::string& nmea,
-			double& rateOfTurn, char& status);
+			double& rateOfTurn);
 
-	//  -------------------- 20  IIMWV --------------------
-	//	IIMWV message fields
-	//	Field 	Meaning
-	//	0 	Message ID $IIMWV
-	//	1 	Wind Angle, 0 to 360 degrees
-	//	2 	Reference, R = Relative, T = True
-	//	3 	Wind Speed
-	//	4 	Wind Speed Units, K = km/hr, M = m/sec, N = kt
-	//	5 	Sensor Status, A = Valid, V = Void
-	//	6	Checksum
+	/**
+	 * @brief MWV NMEA Message parser
+	 *
+	 * <b>MWV NMEA message fields</b><br>
+	 * <i>Wind Speed and Angle</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $IIMWV
+	 * 1 | Wind Angle, 0 to 360 degrees
+	 * 2 | Reference, R = Relative, T = True
+	 * 3 | Wind Speed
+	 * 4 | Wind Speed Units, K = km/hr, M = m/sec, N = kt
+	 * 5 | Sensor Status, A = Valid, V = Void
+	 * 6 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] windAngle Wind Angle in degrees
+	 * @param [out] reference Reference True or Relative
+	 * @param [out] windSpeed Wind Speed
+	 * @param [out] windSpeedUnits Wind Speed Units
+	 * @param [out] sensorStatus Sensor Status
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseMWV(const std::string& nmea, double& windAngle,
 			char& reference, double& windSpeed, char& windSpeedUnits,
 			char& sensorStatus);
 
-	//  -------------------- 21  --MWD --------------------
-	//	--MWD message fields
-	//	Field 	Meaning
-	//	0 	Message ID --MWD
-	//	1  	Wind direction, 0° to 359º
-	//	2	True
-	//	3	Wind direction, 0° to 359º
-	//	4	Magnetic
-	//	5	Wind speed
-	//	6	Knots
-	//	7	Wind speed
-	//	8	meters/second
-	//  9 	checksum
+	/**
+	 * @brief MWD NMEA Message parser
+	 *
+	 * <b>MWD NMEA message fields</b><br>
+	 * <i>Wind Direction & Speed</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --MWD
+	 * 1 | Wind direction, 0° to 359º
+	 * 2 | True
+	 * 3 | Wind direction, 0° to 359º
+	 * 4 | Magnetic
+	 * 5 | Wind speed in Knots
+	 * 6 | Knots
+	 * 7 | Wind speed in Meters per second
+	 * 8 | meters/second
+	 * 9 | checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] trueWindDirection Wind Direction in Degrees relative to True North.
+	 * @param [out] magneticWindDirection Wind Direction in Degrees relative to Magnetic North.
+	 * @param [out] windSpeedKnots Wind Speed in Knots.
+	 * @param [out] windSpeedMeters Wind Speed in Meters per second.
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseMWD(const std::string& nmea,
-			double& trueWindDirection, char& t, double& magneticWindDirection,
-			char& magnetic, double& windSpeedKnots, char& knots,
-			double& windSpeedMeters, char& meters);
+			double& trueWindDirection, double& magneticWindDirection,
+			double& windSpeedKnots, double& windSpeedMeters);
 
-	//  -------------------- 22  --XDR --------------------
-	//	--XDR message fields
-	//	Field 	Meaning
-	//	0 	Message ID --XDR
-	//	1 	Transducer type
-	//	2 	Temperature Reading
-	//	3 	Temperature Reading in Degrees Centigrade
-	//	4 	Name of transducer
-	//	5 	Type of Sensor
-	//	6 	Pressure Reading in Bars
-	//	7 	Units in Bars
-	//	8 	Name of Pressure Sensor
-	//	9 	Type of Sensor
-	//	10 	Humidity Reading in Percent
-	//	11	Units of Measure Percent
-	//	12	Name of Relative Humidity Sensor
-	//	13	Checksum
+	/**
+	 * @brief XDR NMEA Message parser
+	 *
+	 * <b>XDR NMEA message fields</b><br>
+	 * <i>Transducer Measurement</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --XDR
+	 * 1 | Transducer Type
+	 * 2 | Measurement Data
+	 * 3 | Units of Measurement
+	 * 4 | Name of Transducer
+	 * ... | More Quadruplets like This.
+	 * n | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] measurements Vector of measurements. Each item have Transducer Type, Measurement Data, Units and Name of Transducer.
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseXDR(const std::string& nmea,
-			char& typeOfSensorTemperature, double& temperatureReading,
-			char& centigrade, std::string& nameOfTransducer,
-			char& typeOfSensorPressure, double& pressureReading, char& bars,
-			std::string& nameOfPressureSensor, char& typeOfSensorHumidity,
-			double& humidity, char& humidityUnitsOfMeasurePercent,
-			std::string& nameOfRelativeHumiditySensor);
+			std::vector<TransducerMeasurement>& measurements);
 
-	//  --------------------   --TTM --------------------
-	//	--TTM message fields
-	//  Field   Meaning
-	//  0   Message ID $--TTM
-	//  1	Target Number (0-99)
-	//	2   Target Distance from own ship
-	// 	3   Bearing from own ship
-	//  4   (T/R) true/relative
-	//  5   Target Speed
-	//  6   Target Course
-	//  7 	(T/R) true relative
-	//  8   Distance of closest-point-of-approach
-	//  9   Time to CPA, min., "-" means increasing
-	//  10   Speed units, (K/N/S)
-	//  11  Target Name
-	//  12  Target status
-	//  13  Reference Target R, null otherwise
-	//  14  Time of data UTC
-	//  15  Type of acquisition A/M/R
-	//  16  Checksum
+	/**
+	 * @brief TTM NMEA Message parser
+	 *
+	 * <b>TTM NMEA message fields</b><br>
+	 * <i>Tracked Target Message</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--TTM
+	 * 1 | Target Number (0-99)
+	 * 2 | Target Distance from own ship
+	 * 3 | Bearing from own ship
+	 * 4 | (T/R) true/relative
+	 * 5 | Target Speed
+	 * 6 | Target Course
+	 * 7 | (T/R) true relative
+	 * 8 | Distance of closest-point-of-approach
+	 * 9 | Time to CPA, min., "-" means increasing
+	 * 10 | Speed units, (K/N/S)
+	 * 11 | Target Name
+	 * 12 | Target status
+	 * 13 | Reference Target R, null otherwise
+	 * 14 | Time of data UTC
+	 * 15 | Type of acquisition A/M/R
+	 * 16 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] targetNumber Target Number
+	 * @param [out] targetDistance Distance to Target
+	 * @param [out] targetBearing Bearing to Target
+	 * @param [out] targetBearingReference Relative or True North Reference
+	 * @param [out] targetSpeed Target Speed
+	 * @param [out] targetCourse Target Course
+	 * @param [out] targetCourseReference Relative or True North Reference
+	 * @param [out] speedDistanceUnits Speed and Distance Units
+	 * @param [out] targetName Target Name
+	 * @param [out] targetStatus Target Status
+	 * @param [out] timeOfData Time of acquisition
+	 * @param [out] typeOfAcquisition Type of acquisition
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseTTM(const std::string& nmea, int& targetNumber,
 			double& targetDistance, double& targetBearing,
 			Nmea_AngleReference& targetBearingReference, double& targetSpeed,
@@ -615,68 +704,136 @@ public:
 			boost::posix_time::time_duration& timeOfData,
 			Nmea_TypeOfAcquisition& typeOfAcquisition);
 
-	//  -------------------- 23  --TTD --------------------
-	//	--TTD message fields
-	//	Field 	Meaning
-	//  0   Message ID --TTD
-	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
-	//  2   Hex sentence number, 1 to FF
-	//  3   Sequential message identifier, 0 to 9
-	//  4   Encapsulated tracked target data
-	//  5   Number of fill-bits, 0 to 5
-	//  6  	Checksum
+	/**
+	 * @brief TTD NMEA Message parser
+	 *
+	 * <b>TTD NMEA message fields</b><br>
+	 * <i>Tracked Target Data</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --TTD
+	 * 1 | Total hex number of sentences needed to transfer the message, 1 to FF
+	 * 2 | Hex sentence number, 1 to FF
+	 * 3 | Sequential message identifier, 0 to 9
+	 * 4 | Encapsulated tracked target data
+	 * 5 | Number of fill-bits, 0 to 5
+	 * 6 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] totalLines Total lines needed to transfer the binary message
+	 * @param [out] lineCount Current line sentence number
+	 * @param [out] sequenceIdentifier Sequence identifier
+	 * @param [out] trackData Encapsulated tracked target data
+	 * @param [out] fillBits Number of fill-bits, 0 to 5
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseTTD(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, std::string& trackData,
 			int& fillBits);
 
-	//  -------------------- 24  --TBL --------------------
-	//	--TBL message fields
-	//	Field 	Meaning
-	//	0 	Message ID --TBL
-	//	1 	Target number ´'n' reported by device
-	//	2 	Label assigned to target 'n'
-	//	3 	Additional label pairs
-	//	n	Checksum
+	/**
+	 * @brief TLB NMEA Message parser
+	 *
+	 * <b>TLB NMEA message fields</b>
+	 * <i>Target Label</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --TBL
+	 * 1 | Target number ´'n' reported by device
+	 * 2 | Label assigned to target 'n'
+	 * ... | Additional label pairs
+	 * n | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] trackNumbernLabel Vector of Pairs with Target Number and Target Label
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseTLB(const std::string& nmea,
 			std::vector<std::pair<int, std::string>>& trackNumbernLabel);
 
-	//  -------------------- 25  --OSD --------------------
-	//	--OSD message fields
-	//	Field 	Meaning
-	//	0 	Message ID --OSD
-	//	1 	Heading, degrees true
-	//	2 	Status, A = Data Valid
-	//	3 	Vessel Course, degrees True
-	//	4 	Course Reference
-	//	5 	Vessel Speed
-	//	6	Speed Reference
-	//	7	Vessel Set, degrees True
-	//	8	Vessel drift (speed)
-	//	9	Speed Units
-	//	10	Checksum
+	/**
+	 * @brief OSD NMEA Message parser
+	 *
+	 * <b>OSD NMEA message fields</b><br>
+	 * <i>Own ship data</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --OSD
+	 * 1 | Heading, degrees true
+	 * 2 | Status, A = Data Valid
+	 * 3 | Vessel Course, degrees True
+	 * 4 | Course Reference
+	 * 5 | Vessel Speed
+	 * 6 | Speed Reference
+	 * 7 | Vessel Set, degrees True
+	 * 8 | Vessel drift (speed)
+	 * 9 | Speed Units
+	 * 10 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] heading Degrees from True North
+	 * @param [out] status Data Validity
+	 * @param [out] vesselCourse Ship Course
+	 * @param [out] referenceCourse Course Relative or True North Reference
+	 * @param [out] vesselSpeed Ship Speed
+	 * @param [out] referenceSpeed Reference Speed
+	 * @param [out] vesselSet Vessel Set
+	 * @param [out] vesselDrift Vessel Drift (Speed)
+	 * @param [out] speedUnits Speed Units
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseOSD(const std::string& nmea, double& heading,
 			char& status, double& vesselCourse, char& referenceCourse,
 			double& vesselSpeed, char& referenceSpeed, double& vesselSet,
 			double& vesselDrift, char& speedUnits);
 
-	//  -------------------- 26  --RSD --------------------
-	//	--RSD message fields
-	//	Field 	Meaning
-	//	0 	Message ID --RSD
-	//	1 	Original range from own ship
-	//	2 	Original bearing degrees from 0
-	//	3 	Variable range marker 1 range
-	//	4 	Bearing Line 1(EBL1) degrees from 0
-	//	5 	origin2 range
-	//	6	origin2 bearing
-	//	7 	VRM2, range
-	//	8 	EBL2 degrees
-	//	9 	Cursor range, from own ship
-	//	10 	Cursor bearing, degrees CW from 0
-	//	11	range scale (maximum)
-	//	12	range units, K/N/S
-	//	13	display rotation
-	//	14	Checksum
+	/**
+	 * @brief RSD NMEA Message parser
+	 *
+	 * <b>RSD NMEA message fields</b><br>
+	 * <i>RADAR System Data</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --RSD
+	 * 1 | Original range from own ship
+	 * 2 | Original bearing degrees from 0
+	 * 3 | Variable range marker 1 range
+	 * 4 | Bearing Line 1(EBL1) degrees from 0
+	 * 5 | origin2 range
+	 * 6 | origin2 bearing
+	 * 7 | VRM2, range
+	 * 8 | EBL2 degrees
+	 * 9 | Cursor range, from own ship
+	 * 10 | Cursor bearing, degrees CW from 0
+	 * 11 | range scale (maximum)
+	 * 12 | range units, K/N/S
+	 * 13 | display rotation
+	 * 14 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] origin1Range Original range from own ship
+	 * @param [out] origin1BearingDegrees Original bearing degrees from 0
+	 * @param [out] variableRangeMarker1 Variable range marker 1 range
+	 * @param [out] bearingLine1 Bearing Line 1(EBL1) degrees from 0
+	 * @param [out] origin2Range Origin2 range
+	 * @param [out] origin2Bearing Origin2 bearing
+	 * @param [out] vrm2 VRM2, range
+	 * @param [out] ebl2 EBL2 degrees
+	 * @param [out] cursorRange Cursor range, from own ship
+	 * @param [out] cursorBearing Cursor bearing, degrees CW from 0
+	 * @param [out] rangeScale range scale (maximum)
+	 * @param [out] rangeUnits range units, K/N/S
+	 * @param [out] displayRotation display rotation
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseRSD(const std::string& nmea,
 			double& origin1Range, double& origin1BearingDegrees,
 			double& variableRangeMarker1, double& bearingLine1,
@@ -684,56 +841,144 @@ public:
 			double& ebl2, double& cursorRange, double& cursorBearing,
 			double& rangeScale, char& rangeUnits, char& displayRotation);
 
-	//  -------------------- 27  --VDM --------------------
-	//	--VDM message fields
-	//	Field 	Meaning
-	//  0   Message ID --VDM
-	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
-	//  2   Hex sentence number, 1 to FF
-	//  3   Sequential message identifier, 0 to 9
-	//  4   AIS Channel
-	//  5   Encapsulated data
-	//  6   Number of fill-bits, 0 to 5
-	//	7	Checksum
+	/**
+	 * @brief VDM NMEA Message parser
+	 *
+	 * <b>VDM NMEA message fields</b><br>
+	 * <i>AIS VHF data-link message</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --VDM
+	 * 1 | Total hex number of sentences needed to transfer the message, 1 to FF
+	 * 2 | Hex sentence number, 1 to FF
+	 * 3 | Sequential message identifier, 0 to 9
+	 * 4 | AIS Channel
+	 * 5 | Encapsulated data
+	 * 6 | Number of fill-bits, 0 to 5
+	 * 7 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] totalLines Total lines needed to transfer the binary message
+	 * @param [out] lineCount Current line sentence number
+	 * @param [out] sequenceIdentifier Sequence identifier
+	 * @param [out] aisChannel AIS Channel
+	 * @param [out] encodedData Encapsulated tracked target data
+	 * @param [out] fillBits Number of fill-bits, 0 to 5
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseVDM(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
 
-	//  -------------------- 28  --VDO --------------------
-	//	--VDM message fields
-	//	Field 	Meaning
-	//  0   Message ID --VDO
-	//  1   Total hex number of sentences needed to transfer the message, 1 to FF
-	//  2   Hex sentence number, 1 to FF
-	//  3   Sequential message identifier, 0 to 9
-	//  4   AIS Channel
-	//  5   Encapsulated data
-	//  6   Number of fill-bits, 0 to 5
-	//	7	Checksum
+	/**
+	 * @brief VDO NMEA Message parser
+	 *
+	 * <b>VDO NMEA message fields</b><br>
+	 * <i>AIS VHF data-link own-vessel report</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID --VDO
+	 * 1 | Total hex number of sentences needed to transfer the message, 1 to FF
+	 * 2 | Hex sentence number, 1 to FF
+	 * 3 | Sequential message identifier, 0 to 9
+	 * 4 | AIS Channel
+	 * 5 | Encapsulated data
+	 * 6 | Number of fill-bits, 0 to 5
+	 * 7 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] totalLines Total lines needed to transfer the binary message
+	 * @param [out] lineCount Current line sentence number
+	 * @param [out] sequenceIdentifier Sequence identifier
+	 * @param [out] aisChannel AIS Channel
+	 * @param [out] encodedData Encapsulated tracked target data
+	 * @param [out] fillBits Number of fill-bits, 0 to 5
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseVDO(const std::string& nmea, int& totalLines,
 			int& lineCount, int& sequenceIdentifier, char& aisChannel,
 			std::string& encodedData, int& fillBits);
 
+	/**
+	 * @brief Parse TTD Binary data
+	 *
+	 * @param [in] trackData Track Binary Encoded Data
+	 * @param [out] tracks Vector filled with each Target
+	 *
+	 * @return True on success.
+	 */
 	static bool parseTTDPayload(const std::string& trackData,
 			std::vector<NmeaTrackData>& tracks);
 
+	/**
+	 * @brief Parse AIS Message Type
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] messageType Message type for the given data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISMessageType(const std::string& encodedData,
 			Nmea_AisMessageType& messageType);
 
+	/**
+	 * @brief Parse AIS Position Report Class A - Types 1, 2 and 3
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISPositionReportClassA(const std::string& encodedData,
 			AISPositionReportClassA& data);
 
+	/**
+	 * @brief Parse AIS Base Station Report - Type 4
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISBaseStationReport(const std::string& encodedData,
 			AISBaseStationReport& data);
 
+	/**
+	 * @brief Parse AIS Static And Voyage Related Data - Type 5
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISStaticAndVoyageRelatedData(
 			const std::string& encodedData,
 			AISStaticAndVoyageRelatedData& data);
 
+	/**
+	 * @brief Parse AIS Standard Class B CS Position Report - Type 18
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISStandardClassBCSPositionReport(
 			const std::string& encodedData,
 			AISStandardClassBCSPositionReport& data);
 
+	/**
+	 * @brief Parse AIS Static Data Report - Type 24
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
 	static bool parseAISStaticDataReport(const std::string& encodedData,
 			AISStaticDataReport& data);
 
