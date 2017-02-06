@@ -161,8 +161,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_AisMessageType val)
 		return out << "Nmea_AisMessageType_UTCAndDateResponse";
 	case Nmea_AisMessageType_AddressedSafetyRelatedMessage:
 		return out << "Nmea_AisMessageType_AddressedSafetyRelatedMessage";
-	case Nmea_AisMessageType_SafetyRelatedAcknowledgement:
-		return out << "Nmea_AisMessageType_SafetyRelatedAcknowledgement";
+	case Nmea_AisMessageType_SafetyRelatedAcknowledgment:
+		return out << "Nmea_AisMessageType_SafetyRelatedAcknowledgment";
 	case Nmea_AisMessageType_SafetyRelatedBroadcastMessage:
 		return out << "Nmea_AisMessageType_SafetyRelatedBroadcastMessage";
 	case Nmea_AisMessageType_Interrogation:
@@ -207,8 +207,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_NavigationStatus val)
 		return out << "Nmea_NavigationStatus_AtAnchor";
 	case Nmea_NavigationStatus_NotUnderCommand:
 		return out << "Nmea_NavigationStatus_NotUnderCommand";
-	case Nmea_NavigationStatus_RestrictedManoeuverability:
-		return out << "Nmea_NavigationStatus_RestrictedManoeuverability";
+	case Nmea_NavigationStatus_RestrictedManeuverability:
+		return out << "Nmea_NavigationStatus_RestrictedManeuverability";
 	case Nmea_NavigationStatus_ConstrainedByHerDraught:
 		return out << "Nmea_NavigationStatus_ConstrainedByHerDraught";
 	case Nmea_NavigationStatus_Moored:

@@ -55,10 +55,6 @@ NmeaParser::NmeaParser() {
 
 }
 
-NmeaParser::~NmeaParser() {
-
-}
-
 bool NmeaParser::impl::tokenizeSentence(const std::string& nmea,
 		std::vector<std::string>& tokens) {
 
@@ -923,8 +919,7 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 }
 
 NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
-		double& speedInKnots, char& knots, double& speedInKmH,
-		char& kilometers) {
+		double& speedInKnots, double& speedInKmH) {
 
 	LOG_MESSAGE(trace)<< "NmeaParser::parseVHW";
 	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
@@ -963,12 +958,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 			LOG_MESSAGE(debug) <<"speedInKnots = " << speedInKnots;
 
 			/*------------ Field 06 ---------------*/
-			if (!impl::decodeDefault<char>(itNmea, knots, defChar)) {
-				ret.set(idxVar);
-				++itNmea;
-			}
-			++idxVar;
-			LOG_MESSAGE(debug) <<"knots = " << knots;
+			++itNmea;
 
 			/*------------ Field 07 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedInKmH, 0)) {
@@ -979,12 +969,7 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 			LOG_MESSAGE(debug) <<"speedInKmH = " << speedInKmH;
 
 			/*------------ Field 08 ---------------*/
-			if (!impl::decodeDefault<char>(itNmea, kilometers, defChar)) {
-				ret.set(idxVar);
-				++itNmea;
-			}
-			++idxVar;
-			LOG_MESSAGE(debug) <<"kilometers = " << kilometers;
+			++itNmea;
 
 		} else {
 			ret.set();

@@ -1,9 +1,9 @@
-/*
- * NmeaParser.h
- *
- *  Created on: Feb 3, 2016
- *      Author: steve
- */
+/**
+*	@file NmeaParser.h
+*	@brief NmeaParser main class
+*
+*   NmeaParser class with all parsing methods.
+*/
 
 #ifndef SRC_NMEAPARSER_H_
 #define SRC_NMEAPARSER_H_
@@ -18,151 +18,255 @@
 typedef std::bitset<16> NmeaParserResult;
 typedef std::bitset<6> SixBit;
 
+/**
+ * @brief State-less class for static methods used for Parsing NMEA.
+ */
 class NmeaParser {
 public:
-	NmeaParser();
-	virtual ~NmeaParser();
-
-	//  -------------------- 01  --ZDA --------------------
-	//	--ZDA message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--ZDA
-	//	1 	UTC
-	//	2 	Day, ranging between 01 and 31
-	//	3 	Month, ranging between 01 and 12
-	//	4 	Year
-	//	5 	Local time zone offset from GMT, ranging from 00 through ±13 hours
-	//	6 	Local time zone offset from GMT, ranging from 00 through 59 minutes
-	//	7 	The checksum data, always begins with *
+	/**
+	 * @brief ZDA NMEA Message parser
+	 *
+	 * <b>ZDA NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--ZDA
+	 * 1 | UTC
+	 * 2 | Day, ranging between 01 and 31
+	 * 3 | Month, ranging between 01 and 12
+	 * 4 | Year
+	 * 5 | Local time zone offset from GMT, ranging from 00 through ±13 hours
+	 * 6 | Local time zone offset from GMT, ranging from 00 through 59 minutes
+	 * 7 | The checksum data, always begins with *
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param mtime out UTC time
+	 * @param day out UTC Day
+	 * @param month out UTC Month
+	 * @param year out UTC Year
+	 * @param localZoneHours out Local time zone Hours
+	 * @param localZoneMinutes out Local time zone Minutes
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseZDA(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, int& day, int& month,
 			int& year, int& localZoneHours, int& localZoneMinutes);
 
-	//  -------------------- 02  --GLL --------------------
-	//	--GLL message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--GLL
-	//	1 	Latitude in dd mm,mmmm format (0-7 decimal places)
-	//	2 	Direction of latitude N: North S: South
-	//	3 	Longitude in ddd mm,mmmm format (0-7 decimal places)
-	//	4 	Direction of longitude E: East W: West
-	//	5 	UTC of position in hhmmss.ss format
-	//	6 	Fixed text "A" shows that data is valid
-	//  7   Fixed text "A" shows that data is valid
-	//	8 	The checksum data, always begins with *
+	/**
+	 * @brief GLL NMEA Message parser
+	 *
+	 * <b>GLL NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--GLL
+	 * 1 | Latitude in dd mm,mmmm format (0-7 decimal places)
+	 * 2 | Direction of latitude N: North S: South
+	 * 3 | Longitude in ddd mm,mmmm format (0-7 decimal places)
+	 * 4 | Direction of longitude E: East W: West
+	 * 5 | UTC of position in hhmmss.ss format
+	 * 6 | Fixed text "A" shows that data is valid
+	 * 7 | Fixed text "A" shows that data is valid
+	 * 8 | The checksum data, always begins with *
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param latitude out Latitude
+	 * @param longitude out Longitude
+	 * @param mtime out UTC time
+	 * @param status out Status
+	 * @param modeIndicator out Mode Indicator
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseGLL(const std::string& nmea, double& latitude,
 			double& longitude, boost::posix_time::time_duration& mtime,
 			char& status, char& modeIndicator);
 
-	//  -------------------- 03  --GGA --------------------
-	//	--GGA message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--GGA
-	//	1 	UTC of position fix
-	//	2 	Latitude
-	//	3 	Direction of latitude: N: North S: South
-	//	4 	Longitude
-	//	5 	Direction of longitude: E: East W: West
-	//	6 	GPS Quality indicator: 0: Fix not valid 1: GPS fix 2: Differential GPS fix, OmniSTAR VBS 4: Real-Time Kinematic, fixed integers 5: Real-Time Kinematic, float integers, OmniSTAR XP/HP or Location RTK
-	//	7 	Number of SVs in use, range from 00 through to 24+
-	//	8 	HDOP
-	//	9 	Orthometric height (MSL reference)
-	//	10 	M: unit of measure for orthometric height is meters
-	//	11 	Geoid separation
-	//	12 	M: geoid separation measured in meters
-	//	13 	Age of differential GPS data record, Type 1 or Type 9. Null field when DGPS is not used.
-	//	14 	Reference station ID, range 0000-4095. A null field when any reference station ID is selected and no corrections are received1.
-	//	15 	The checksum data, always begins with *
+	/**
+	 * @brief GGA NMEA Message parser
+	 *
+	 * <b>GGA NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--GGA
+	 * 1 | UTC of position fix
+	 * 2 | Latitude
+	 * 3 | Direction of latitude: N: North S: South
+	 * 4 | Longitude
+	 * 5 | Direction of longitude: E: East W: West
+	 * 6 | GPS Quality indicator: 0: Fix not valid 1: GPS fix 2: Differential GPS fix, OmniSTAR VBS 4: Real-Time Kinematic, fixed integers 5: Real-Time Kinematic, float integers, OmniSTAR XP/HP or Location RTK
+	 * 7 | Number of SVs in use, range from 00 through to 24+
+	 * 8 | HDOP
+	 * 9 | Orthometric height (MSL reference)
+	 * 10 | M: unit of measure for orthometric height is meters
+	 * 11 | Geoid separation
+	 * 12 | M: geoid separation measured in meters
+	 * 13 | Age of differential GPS data record, Type 1 or Type 9. Null field when DGPS is not used.
+	 * 14 | Reference station ID, range 0000-4095. A null field when any reference station ID is selected and no corrections are received1.
+	 * 15 | The checksum data, always begins with *
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param mtime out UTC time
+	 * @param latitude out Latitude
+	 * @param longitude out Longitude
+	 * @param quality out Quality Indicator
+	 * @param numSV out SVs in use
+	 * @param hdop out HDOP
+	 * @param orthometricheight out Orthometric height (MSL reference)
+	 * @param geoidseparation out geoid separation measured in meters
+	 * @param agediffgps out Age of differential GPS data record
+	 * @param refid out Reference station ID
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseGGA(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, double& latitude,
 			double& longitude, Nmea_GPSQualityIndicator& quality, int& numSV,
 			double& hdop, double& orthometricheight, double& geoidseparation,
 			double& agediffgps, std::string& refid);
 
-	//  -------------------- 04  --VTG --------------------
-	//	--VTG message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--VTG
-	//	1 	Course over ground (degrees true)
-	//	2 	T: relative to true north
-	//	3 	Course over ground (degrees magnetic)
-	//	4 	M: relative to magnetic north
-	//	5 	Speed, in knots
-	//	6 	N: speed is measured in knots
-	//	7 	Speed over ground in kilometers/hour (kph)
-	//	8 	K: speed over ground is measured in kph
-	//	9 	The checksum data, always begins with *
+	/**
+	 * @brief VTG NMEA Message parser
+	 *
+	 * <b>VTG NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--VTG
+	 * 1 | Course over ground (degrees true)
+	 * 2 | T: relative to true north
+	 * 3 | Course over ground (degrees magnetic)
+	 * 4 | M: relative to magnetic north
+	 * 5 | Speed, in knots
+	 * 6 | N: speed is measured in knots
+	 * 7 | Speed over ground in kilometers/hour (kph)
+	 * 8 | K: speed over ground is measured in kph
+	 * 9 | The checksum data, always begins with *
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param coursetrue out Course Over Ground
+	 * @param coursemagnetic out Course Over Ground (relative magnetic north)
+	 * @param speedknots out Speed in knots
+	 * @param speedkph out Speed in Kph
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseVTG(const std::string& nmea,
 			double& coursetrue, double& coursemagnetic, double& speedknots,
 			double& speedkph);
 
-	//  -------------------- 05  --RMC --------------------
-	//"$GPRMC,160618.00,A,1202.5313983,S,07708.5478298,W,0.10,166.87,200416,1.4,W,A,S*56";
-	//	--RMC message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--RMC
-	//	1 	UTC of position fix
-	//	2 	Status A=active or V=void
-	//	3 	Latitude
-	//  4 	Direction of latitude: N: North S: South
-	//	5 	Longitude
-	//	6	Direction of longitude: E: East W: West
-	//	7 	Speed over the ground in knots
-	//	8 	Course over ground, degrees true
-	//	9	Date
-	//  10	Magnetic variation
-	//  11	degrees E/W
-	//  12	Mode indicator
-	//  13  Navigational status
-	//	14 	The checksum data, always begins with *
+	/**
+	 * @brief RMC NMEA Message parser
+	 *
+	 * <b>RMC NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--RMC
+	 * 1 | UTC of position fix
+	 * 2 | Status A=active or V=void
+	 * 3 | Latitude
+	 * 4 | Direction of latitude: N: North S: South
+	 * 5 | Longitude
+	 * 6 | Direction of longitude: E: East W: West
+	 * 7 | Speed over the ground in knots
+	 * 8 | Course over ground, degrees true
+	 * 9 | Date
+	 * 10 | Magnetic variation
+	 * 11 | degrees E/W
+	 * 12 | Mode indicator
+	 * 13 | Navigational status
+	 * 14 | The checksum data, always begins with *
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param mtime out UTC time
+	 * @param latitude out Latitude
+	 * @param longitude out Longitude
+	 * @param speedknots out Speed in Knots
+	 * @param coursetrue out Course relative to true north
+	 * @param mdate out UTC date
+	 * @param magneticvar out Magnetic variation
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseRMC(const std::string& nmea,
 			boost::posix_time::time_duration& mtime, double& latitude,
 			double& longitude, double& speedknots, double& coursetrue,
 			boost::gregorian::date& mdate, double& magneticvar);
 
-	//  -------------------- 06  --WPL --------------------
-	//	--WPL message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--WPL
-	//	1 	Latitude
-	//	2 	N or S (North or South)
-	//	3 	Longitude
-	//	4 	E or W (East or West)
-	//	5 	Waypoint Name
-	//	6	Checksum
+	/**
+	 * @brief WPL NMEA Message parser
+	 *
+	 * <b>WPL NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--WPL
+	 * 1 | Latitude
+	 * 2 | N or S (North or South)
+	 * 3 | Longitude
+	 * 4 | E or W (East or West)
+	 * 5 | Waypoint Name
+	 * 6 | Checksum
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param latitude out Latitude
+	 * @param longitude out Longitude
+	 * @param waypointName out Waypoint Name
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseWPL(const std::string& nmea, double& latitude,
 			double& longitude, std::string& waypointName);
 
-	//  -------------------- 07  --RTE --------------------
-	//	--RTE message fields
-	//	Field 	Meaning
-	//	0 	Message ID $--RTE
-	//	1 	Number of sentences in sequence
-	//	2 	Sentence number
-	//	3 	'c' = Current active route, 'w' = waypoint list starts with destination waypoint
-	//	4 	Name or number of the active route
-	//	5 	onwards, Names of waypoints in Route
-	//	6	Checksum
+	/**
+	 * @brief RTE NMEA Message parser
+	 *
+	 * <b>RTE NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $--RTE
+	 * 1 | Number of sentences in sequence
+	 * 2 | Sentence number
+	 * 3 | 'c' = Current active route, 'w' = waypoint list starts with destination waypoint
+	 * 4 | Name or number of the active route
+	 * 5 | onwards, Names of waypoints in Route
+	 * 6 | Checksum
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param totalLines out Total Lines
+	 * @param lineCount out Current Line
+	 * @param messageMode out Message mode
+	 * @param routeIdentifier out Route Identifier
+	 * @param waypointNames out Waypoint Names
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseRTE(const std::string& nmea, int& totalLines,
 			int& lineCount, char& messageMode, std::string& routeIdentifier,
 			std::vector<std::string>& waypointNames);
 
-	//  -------------------- 08  VDVHW --------------------
-	//	VDVHW message fields
-	//	Field 	Meaning
-	//	0 	Message ID $VDVHW
-	//	1 	Degress True
-	//	2 	T = True
-	//	3 	Degrees Magnetic
-	//	4 	M = Magnetic
-	//	5 	Knots (speed of vessel relative to the water)
-	//	6	N = Knots
-	//	7	Kilometers (speed of vessel relative to the water)
-	//	8	K = Kilometres
-	//	9	Checksum
+	/**
+	 * @brief VHW NMEA Message parser
+	 *
+	 * <b>VHW NMEA message fields</b>
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID $VDVHW
+	 * 1 | Degress True
+	 * 2 | T = True
+	 * 3 | Degrees Magnetic
+	 * 4 | M = Magnetic
+	 * 5 | Knots (speed of vessel relative to the water)
+	 * 6 | N = Knots
+	 * 7 | Kilometers (speed of vessel relative to the water)
+	 * 8 | K = Kilometres
+	 * 9 | Checksum
+	 *
+	 * @param nmea in String with NMEA Sentence
+	 * @param speedInKnots out Speed in Knots
+	 * @param speedInKmH out Speed in Km/h
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
 	static NmeaParserResult parseVHW(const std::string& nmea,
-			double& speedInKnots, char& knots, double& speedInKmH,
-			char& kilometers);
+			double& speedInKnots, double& speedInKmH);
 
 	//  -------------------- 09  VDMTW --------------------
 	//	VDMTW message fields
@@ -510,6 +614,12 @@ public:
 
 private:
 	class impl;
+
+	/**
+	 * @brief Private constructor. Prevents creating of class instance.
+	 */
+	NmeaParser();
+
 };
 
 #endif /* SRC_NMEAPARSER_H_ */
