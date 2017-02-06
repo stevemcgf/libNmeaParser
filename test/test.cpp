@@ -176,13 +176,10 @@ BOOST_AUTO_TEST_CASE( parseVHW ) {
 	std::string nmeaVHW = "$VDVHW,147.0,T,147.0,M,11.0,N,20.4,K*19";
 	//std::string nmeaVHW = "$VDVHW,,,,,,,,*19";
 	double speedInKnots;
-	char knots;
 	double speedInKmH;
-	char kilometers;
 
-	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseVHW(nmeaVHW, speedInKnots, knots, speedInKmH,
-					kilometers), 0UL);
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseVHW(nmeaVHW, speedInKnots, speedInKmH),
+			0UL);
 }
 
 //  ----------------------------------------- 09  VDMTW -----------------------------------------
@@ -219,13 +216,11 @@ BOOST_AUTO_TEST_CASE( parseVLW ) {
 	std::string nmeaVLW = "$VWVLW,0.225,N,0.238,A*19";
 	//std::string nmeaVLW = "$VWVLW,,,,*19";
 	double totalCumulativeDistance;
-	char nauticalMiles1;
 	double distanceSinceReset;
-	char nauticalMiles2;
 
 	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVLW(nmeaVLW, totalCumulativeDistance,
-					nauticalMiles1, distanceSinceReset, nauticalMiles2), 0UL);
+					distanceSinceReset), 0UL);
 }
 
 //  ----------------------------------------- 12  SDDPT -----------------------------------------
@@ -246,15 +241,12 @@ BOOST_AUTO_TEST_CASE( parseDBT ) {
 	std::string nmeaDBT = "$SDDBT,05.9,f,01.8,M,01.0,F*19";
 	//std::string nmeaDBT = "$SDDBT,,,,,,*19";
 	double waterDepthInFeet;
-	char feet;
 	double waterDepthInMeters;
-	char meters;
 	double waterDepthInFathoms;
-	char fathoms;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseDBT(nmeaDBT, waterDepthInFeet, feet,
-					waterDepthInMeters, meters, waterDepthInFathoms, fathoms),
+			NmeaParser::parseDBT(nmeaDBT, waterDepthInFeet,
+					waterDepthInMeters, waterDepthInFathoms),
 			0UL);
 }
 
@@ -263,16 +255,12 @@ BOOST_AUTO_TEST_CASE( parseDBK ) {
 	std::string nmeaDBK = "$SDDBK,05.9,f,01.8,M,01.0,F*19";
 	//std::string nmeaDBK = "$SDDBK,,,,,,*19";
 	double depthBelowKeelFeet;
-	char feet;
 	double depthBelowKeelMeters;
-	char meters;
 	double depthBelowKeelFathoms;
-	char fathoms;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseDBK(nmeaDBK, depthBelowKeelFeet, feet,
-					depthBelowKeelMeters, meters, depthBelowKeelFathoms,
-					fathoms), 0UL);
+			NmeaParser::parseDBK(nmeaDBK, depthBelowKeelFeet,
+					depthBelowKeelMeters, depthBelowKeelFathoms), 0UL);
 }
 
 //  ----------------------------------------- 15  PSKPDPT -----------------------------------------
@@ -298,9 +286,8 @@ BOOST_AUTO_TEST_CASE( parseHDT ) {
 	std::string nmeaHDT = "$HCHDT,077.5,T*19";
 	//std::string nmeaHDT = "$HCHDT,,*19";
 	double headingDegreesTrue;
-	char t;
 
-	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue, t),
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue),
 			0UL);
 }
 
@@ -326,10 +313,9 @@ BOOST_AUTO_TEST_CASE( parseHDM ) {
 	std::string nmeaHDM = "$HCHDM,77.9,M*19";
 	//std::string nmeaHDM = "$HCHDM,,*19";
 	double headingDegreesMagnetic;
-	char magnetic;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic, magnetic),
+			NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic),
 			0UL);
 }
 
