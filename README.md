@@ -8,7 +8,7 @@ This library allows to parse supported NMEA sentences and decode binary data ins
 
 ## Motivation
 
-I didn't find a comprensive and straight forward library to parse NMEA sentences and decode AIS data. This library is part of a larger project currently in use on many ships.
+I didn't find a comprehensive and straight forward library to parse NMEA sentences and decode AIS data. This library is part of a larger project currently in use on many ships.
 
 ## Installation
 
@@ -16,8 +16,10 @@ If you use CMake you can simple add this directory to your project and refer to 
 
 ## API Reference
 
-The code have doxygen documentation can be geherated using "make doc"
+The code has doxygen documentation can be generated using "make doc"
 
 ## License
 
 GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+
+
