@@ -39,7 +39,11 @@ target_include_directories(NmeaParser PUBLIC "include")
 
 target_link_libraries(NmeaParser ${Boost_LIBRARIES})
 
-set_target_properties(NmeaParser PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
+if (NOT "${VERSION_STRING}" STREQUAL "")
+
+	set_target_properties(NmeaParser PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
+	
+endif NOT "${VERSION_STRING}" STREQUAL "")
 
 # Unit Testing
 
