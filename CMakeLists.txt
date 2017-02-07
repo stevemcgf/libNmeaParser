@@ -30,7 +30,7 @@ add_compile_options(-std=c++11)
 add_compile_options(-DBOOST_LOG_DYN_LINK)
 add_compile_options(-include ${CMAKE_CURRENT_BINARY_DIR}/Version.h)
 
-find_package(Boost 1.55 REQUIRED COMPONENTS log regex thread)
+find_package(Boost 1.54 REQUIRED COMPONENTS log regex thread)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
