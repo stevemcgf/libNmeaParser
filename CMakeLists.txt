@@ -43,7 +43,7 @@ if (NOT "${VERSION_STRING}" STREQUAL "")
 
 	set_target_properties(NmeaParser PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
 	
-endif NOT "${VERSION_STRING}" STREQUAL "")
+endif (NOT "${VERSION_STRING}" STREQUAL "")
 
 # Unit Testing
 
