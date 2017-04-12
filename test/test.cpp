@@ -121,6 +121,11 @@ BOOST_AUTO_TEST_CASE( parseVTG ) {
 			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
 					speedknots, speedkph), 0b0000000000001000);
 
+	nmeaVTG = "$GPVTG,,,,,,,,*52";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
+					speedknots, speedkph), 0b0000000000001111);
+
 }
 
 //  ----------------------------------------- 05  GPRMC -----------------------------------------

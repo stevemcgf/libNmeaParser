@@ -11,11 +11,13 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+/// @cond
 #ifdef NP_DEBUG
 #define LOG_MESSAGE(lvl) BOOST_LOG_TRIVIAL(lvl)
 #else
 #define LOG_MESSAGE(lvl) if (false) BOOST_LOG_TRIVIAL(lvl)
 #endif
+/// @endcond
 
 /**
  * @brief Private Implementation
@@ -193,11 +195,11 @@ bool NmeaParser::impl::tokenizeSentence(const std::string& nmea,
 	return tokens.size() > 0;  // parse is good if there is at least one token
 }
 
-const boost::regex hms("(\\d{2})(\\d{2})(\\d{2})(?:(.\\d*))?");
 bool NmeaParser::impl::decodeTime(std::vector<std::string>::iterator &i,
 		boost::posix_time::time_duration& out,
 		const boost::posix_time::time_duration& def) {
 	bool ret = false;
+	static const boost::regex hms("(\\d{2})(\\d{2})(\\d{2})(?:(.\\d*))?");
 	boost::smatch m;
 	if (boost::regex_match(*i, m, hms)) {
 		ret = true;
@@ -261,10 +263,10 @@ bool NmeaParser::impl::decodeHex(std::vector<std::string>::iterator &i,
 	return ret;
 }
 
-const boost::regex latlng("(\\d{2,3})(\\d{2}.\\d+)");
 bool NmeaParser::impl::decodeLatLng(std::vector<std::string>::iterator &i,
 		double& out, const double& def) {
 	bool ret = false;
+	static const boost::regex latlng("(\\d{2,3})(\\d{2}.\\d+)");
 	boost::smatch m;
 	if (boost::regex_match(*i, m, latlng)) {
 		ret = true;
@@ -283,10 +285,10 @@ bool NmeaParser::impl::decodeLatLng(std::vector<std::string>::iterator &i,
 	return ret;
 }
 
-const boost::regex dmy("(\\d{2})(\\d{2})(\\d{2})");
 bool NmeaParser::impl::decodeDate(std::vector<std::string>::iterator &i,
 		boost::gregorian::date& out, const boost::gregorian::date& def) {
 	bool ret = false;
+	static const boost::regex dmy("(\\d{2})(\\d{2})(\\d{2})");
 	boost::smatch m;
 	if (boost::regex_match(*i, m, dmy)) {
 		ret = true;
@@ -380,11 +382,11 @@ std::string NmeaParser::impl::decodeBitString(
 // Parseo de tramas NMEA
 // definicion de valores por defecto
 
-boost::posix_time::time_duration deftime(0, 0, 0, 0);
-boost::gregorian::date defdate(1400, 1, 1);
-const double defLatLong = 99.999;
-char defChar = '-';
-std::string defString = "-";
+boost::posix_time::time_duration deftime(0, 0, 0, 0); //!< Default time value used in case of a parsing failure.
+boost::gregorian::date defdate(1400, 1, 1); //!< Default date value used in case of a parsing failure.
+const double defLatLong = 99.999; //!< Default Latitude and Longitude in case of parsing failure.
+char defChar = '-'; //!< Default Char in case of parsing failure.
+std::string defString = "-"; //!< Default String in case of parsing failure.
 
 NmeaParserResult NmeaParser::parseZDA(const std::string& nmea,
 		boost::posix_time::time_duration& mtime, int& day, int& month,
@@ -750,29 +752,29 @@ NmeaParserResult NmeaParser::parseVTG(const std::string& nmea,
 			if (!impl::decodeDefault<double>(itNmea, coursetrue, 0)) {
 				ret.set(idxVar);
 				++itNmea;
-				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "coursetrue = " << coursetrue;
 			++itNmea;
+
 			/*------------ Field 03,04 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, coursemagnetic, 0)) {
 				ret.set(idxVar);
-				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "coursemagnetic = " << coursemagnetic;
 			++itNmea;
+
 			/*------------ Field 05,06 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedknots, 0)) {
 				ret.set(idxVar);
-				++itNmea;
 				++itNmea;
 			}
 			++idxVar;
 			LOG_MESSAGE(debug) << "speedknots = " << speedknots;
 			++itNmea;
+
 			/*------------ Field 07,08 ---------------*/
 			if (!impl::decodeDefault<double>(itNmea, speedkph, 0)) {
 				ret.set(idxVar);

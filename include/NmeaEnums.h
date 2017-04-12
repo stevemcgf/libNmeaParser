@@ -529,7 +529,7 @@ struct AISStaticDataReport {
 
 	struct {
 		std::string vesselName; //!< 20 characters Vessel Name
-	} partA;
+	} partA; //!< Message Part A
 
 	struct {
 		Nmea_ShipType shipType; //!< Ship Type
@@ -541,17 +541,17 @@ struct AISStaticDataReport {
 		int dimensionToStern; //!< Ship Dimension
 		int dimensionToPort; //!< Ship Dimension
 		int dimensionToStarboard; //!< Ship Dimension
-	} partB;
+	} partB; //!< Message Part B
 };
 
 /**
  * @brief Struct used to pass Transducer Measurement in XDR NMEA message. Used in NmeaParser::parseXDR().
  */
 struct TransducerMeasurement {
-	char transducerType;
-	float measurementData;
-	char unitsOfMeasurement;
-	std::string nameOfTransducer;
+	char transducerType; //!< Transducer Type
+	float measurementData; //!< Measurement Data
+	char unitsOfMeasurement; //!< Measurement Units
+	std::string nameOfTransducer; //!< Name of transducer
 };
 
 #endif /* SRC_NMEAENUMS_H_ */
