@@ -16,10 +16,8 @@ If you use CMake you can simple add this directory to your project and refer to 
 
 ## API Reference
 
-The code has doxygen documentation can be generated using "make doc"
+The code has doxygen documentation can be generated using "make doc.NmeaParser"
 
 ## License
 
 GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007
-
-
