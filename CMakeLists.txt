@@ -32,7 +32,9 @@ add_compile_options(-std=c++11)
 add_compile_options(-DBOOST_LOG_DYN_LINK)
 add_compile_options(-include ${CMAKE_CURRENT_BINARY_DIR}/Version.h)
 
-find_package(Boost 1.54 REQUIRED COMPONENTS log regex thread)
+if (NOT Boost_FOUND)
+	find_package(Boost 1.54 REQUIRED COMPONENTS log regex thread)
+endif (NOT Boost_FOUND)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -42,9 +44,7 @@ target_include_directories(NmeaParser PUBLIC "include")
 target_link_libraries(NmeaParser ${Boost_LIBRARIES})
 
 if (NOT "${VERSION_STRING}" STREQUAL "")
-
 	set_target_properties(NmeaParser PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
-	
 endif (NOT "${VERSION_STRING}" STREQUAL "")
 
 # Unit Testing
@@ -62,12 +62,10 @@ add_test (NAME NmeaParserTest COMMAND test.libNmeaParser)
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
-
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 	add_custom_target(docs.NmeaParser
 		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		COMMENT "Generating API documentation with Doxygen" VERBATIM
 		)
-
 endif(DOXYGEN_FOUND)
