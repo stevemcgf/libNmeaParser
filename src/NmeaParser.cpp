@@ -2133,6 +2133,9 @@ NmeaParserResult NmeaParser::parseXDR(const std::string& nmea,
 				++idxVar;
 				LOG_MESSAGE(debug) << "nameOfTransducer = " << m.nameOfTransducer;
 
+				measurements.push_back(m);
+				LOG_MESSAGE(debug) << "measurements.size() = " << measurements.size();
+
 				--itemCount;
 			}
 		} else {
