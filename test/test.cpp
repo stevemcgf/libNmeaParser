@@ -53,6 +53,11 @@ BOOST_AUTO_TEST_CASE( parseGLL ) {
 			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
 					modeIndicator), 0UL);
 
+	nmeaGLL = "$GPGLL,4916.45,N,12311.12,W,225444,A*11";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
+					modeIndicator), 0b0000000000010000);
+
 	nmeaGLL = "$GPGLL,1151.08,S,07718.65,W,165700,A*26";
 	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseGLL(nmeaGLL, latitude, longitude, mtime, status,
@@ -107,6 +112,11 @@ BOOST_AUTO_TEST_CASE( parseVTG ) {
 	double speedkph;
 
 	nmeaVTG = "$GPVTG,8.86,T,10.29,M,0.02,N,0.04,K,A*19";
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
+					speedknots, speedkph), 0UL);
+
+	nmeaVTG = "$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*19";
 	BOOST_REQUIRE_EQUAL(
 			NmeaParser::parseVTG(nmeaVTG, coursetrue, coursemagnetic,
 					speedknots, speedkph), 0UL);
