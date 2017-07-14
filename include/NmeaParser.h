@@ -5,15 +5,14 @@
  *   NmeaParser class with all parsing methods.
  */
 
-#ifndef SRC_NMEAPARSER_H_
-#define SRC_NMEAPARSER_H_
+#ifndef NMEAPARSER_H_
+#define NMEAPARSER_H_
 
 #include <vector>
 #include <string>
 #include <boost/date_time.hpp>
-#include "NmeaEnums.h"
 #include <bitset>
-#include <boost/dynamic_bitset.hpp>
+#include "NmeaEnums.h"
 
 typedef std::bitset<16> NmeaParserResult; //!<  Bitset. Each index represents the validity of each output parameter.
 
@@ -992,4 +991,4 @@ private:
 
 };
 
-#endif /* SRC_NMEAPARSER_H_ */
+#endif /* NMEAPARSER_H_ */
