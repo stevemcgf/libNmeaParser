@@ -5,7 +5,6 @@
 
 #include "NmeaParser.h"
 
-#include <vector>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/regex.hpp>
