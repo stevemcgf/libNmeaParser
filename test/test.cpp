@@ -190,11 +190,14 @@ BOOST_AUTO_TEST_CASE( parseRTE ) {
 BOOST_AUTO_TEST_CASE( parseVHW ) {
 	std::string nmeaVHW = "$VDVHW,147.0,T,147.0,M,11.0,N,20.4,K*19";
 	//std::string nmeaVHW = "$VDVHW,,,,,,,,*19";
+	double headingTrue;
+	double headingMagnetic;
 	double speedInKnots;
 	double speedInKmH;
 
-	BOOST_REQUIRE_EQUAL(NmeaParser::parseVHW(nmeaVHW, speedInKnots, speedInKmH),
-			0UL);
+	BOOST_REQUIRE_EQUAL(
+			NmeaParser::parseVHW(nmeaVHW, headingTrue, headingMagnetic,
+					speedInKnots, speedInKmH), 0UL);
 }
 
 //  ----------------------------------------- 09  VDMTW -----------------------------------------
@@ -228,7 +231,7 @@ BOOST_AUTO_TEST_CASE( parseVBW ) {
 
 //  ----------------------------------------- 11  VDVLW -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseVLW ) {
-	std::string nmeaVLW = "$VWVLW,0.225,N,0.238,A*19";
+	std::string nmeaVLW = "$VDVLW,20.70,N,1.20,N,,,,*69";
 	//std::string nmeaVLW = "$VWVLW,,,,*19";
 	double totalCumulativeDistance;
 	double distanceSinceReset;
@@ -260,9 +263,8 @@ BOOST_AUTO_TEST_CASE( parseDBT ) {
 	double waterDepthInFathoms;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseDBT(nmeaDBT, waterDepthInFeet,
-					waterDepthInMeters, waterDepthInFathoms),
-			0UL);
+			NmeaParser::parseDBT(nmeaDBT, waterDepthInFeet, waterDepthInMeters,
+					waterDepthInFathoms), 0UL);
 }
 
 //  ----------------------------------------- 14  SDDBK -----------------------------------------
@@ -302,8 +304,7 @@ BOOST_AUTO_TEST_CASE( parseHDT ) {
 	//std::string nmeaHDT = "$HCHDT,,*19";
 	double headingDegreesTrue;
 
-	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue),
-			0UL);
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDT(nmeaHDT, headingDegreesTrue), 0UL);
 }
 
 //  ----------------------------------------- 17  HCHDG -----------------------------------------
@@ -329,8 +330,7 @@ BOOST_AUTO_TEST_CASE( parseHDM ) {
 	//std::string nmeaHDM = "$HCHDM,,*19";
 	double headingDegreesMagnetic;
 
-	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic),
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseHDM(nmeaHDM, headingDegreesMagnetic),
 			0UL);
 }
 
@@ -345,10 +345,11 @@ BOOST_AUTO_TEST_CASE( parseROT ) {
 
 //  ----------------------------------------- 20  IIMWV -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseMWV ) {
-	std::string nmeaMWV = "$IIMWV,004.2,T,007.2,N,A*19";
+	//std::string nmeaMWV = "$IIMWV,004.2,T,007.2,N,A*19";
+	std::string nmeaMWV = "$WIMWV,192,R,003.86,N,A*0A";
 	//std::string nmeaMWV = "$IIMWV,,,,,*19";
 	double windAngle;
-	char reference;
+	Nmea_AngleReference reference;
 	double windSpeed;
 	char windSpeedUnits;
 	char sensorStatus;
@@ -368,19 +369,21 @@ BOOST_AUTO_TEST_CASE( parseMWD ) {
 	double windSpeedMeters;
 
 	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseMWD(nmeaMWD, trueWindDirection, magneticWindDirection, windSpeedKnots,	windSpeedMeters), 0UL);
+			NmeaParser::parseMWD(nmeaMWD, trueWindDirection,
+					magneticWindDirection, windSpeedKnots, windSpeedMeters),
+			0UL);
 }
 
 //  ----------------------------------------- 22  IIXDR -----------------------------------------
 BOOST_AUTO_TEST_CASE( parseXDR ) {
-	std::string nmeaXDR = "$IIXDR,C,25.4,C,TEMP,P,28.4,B,PRESS,H,27.4,P,RH*19";
+	std::string nmeaXDR =
+			"$WIXDR,C,+016.4,C,TEMP,P,1.0079,B,PRESS,H,098.9,P,RH*3A";
 	//std::string nmeaXDR = "IIXDR,,,a,,G,0.5,b,PRESS,G,2.1,,HUM";
 	//std::string nmeaXDR = "$IIXDR,,,,,,,,,,,,*19";
 
 	std::vector<TransducerMeasurement> measurements;
 
-	BOOST_REQUIRE_EQUAL(
-			NmeaParser::parseXDR(nmeaXDR, measurements), 0UL);
+	BOOST_REQUIRE_EQUAL(NmeaParser::parseXDR(nmeaXDR, measurements), 0UL);
 }
 
 //  ----------------------------------------- 23  IITTD -----------------------------------------

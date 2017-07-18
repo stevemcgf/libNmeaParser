@@ -275,14 +275,16 @@ public:
 	 * 8 | K = Kilometres
 	 * 9 | Checksum
 	 *
-	 * @param [in] nmea String with NMEA Sentence
+	 * @param [in]  nmea String with NMEA Sentence
+	 * @param [out] headingTrue Heading degrees true
+	 * @param [out] headingMagnetic Heading magnetic true
 	 * @param [out] speedInKnots Speed in Knots
 	 * @param [out] speedInKmH Speed in Km/h
 	 *
-	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
 	static NmeaParserResult parseVHW(const std::string& nmea,
-			double& speedInKnots, double& speedInKmH);
+			double& headingTrue, double& headingMagnetic, double& speedInKnots,
+			double& speedInKmH);
 
 	/**
 	 * @brief MTW NMEA Message parser
@@ -594,8 +596,8 @@ public:
 	 * @return Bitset each index represents the validity of each output parameter respectively.
 	 */
 	static NmeaParserResult parseMWV(const std::string& nmea, double& windAngle,
-			char& reference, double& windSpeed, char& windSpeedUnits,
-			char& sensorStatus);
+			Nmea_AngleReference& reference, double& windSpeed,
+			char& windSpeedUnits, char& sensorStatus);
 
 	/**
 	 * @brief MWD NMEA Message parser

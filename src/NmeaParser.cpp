@@ -1055,7 +1055,8 @@ NmeaParserResult NmeaParser::parseRTE(const std::string& nmea, int& totalLines,
 }
 
 NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
-		double& speedInKnots, double& speedInKmH) {
+		double& headingTrue, double& headingMagnetic, double& speedInKnots,
+		double& speedInKmH) {
 
 	LOG_MESSAGE(trace)<< "NmeaParser::parseVHW";
 	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
@@ -1076,13 +1077,23 @@ NmeaParserResult NmeaParser::parseVHW(const std::string& nmea,
 
 		if ((*itNmea).substr(3, 3) == "VHW") {
 			++itNmea;
-			/*------------ Field 01 ---------------*/
+
+			/*------------ Field 01,02 ---------------*/
+			if (!impl::decodeDefault<double>(itNmea, headingTrue, 0)) {
+				ret.set(idxVar);
+				++itNmea;
+			}
+			++idxVar;
+			LOG_MESSAGE(debug) << "headingTrue = " << headingTrue;
 			++itNmea;
-			/*------------ Field 02 ---------------*/
-			++itNmea;
-			/*------------ Field 03 ---------------*/
-			++itNmea;
-			/*------------ Field 04 ---------------*/
+
+			/*------------ Field 03,04 ---------------*/
+			if (!impl::decodeDefault<double>(itNmea, headingMagnetic, 0)) {
+				ret.set(idxVar);
+				++itNmea;
+			}
+			++idxVar;
+			LOG_MESSAGE(debug) << "headingMagnetic = " << headingMagnetic;
 			++itNmea;
 
 			/*------------ Field 05 ---------------*/
@@ -1904,7 +1915,7 @@ NmeaParserResult NmeaParser::parseROT(const std::string& nmea,
 }
 
 NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
-		double& windAngle, char& reference, double& windSpeed,
+		double& windAngle, Nmea_AngleReference& reference, double& windSpeed,
 		char& windSpeedUnits, char& sensorStatus) {
 
 	LOG_MESSAGE(trace)<< "NmeaParser::parseMWV";
@@ -1936,8 +1947,16 @@ NmeaParserResult NmeaParser::parseMWV(const std::string& nmea,
 			LOG_MESSAGE(debug) << "windAngle = " << windAngle;
 
 			/*------------ Field 02 ---------------*/
-			if (!impl::decodeDefault<char>(itNmea, reference, defChar)) {
-				ret.set(idxVar);
+			char aux;
+			if (!impl::decodeDefault<char>(itNmea, aux, defChar)) {
+				if (aux == 'T')
+				{
+					reference = Nmea_AngleReference_True;
+					ret.set(idxVar);
+				} else if (aux == 'R') {
+					reference = Nmea_AngleReference_Relative;
+					ret.set(idxVar);
+				}
 				++itNmea;
 			}
 			++idxVar;
