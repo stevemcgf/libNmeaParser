@@ -507,6 +507,17 @@ BOOST_AUTO_TEST_CASE( parseTTM ) {
 
 //}
 
+BOOST_AUTO_TEST_CASE( parsePRDID )
+{
+	std::string nmeaPRDID = "$PRDID,-10.00,+37.50,100.00*7E";
+
+	double pitch;
+	double roll;
+	double heading;
+
+	BOOST_REQUIRE_EQUAL(NmeaParser::parsePRDID(nmeaPRDID, pitch, roll, heading), 0UL);
+}
+
 BOOST_AUTO_TEST_CASE( parseTTDPayload ) {
 	std::string trackData = "0PP10Eg@wwP74@0";
 

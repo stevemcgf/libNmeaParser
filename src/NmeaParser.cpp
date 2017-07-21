@@ -2953,6 +2953,73 @@ NmeaParserResult NmeaParser::parseVDO(const std::string& nmea, int& totalLines,
 	return ret;
 }
 
+NmeaParserResult NmeaParser::parsePRDID(const std::string& nmea, double& pitch, double& roll, double& heading)
+{
+	LOG_MESSAGE(trace)<< "NmeaParser::parsePRDID";
+	LOG_MESSAGE(debug) << "Nmea : " << nmea.c_str();
+
+	NmeaParserResult ret;
+	int idxVar = 0;
+	ret.reset();
+
+	std::vector<std::string> fields;
+
+	impl::tokenizeSentence(nmea, fields);
+
+	uint expectedFieldCountMin = 5;
+
+	if (fields.size() >= expectedFieldCountMin) {
+
+		std::vector<std::string>::iterator itNmea = fields.begin();
+
+		if ((*itNmea).substr(1, 5) == "PRDID") {
+			++itNmea;
+
+			/*------------ Field 01 ---------------*/
+			if (!impl::decodeDefault<double>(itNmea,
+							pitch, 0)) {
+				ret.set(idxVar);
+				++itNmea;
+			}
+			++idxVar;
+			LOG_MESSAGE(debug) << "pitch = "
+			<< pitch;
+
+			/*------------ Field 02 ---------------*/
+			if (!impl::decodeDefault<double>(itNmea, roll, 0)) {
+				ret.set(idxVar);
+				++itNmea;
+			}
+			++idxVar;
+			LOG_MESSAGE(debug) << "roll = "
+			<< roll;
+
+			/*------------ Field 03 ---------------*/
+			if (!impl::decodeDefault<double>(itNmea, heading,
+							0)) {
+				ret.set(idxVar);
+				++itNmea;
+			}
+			++idxVar;
+			LOG_MESSAGE(debug) << "heading = "
+			<< heading;
+
+		} else {
+			ret.set();
+			LOG_MESSAGE(error) << "Cabecera incorrecta";
+		}
+	} else {
+		ret.set();
+		LOG_MESSAGE(error) << "Campos esperados : min "
+		<< expectedFieldCountMin;
+		LOG_MESSAGE(error) << "Campos recibidos : " << fields.size();
+	}
+
+	LOG_MESSAGE(debug) << "retorno binario : " << ret;
+
+	return ret;
+}
+
 bool NmeaParser::parseTTDPayload(const std::string& trackData,
 		std::vector<NmeaTrackData>& tracks) {
 	bool ret = false;

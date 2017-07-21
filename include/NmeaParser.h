@@ -905,6 +905,29 @@ public:
 			std::string& encodedData, int& fillBits);
 
 	/**
+	 * @brief PRDID NMEA Message parser
+	 *
+	 * <b>PRDID NMEA message fields</b><br>
+	 * <i>Proprietary Heading, Pitch, Roll</i>
+	 *
+	 * Field | Meaning
+	 * ------|---------
+	 * 0 | Message ID PRDID
+	 * 1 | Pitch
+	 * 2 | Roll
+	 * 3 | Heading
+	 * 4 | Checksum
+	 *
+	 * @param [in] nmea String with NMEA Sentence
+	 * @param [out] pitch Is the up/down rotation of a vessel about its lateral/Y (side-to-side or port-starboard) axis.
+	 * @param [out] roll Is the tilting rotation of a vessel about its longitudinal/X (front-back or bow-stern) axis.
+	 * @param [out] heading Is the north direction of a vessel.
+	 *
+	 * @return Bitset each index represents the validity of each output parameter respectively.
+	 */
+	static NmeaParserResult parsePRDID(const std::string& nmea, double& pitch, double& roll, double& heading);
+
+	/**
 	 * @brief Parse TTD Binary data
 	 *
 	 * @param [in] trackData Track Binary Encoded Data
