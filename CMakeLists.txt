@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Get the latest abbreviated commit hash of the working branch
 execute_process(
 	COMMAND git log -1 --format=%h
