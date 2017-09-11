@@ -443,6 +443,63 @@ enum Nmea_ShipType {
 std::ostream& operator<<(std::ostream & out, Nmea_ShipType val);
 
 /**
+ * @brief Navigation Aid Type for AIS. Used in AISAidtoNavigationReport
+ */
+enum Nmea_NavigationAidType {
+	Nmea_NavigationAidType_Default,                              //!< Default, Type of Aid to Navigation not specified
+	Nmea_NavigationAidType_ReferencePoint,                       //!< Reference point
+	Nmea_NavigationAidType_RACON,                                //!< RACON (radar transponder marking a navigation hazard)
+	Nmea_NavigationAidType_FixedStructureOffShore,               //!< Fixed structure off shore, such as oil platforms, wind farms, rigs. (Note: This code should identify an obstruction that is fitted with an Aid-to-Navigation AIS station.)
+	Nmea_NavigationAidType_Reserved,                             //!< Spare, Reserved for future use.
+	Nmea_NavigationAidType_LightWithoutSectors,                  //!< Light, without sectors
+	Nmea_NavigationAidType_LightWithSectors,                     //!< Light, with sectors
+	Nmea_NavigationAidType_LeadingLightFront,                    //!< Leading Light Front
+	Nmea_NavigationAidType_LeadingLightRear,                     //!< Leading Light Rear
+	Nmea_NavigationAidType_BeaconCardinalN,                       //!< Beacon, Cardinal N
+	Nmea_NavigationAidType_BeaconCardinalE,                       //!< Beacon, Cardinal E
+	Nmea_NavigationAidType_BeaconCardinalS,                       //!< Beacon, Cardinal S
+	Nmea_NavigationAidType_BeaconCardinalW,                       //!< Beacon, Cardinal W
+	Nmea_NavigationAidType_BeaconPortHand,                       //!< Beacon, Port hand
+	Nmea_NavigationAidType_BeaconStarboardHand,                  //!< Beacon, Starboard hand
+    Nmea_NavigationAidType_BeaconPreferredChannelPortHand,       //!< Beacon, Preferred Channel port hand
+	Nmea_NavigationAidType_BeaconPreferredChannelStarboardHand,  //!< Beacon, Preferred Channel starboard hand
+	Nmea_NavigationAidType_BeaconIsolatedDanger,                 //!< Beacon, Isolated danger
+	Nmea_NavigationAidType_BeaconSafeWater,                      //!< Beacon, Safe water
+	Nmea_NavigationAidType_BeaconSpecialMark,                    //!< Beacon, Special mark
+	Nmea_NavigationAidType_CardinalMarkN,                        //!< Cardinal Mark N
+	Nmea_NavigationAidType_CardinalMarkE,                        //!< Cardinal Mark E
+	Nmea_NavigationAidType_CardinalMarkS,                        //!< Cardinal Mark S
+	Nmea_NavigationAidType_CardinalMarkW,                        //!< Cardinal Mark W
+	Nmea_NavigationAidType_PortHandMark,                         //!< Port hand Mark
+	Nmea_NavigationAidType_StarboardHandMark,                    //!< Starboard hand Mark
+	Nmea_NavigationAidType_PreferredChannelPortHand,             //!< Preferred Channel Port hand
+	Nmea_NavigationAidType_PreferredChannelStarboardHand,        //!< Preferred Channel Starboard hand
+	Nmea_NavigationAidType_IsolatedDanger,                       //!< Isolated danger
+	Nmea_NavigationAidType_SafeWater,                            //!< Safe Water
+	Nmea_NavigationAidType_SpecialMark,                          //!< Special Mark
+	Nmea_NavigationAidType_LightVessel                           //!< Light Vessel / LANBY / Rigs
+};
+
+/**
+ * @brief Operator converts enumerator value to string.
+ * @param out ostream to write the string.
+ * @param val enumerator value Nmea_ShipType.
+ * @return ostream to concatenate output.
+ */
+std::ostream& operator<<(std::ostream & out, Nmea_NavigationAidType val);
+
+/**
+ * @brief Struct used to store Dimension from Ais Messages
+ */
+struct AISDimension
+{
+	int toBow; //!< Ship Dimension to Bow
+	int toStern; //!< Ship Dimension to Stern
+	int toPort; //!< Ship Dimension to Port
+	int toStarboard; //!< Ship Dimension to Starboard
+};
+
+/**
  * @brief Struct used to parse Position Report Class A Ais Message. Used in NmeaParser::parseAISPositionReportClassA().
  */
 struct AISPositionReportClassA {
@@ -491,10 +548,7 @@ struct AISStaticAndVoyageRelatedData {
 	std::string callsign; //!< 7 characters Call Sign
 	std::string vesselName; //!< 20 characters Vessel Name
 	Nmea_ShipType shipType; //!< Ship Type
-	int dimensionToBow; //!< Ship Dimension
-	int dimensionToStern; //!< Ship Dimension
-	int dimensionToPort; //!< Ship Dimension
-	int dimensionToStarboard; //!< Ship Dimension
+	AISDimension dimension; //!< Ship Dimension
 	Nmea_EPFDFix epfd; //!< EPFD Fix
 	int month; //!< ETA Month
 	int day; //!< ETA Day
@@ -537,10 +591,7 @@ struct AISStaticDataReport {
 		int unitModelCode; //!< Unit model code
 		int serialNumber; //!< Serial Number
 		std::string callsign; //!< 7 characters Call Sign
-		int dimensionToBow; //!< Ship Dimension
-		int dimensionToStern; //!< Ship Dimension
-		int dimensionToPort; //!< Ship Dimension
-		int dimensionToStarboard; //!< Ship Dimension
+		AISDimension dimension; //!< Ship Dimension
 	} partB; //!< Message Part B
 };
 
@@ -552,6 +603,26 @@ struct TransducerMeasurement {
 	float measurementData; //!< Measurement Data
 	char unitsOfMeasurement; //!< Measurement Units
 	std::string nameOfTransducer; //!< Name of transducer
+};
+
+/**
+ * @brief Struct used to parse Aid-to-Navigation Report Ais Message. Used in NmeaParser::parseAISAidtoNavigationReport().
+ */
+struct AISAidToNavigationReport {
+	int repeatIndicator; //!< Message repeat count
+	uint mmsi; //!< 9 decimal digits ID
+	Nmea_NavigationAidType navigationAidType; //!< Navigation Aid Type
+	std::string name; //!< 20 characters Name
+	Nmea_PositionAccuracy positionAccuracy; //!< Position Accuracy
+	float longitude; //!< Longitude
+	float latitude; //!< Latitude
+	AISDimension dimension; //!< Ship Dimension
+	Nmea_EPFDFix epfd; //!< EPFD Fix
+	uint timestapUTCSecond; //!< UTC second
+	bool offPosition; //!< Off-Position Indicator
+	Nmea_RAIM raim; //!< RAIM
+	bool virtualAid; //!< Virtual-aid flag
+	bool assigned; //!< Assigned-mode flag
 };
 
 #endif /* SRC_NMEAENUMS_H_ */

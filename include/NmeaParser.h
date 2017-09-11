@@ -21,7 +21,8 @@ typedef std::bitset<6> SixBit; //!< Helper type used to parse binary encoded dat
 /**
  * @brief State-less class for static methods used for Parsing NMEA.
  */
-class NmeaParser {
+class NmeaParser
+{
 public:
 	/**
 	 * @brief ZDA NMEA Message parser
@@ -1005,6 +1006,17 @@ public:
 	 */
 	static bool parseAISStaticDataReport(const std::string& encodedData,
 			AISStaticDataReport& data);
+
+	/**
+	 * @brief Aid-to-Navigation Report - Type 21
+	 *
+	 * @param [in] encodedData AIS Binary Encoded Data
+	 * @param [out] data Struct filled with the decoded data
+	 *
+	 * @return True on success.
+	 */
+	static bool parseAISAidToNavigationReport(const std::string& encodedData,
+			AISAidToNavigationReport& data);
 
 private:
 	class impl;

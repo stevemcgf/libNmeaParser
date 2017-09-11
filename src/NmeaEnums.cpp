@@ -5,9 +5,10 @@
 
 #include "NmeaEnums.h"
 
-std::ostream& operator<< (std::ostream & out, Nmea_GPSQualityIndicator val)
+std::ostream& operator<<(std::ostream & out, Nmea_GPSQualityIndicator val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_GPSQualityIndicator_FixNotValid:
 		return out << "Nmea_GPSQualityIndicator_FixNotValid";
 	case Nmea_GPSQualityIndicator_GPSFix:
@@ -22,9 +23,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_GPSQualityIndicator val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_SpeedDistanceUnits val)
+std::ostream& operator<<(std::ostream & out, Nmea_SpeedDistanceUnits val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_SpeedDistanceUnits_Kph_Kilometers:
 		return out << "Nmea_SpeedDistanceUnits_Kph_Kilometers";
 	case Nmea_SpeedDistanceUnits_Mps_Meters:
@@ -35,9 +37,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_SpeedDistanceUnits val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_TargetStatus val)
+std::ostream& operator<<(std::ostream & out, Nmea_TargetStatus val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_TargetStatus_Lost:
 		return out << "Nmea_TargetStatus_Lost";
 	case Nmea_TargetStatus_Query:
@@ -48,9 +51,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_TargetStatus val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_TypeOfAcquisition val)
+std::ostream& operator<<(std::ostream & out, Nmea_TypeOfAcquisition val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_TypeOfAcquisition_Automatic:
 		return out << "Nmea_TypeOfAcquisition_Automatic";
 	case Nmea_TypeOfAcquisition_Manual:
@@ -61,9 +65,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_TypeOfAcquisition val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_AngleReference val)
+std::ostream& operator<<(std::ostream & out, Nmea_AngleReference val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_AngleReference_True:
 		return out << "Nmea_AngleReference_True";
 	case Nmea_AngleReference_Relative:
@@ -72,9 +77,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_AngleReference val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_TrackStatus val)
+std::ostream& operator<<(std::ostream & out, Nmea_TrackStatus val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_TrackStatus_Non_tracking:
 		return out << "Nmea_TrackStatus_Non_tracking";
 	case Nmea_TrackStatus_Acquiring:
@@ -95,9 +101,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_TrackStatus val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_Operation val)
+std::ostream& operator<<(std::ostream & out, Nmea_Operation val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_Operation_Autonomous:
 		return out << "Nmea_Operation_Autonomous";
 	case Nmea_Operation_TestTarget:
@@ -106,9 +113,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_Operation val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_SpeedMode val)
+std::ostream& operator<<(std::ostream & out, Nmea_SpeedMode val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_SpeedMode_TrueSpeedCourse:
 		return out << "Nmea_SpeedMode_TrueSpeedCourse";
 	case Nmea_SpeedMode_Relative:
@@ -117,9 +125,10 @@ std::ostream& operator<< (std::ostream & out, Nmea_SpeedMode val)
 	return out << static_cast<int>(val);
 }
 
-std::ostream& operator<< (std::ostream & out, Nmea_StabilisationMode val)
+std::ostream& operator<<(std::ostream & out, Nmea_StabilisationMode val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_StabilisationMode_OverGround:
 		return out << "Nmea_StabilisationMode_OverGround";
 	case Nmea_StabilisationMode_ThroughWater:
@@ -130,7 +139,8 @@ std::ostream& operator<< (std::ostream & out, Nmea_StabilisationMode val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_AisMessageType val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_AisMessageType_NA:
 		return out << "Nmea_AisMessageType_NA";
 	case Nmea_AisMessageType_PositionReportClassA:
@@ -198,7 +208,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_AisMessageType val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_NavigationStatus val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_NavigationStatus_UnderWayUsingEngine:
 		return out << "Nmea_NavigationStatus_UnderWayUsingEngine";
 	case Nmea_NavigationStatus_AtAnchor:
@@ -237,7 +248,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_NavigationStatus val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_PositionAccuracy val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_PositionAccuracy_UnaugmentedGNSSFix:
 		return out << "Nmea_PositionAccuracy_UnaugmentedGNSSFix";
 	case Nmea_PositionAccuracy_DGPSQualityFix:
@@ -248,7 +260,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_PositionAccuracy val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_ManeuverIndicator val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_ManeuverIndicator_NotAvailable:
 		return out << "Nmea_ManeuverIndicator_NotAvailable";
 	case Nmea_ManeuverIndicator_NoSpecialManeuver:
@@ -261,7 +274,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_ManeuverIndicator val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_RAIM val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_RAIM_NotInUse:
 		return out << "Nmea_RAIM_NotInUse";
 	case Nmea_RAIM_InUse:
@@ -272,7 +286,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_RAIM val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_EPFDFix val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_EPFDFix_Undefined:
 		return out << "Nmea_EPFDFix_Undefined";
 	case Nmea_EPFDFix_GPS:
@@ -297,7 +312,8 @@ std::ostream& operator<<(std::ostream & out, Nmea_EPFDFix val)
 
 std::ostream& operator<<(std::ostream & out, Nmea_ShipType val)
 {
-	switch (val) {
+	switch (val)
+	{
 	case Nmea_ShipType_NotAvailable:
 		return out << "Nmea_ShipType_NotAvailable";
 	case Nmea_ShipType_Reserved1:
@@ -502,3 +518,77 @@ std::ostream& operator<<(std::ostream & out, Nmea_ShipType val)
 	}
 	return out << static_cast<int>(val);
 }
+
+std::ostream& operator<<(std::ostream & out, Nmea_NavigationAidType val)
+{
+	switch (val)
+	{
+	case Nmea_NavigationAidType_Default:
+		return out << "Nmea_NavigationAidType_Default";
+	case Nmea_NavigationAidType_ReferencePoint:
+		return out << "Nmea_NavigationAidType_ReferencePoint";
+	case Nmea_NavigationAidType_RACON:
+		return out << "Nmea_NavigationAidType_RACON";
+	case Nmea_NavigationAidType_FixedStructureOffShore:
+		return out << "Nmea_NavigationAidType_FixedStructureOffShore";
+	case Nmea_NavigationAidType_Reserved:
+		return out << "Nmea_NavigationAidType_Reserved";
+	case Nmea_NavigationAidType_LightWithoutSectors:
+		return out << "Nmea_NavigationAidType_LightWithoutSectors";
+	case Nmea_NavigationAidType_LightWithSectors:
+		return out << "Nmea_NavigationAidType_LightWithSectors";
+	case Nmea_NavigationAidType_LeadingLightFront:
+		return out << "Nmea_NavigationAidType_LeadingLightFront";
+	case Nmea_NavigationAidType_LeadingLightRear:
+		return out << "Nmea_NavigationAidType_LeadingLightRear";
+	case Nmea_NavigationAidType_BeaconCardinalN:
+		return out << "Nmea_NavigationAidType_BeaconCardinalN";
+	case Nmea_NavigationAidType_BeaconCardinalE:
+		return out << "Nmea_NavigationAidType_BeaconCardinalE";
+	case Nmea_NavigationAidType_BeaconCardinalS:
+		return out << "Nmea_NavigationAidType_BeaconCardinalS";
+	case Nmea_NavigationAidType_BeaconCardinalW:
+		return out << "Nmea_NavigationAidType_BeaconCardinalW";
+	case Nmea_NavigationAidType_BeaconPortHand:
+		return out << "Nmea_NavigationAidType_BeaconPortHand";
+	case Nmea_NavigationAidType_BeaconStarboardHand:
+		return out << "Nmea_NavigationAidType_BeaconStarboardHand";
+	case Nmea_NavigationAidType_BeaconPreferredChannelPortHand:
+		return out << "Nmea_NavigationAidType_BeaconPreferredChannelPortHand";
+	case Nmea_NavigationAidType_BeaconPreferredChannelStarboardHand:
+		return out
+				<< "Nmea_NavigationAidType_BeaconPreferredChannelStarboardHand";
+	case Nmea_NavigationAidType_BeaconIsolatedDanger:
+		return out << "Nmea_NavigationAidType_BeaconIsolatedDanger";
+	case Nmea_NavigationAidType_BeaconSafeWater:
+		return out << "Nmea_NavigationAidType_BeaconSafeWater";
+	case Nmea_NavigationAidType_BeaconSpecialMark:
+		return out << "Nmea_NavigationAidType_BeaconSpecialMark";
+	case Nmea_NavigationAidType_CardinalMarkN:
+		return out << "Nmea_NavigationAidType_CardinalMarkN";
+	case Nmea_NavigationAidType_CardinalMarkE:
+		return out << "Nmea_NavigationAidType_CardinalMarkE";
+	case Nmea_NavigationAidType_CardinalMarkS:
+		return out << "Nmea_NavigationAidType_CardinalMarkS";
+	case Nmea_NavigationAidType_CardinalMarkW:
+		return out << "Nmea_NavigationAidType_CardinalMarkW";
+	case Nmea_NavigationAidType_PortHandMark:
+		return out << "Nmea_NavigationAidType_PortHandMark";
+	case Nmea_NavigationAidType_StarboardHandMark:
+		return out << "Nmea_NavigationAidType_StarboardHandMark";
+	case Nmea_NavigationAidType_PreferredChannelPortHand:
+		return out << "Nmea_NavigationAidType_PreferredChannelPortHand";
+	case Nmea_NavigationAidType_PreferredChannelStarboardHand:
+		return out << "Nmea_NavigationAidType_PreferredChannelStarboardHand";
+	case Nmea_NavigationAidType_IsolatedDanger:
+		return out << "Nmea_NavigationAidType_IsolatedDanger";
+	case Nmea_NavigationAidType_SafeWater:
+		return out << "Nmea_NavigationAidType_SafeWater";
+	case Nmea_NavigationAidType_SpecialMark:
+		return out << "Nmea_NavigationAidType_SpecialMark";
+	case Nmea_NavigationAidType_LightVessel:
+		return out << "Nmea_NavigationAidType_LightVessel";
+	}
+	return out << static_cast<int>(val);
+}
+
