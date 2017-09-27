@@ -3613,7 +3613,7 @@ bool NmeaParser::parseTTDPayload(const std::string& trackData,
 
 				tracks[i].correlationNumber = impl::decodeBitUInt(trackBinary,
 						cursor, 8);
-				cursor += 8;
+				//cursor += 8;
 				LOG_MESSAGE(debug) << "CorrelationNumber = "
 						<< tracks[i].correlationNumber;
 			}
@@ -4010,7 +4010,7 @@ bool NmeaParser::parseAISStaticAndVoyageRelatedData(
 			LOG_MESSAGE(debug) << "Draught = " << data.draught * 0.1f;
 
 			data.destination = impl::decodeBitString(binaryData, cursor, 120);
-			cursor += 120;
+			//cursor += 120;
 			LOG_MESSAGE(debug) << "Destination = " << data.destination;
 		}
 	}
@@ -4109,7 +4109,7 @@ bool NmeaParser::parseAISStandardClassBCSPositionReport(
 			LOG_MESSAGE(debug) << "TrueHeading = " << data.trueHeading;
 
 			data.timestapUTCSecond = impl::decodeBitUInt(binaryData, cursor, 6);
-			cursor += 6;
+			//cursor += 6;
 			LOG_MESSAGE(debug) << "TimestapUTCSecond = "
 					<< data.timestapUTCSecond;
 		}
@@ -4174,7 +4174,7 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData,
 			{
 				data.partA.vesselName = impl::decodeBitString(binaryData,
 						cursor, 120);
-				cursor += 120;
+				//cursor += 120;
 				LOG_MESSAGE(debug) << "VesselName = '" << data.partA.vesselName
 						<< "'";
 			}
@@ -4230,7 +4230,7 @@ bool NmeaParser::parseAISStaticDataReport(const std::string& encodedData,
 
 				data.partB.dimension.toStarboard = impl::decodeBitUInt(
 						binaryData, cursor, 6);
-				cursor += 6;
+				//cursor += 6;
 				LOG_MESSAGE(debug) << "DimensionToStarboard = "
 						<< data.partB.dimension.toStarboard;
 			}
